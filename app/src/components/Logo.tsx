@@ -8,28 +8,26 @@ type LogoProps = {
   // 'symbol' = rising sun only, 'full' = symbol + wordmark
   variant?: 'symbol' | 'full';
   size?: number;
+  // White lines and wordmark on the brand blue (splash)
+  onBlue?: boolean;
 };
 
-export function LogoSymbol({ size = 64 }: { size?: number }) {
+const ON_BLUE_LINES = '#FFFFFF';
+const ON_BLUE_EDGE = '#C9D5FF';
+
+export function LogoSymbol({ size = 64, onBlue = false }: { size?: number; onBlue?: boolean }) {
   const { colors } = useTheme();
+  const lines = onBlue ? ON_BLUE_LINES : colors.logoLines;
   return (
     <Svg width={size} height={size} viewBox="0 0 64 64">
       <Path d="M14 40 A18 18 0 0 1 50 40 Z" fill={colors.momentum} />
-      <Line
-        x1={6}
-        y1={40}
-        x2={58}
-        y2={40}
-        stroke={colors.logoLines}
-        strokeWidth={4}
-        strokeLinecap="round"
-      />
+      <Line x1={6} y1={40} x2={58} y2={40} stroke={lines} strokeWidth={4} strokeLinecap="round" />
       <Line
         x1={16}
         y1={48}
         x2={48}
         y2={48}
-        stroke={colors.logoLines}
+        stroke={lines}
         strokeWidth={4}
         strokeLinecap="round"
         opacity={0.55}
@@ -39,7 +37,7 @@ export function LogoSymbol({ size = 64 }: { size?: number }) {
         y1={56}
         x2={39}
         y2={56}
-        stroke={colors.logoLines}
+        stroke={lines}
         strokeWidth={4}
         strokeLinecap="round"
         opacity={0.3}
@@ -48,14 +46,14 @@ export function LogoSymbol({ size = 64 }: { size?: number }) {
   );
 }
 
-export function Logo({ variant = 'full', size = 64 }: LogoProps) {
+export function Logo({ variant = 'full', size = 64, onBlue = false }: LogoProps) {
   const { colors } = useTheme();
   const { t } = useTranslation();
 
   if (variant === 'symbol') {
     return (
       <View accessible accessibilityRole="image" accessibilityLabel={t('app.name')}>
-        <LogoSymbol size={size} />
+        <LogoSymbol size={size} onBlue={onBlue} />
       </View>
     );
   }
@@ -68,12 +66,19 @@ export function Logo({ variant = 'full', size = 64 }: LogoProps) {
       accessibilityRole="image"
       accessibilityLabel={t('app.name')}
     >
-      <LogoSymbol size={size} />
+      <LogoSymbol size={size} onBlue={onBlue} />
       <Text
-        style={[styles.wordmark, { fontSize, color: colors.text, letterSpacing: -fontSize * 0.03 }]}
+        style={[
+          styles.wordmark,
+          {
+            fontSize,
+            color: onBlue ? ON_BLUE_LINES : colors.text,
+            letterSpacing: -fontSize * 0.03,
+          },
+        ]}
       >
         daily
-        <Text style={{ color: colors.logoEdge }}>edge</Text>
+        <Text style={{ color: onBlue ? ON_BLUE_EDGE : colors.logoEdge }}>edge</Text>
       </Text>
     </View>
   );

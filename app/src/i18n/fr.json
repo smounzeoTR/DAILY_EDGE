@@ -4,7 +4,168 @@
     "signature": "1 % de mieux, chaque jour.",
     "tagline": "Ton coach quotidien, en 10 minutes."
   },
-  "home": {
-    "comingSoon": "Chaque jour, un avantage. L'app arrive bientôt."
+  "common": {
+    "continue": "Continuer",
+    "back": "Retour",
+    "skip": "Passer",
+    "next": "Suivant",
+    "start": "Commencer",
+    "retry": "Réessayer",
+    "loading": "Chargement…",
+    "errorGeneric": "Un souci est survenu. Réessaie dans un instant.",
+    "switchLanguage": "Passer en anglais"
+  },
+  "intro": {
+    "slide1Title": "Un principe par jour, tiré des meilleurs livres.",
+    "slide1Body": "Hill, Kiyosaki, Clear, Covey… {{count}} principes reformulés en trois lignes, choisis pour ton objectif.",
+    "slide1BodyNoCount": "Hill, Kiyosaki, Clear, Covey… des principes reformulés en trois lignes, choisis pour ton objectif.",
+    "principleOfDay": "Principe du jour",
+    "slide2Title": "Un exercice court, adapté à ta journée.",
+    "slide2Body": "Peu d'énergie ou peu de temps ? Le programme s'ajuste chaque soir pour que tu gardes le rythme.",
+    "exerciseOfDay": "Exercice du jour",
+    "exerciseTitle": "Juste commencer",
+    "lowEnergy": "énergie basse",
+    "markDone": "Marquer comme fait",
+    "slide3Title": "Trois habitudes minuscules, toujours tenables.",
+    "slide3Body": "Chaque habitude a son déclencheur et sa version de deux minutes pour les jours difficiles.",
+    "habit1": "Une page lue",
+    "habit1Cue": "Après le café…",
+    "habit2": "Deux minutes de respiration",
+    "habit2Cue": "En arrivant au bureau…",
+    "habit3": "Une chose rangée",
+    "habit3Cue": "Avant de dormir…",
+    "pagination": "Écran {{current}} sur {{total}}"
+  },
+  "auth": {
+    "signInTitle": "Connecte-toi",
+    "signInBody": "Entre ton e-mail : on t'envoie un code à 6 chiffres. Aucun mot de passe à retenir.",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "toi@exemple.com",
+    "sendCode": "Recevoir mon code",
+    "invalidEmail": "Vérifie l'adresse e-mail.",
+    "verifyTitle": "Entre ton code",
+    "verifyBody": "On vient de l'envoyer à {{email}}. Pense à regarder dans tes courriers indésirables.",
+    "codeLabel": "Code à 6 chiffres",
+    "verify": "Valider",
+    "invalidCode": "Ce code ne fonctionne pas ou a expiré. Réessaie ou demande-en un nouveau.",
+    "resend": "Renvoyer le code",
+    "resendIn": "Renvoyer le code dans {{seconds}} s",
+    "resent": "Nouveau code envoyé.",
+    "changeEmail": "Changer d'adresse",
+    "tooManyRequests": "Trop de demandes d'un coup. Patiente un instant avant de réessayer.",
+    "network": "Connexion impossible. Vérifie ton réseau et réessaie."
+  },
+  "domains": {
+    "clarity_goals": "Clarté & objectifs",
+    "discipline_habits": "Discipline & habitudes",
+    "money_wealth": "Argent & patrimoine",
+    "business_career": "Entreprise & carrière",
+    "mindset_beliefs": "Mental & croyances",
+    "relationships_network": "Relations & réseau",
+    "energy_health": "Énergie & santé"
+  },
+  "onboarding": {
+    "stepOf": "Étape {{current}} sur {{total}}",
+    "q": {
+      "goalTitle": "Quel est ton objectif principal ?",
+      "goalTitlePlaceholder": "Ex. : signer 5 nouveaux clients",
+      "goalMeasure": "Comment sauras-tu qu'il est atteint ?",
+      "valuePlaceholder": "Valeur",
+      "unitPlaceholder": "Unité (€, clients…)",
+      "invalidValue": "Indique un nombre, par exemple 5 ou 1500.",
+      "goalDeadline": "Pour quand ?",
+      "pickDate": "Choisir une date",
+      "deadlineInFuture": "Choisis une date à venir.",
+      "goalWhy": "Pourquoi est-ce important pour toi ?",
+      "goalWhyPlaceholder": "Ce que ça changera pour toi…",
+      "situation": "Ta situation",
+      "domains": "Tes domaines prioritaires (3 au maximum)",
+      "domainsCount": "{{count}} sur 3",
+      "blockers": "Ce qui te freine le plus",
+      "multipleChoice": "Plusieurs choix possibles.",
+      "dailyMinutes": "Temps disponible un jour normal",
+      "chronotype": "Ton meilleur moment de la journée",
+      "motivation": "Ce qui te motive",
+      "level": "Ton niveau en développement personnel",
+      "reminders": "Heures des rappels",
+      "morning": "Matin",
+      "evening": "Soir"
+    },
+    "situation": {
+      "employee": "Salarié",
+      "entrepreneur": "Entrepreneur",
+      "freelancer": "Indépendant",
+      "student": "Étudiant",
+      "in_transition": "En transition"
+    },
+    "blocker": {
+      "procrastination": "Procrastination",
+      "fear": "Peur",
+      "finances": "Finances",
+      "confidence": "Confiance",
+      "organisation": "Organisation",
+      "motivation": "Motivation"
+    },
+    "minutes": {
+      "5": "5 min",
+      "15": "15 min",
+      "30": "30 min",
+      "45": "45 min et plus"
+    },
+    "chronotype": {
+      "morning": "Matin",
+      "midday": "Midi",
+      "evening": "Soir"
+    },
+    "motivationStyle": {
+      "challenge": "Le défi",
+      "consistency": "La régularité",
+      "meaning": "Le sens",
+      "recognition": "La reconnaissance"
+    },
+    "level": {
+      "beginner": "Débutant",
+      "intermediate": "Intermédiaire",
+      "advanced": "Avancé"
+    },
+    "consent": {
+      "title": "Tes données, ton choix",
+      "checkinTitle": "Check-in du soir",
+      "checkinBody": "J'accepte que mon humeur et mon énergie soient enregistrées pour adapter mon plan.",
+      "aiTitle": "Personnalisation par IA",
+      "aiBody": "J'accepte qu'un profil résumé et anonymisé soit traité par une IA (offre premium).",
+      "note": "L'application reste utilisable sans ces options. Tu peux changer d'avis à tout moment dans les réglages."
+    },
+    "program": {
+      "title": "Ton programme",
+      "meta": "{{code}} · {{days}} jours",
+      "week": "Semaine {{n}}",
+      "change": "Changer de programme",
+      "chooseTitle": "Choisis ton programme",
+      "selected": "Sélectionné",
+      "close": "Fermer"
+    },
+    "habits": {
+      "title": "Choisis 3 habitudes",
+      "counter": "{{count}} sur 3 choisies",
+      "cue": "Ton signal",
+      "minimal": "Version minimale : {{text}}"
+    },
+    "errors": {
+      "submit": "Impossible d'enregistrer pour l'instant. Tes réponses sont gardées : réessaie dans un instant.",
+      "invalid_goal_deadline": "La date de ton objectif doit être à venir.",
+      "invalid_habits": "Choisis 3 habitudes différentes.",
+      "invalid_program": "Ce programme n'est plus disponible. Choisis-en un autre.",
+      "invalid_goal_title": "Indique ton objectif principal."
+    }
+  },
+  "today": {
+    "greeting": "Bonjour {{name}} !",
+    "greetingNoName": "Bonjour !",
+    "dayOf": "Jour {{day}} sur {{total}}",
+    "week": "Semaine {{n}} · {{theme}}",
+    "habitsTitle": "Tes habitudes",
+    "comingSoon": "Ton exercice du jour arrive bientôt ici.",
+    "signOut": "Se déconnecter"
   }
 }

@@ -13,6 +13,12 @@ export type ColorPalette = {
   textBody: string;
   logoEdge: string;
   logoLines: string;
+  // Selected chips and cards
+  primarySoft: string;
+  // Inline error messages
+  danger: string;
+  // Splash (always on brand blue)
+  splash: string;
 };
 
 export const lightColors: ColorPalette = {
@@ -29,6 +35,9 @@ export const lightColors: ColorPalette = {
   textBody: '#4A5578',
   logoEdge: '#2F5BFF',
   logoLines: '#2F5BFF',
+  primarySoft: '#E6ECFF',
+  danger: '#C0362C',
+  splash: '#2F5BFF',
 };
 
 export const darkColors: ColorPalette = {
@@ -46,4 +55,7 @@ export const darkColors: ColorPalette = {
   textBody: '#CDD4EA',
   logoEdge: '#8FA6FF',
   logoLines: '#5B7CFF',
+  primarySoft: '#1C2A5E',
+  danger: '#FF8A80',
+  splash: '#2F5BFF',
 };
