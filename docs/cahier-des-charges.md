@@ -103,53 +103,76 @@ Règles éditoriales : principes reformulés, jamais de citation longue ; exerci
 
 ## 5. Moteur de plan
 
-Le plan du lendemain est créé à la validation du check-in du soir, sinon par pg_cron à 2 h (heure locale de l'utilisateur), sinon à la première ouverture de la journée.
+Le plan du lendemain est créé à la validation du check-in du soir, sinon par pg_cron à 2 h (heure locale de l'utilisateur), sinon à la première ouverture de la journée. Règles précisées le 22 novembre 2026 (lot 3) ; implémentation : `supabase/functions/_shared/engine/`.
+
+### 5.0 Principes du moteur
+- `buildPlan(input)` est une fonction pure et déterministe : la date du plan est passée en entrée, jamais lue dans l'horloge. Toutes les dates sont des dates locales dans le fuseau de l'utilisateur.
+- Le check-in pris en compte est celui de la veille (J-1). Sans check-in la veille : temps disponible = `daily_minutes` du profil (15 s'il est vide ; « 45 et plus » compte pour 45), énergie supposée à 3. Sans consentement au check-in, l'énergie et l'humeur sont vides et l'énergie vaut aussi 3.
+- Énergie du jour → énergie requise acceptée : 1–2 → Basse uniquement ; 3 → Basse ou Moyenne ; 4–5 → toutes.
+- Niveau → difficulté maximale : débutant 2, intermédiaire 3, avancé 4 (5 au plus après une montée de niveau).
+- « Activité » d'une journée = au moins un exercice fait, une habitude cochée ou un check-in. Le jour de l'onboarding compte comme une activité.
 
 ### 5.1 Choix du mode
-1. **Reprise** (code `recovery`) : aucune activité depuis 3 jours ou plus → exercice minimal du jour en cours, message d'accueil bienveillant ; le programme n'avance pas.
-2. **Minimal** : énergie ≤ 2 au dernier check-in, ou temps disponible = 5 min, ou moins de 50 % d'exercices faits sur les 3 derniers jours → `minimal_exercise_id` du jour du programme (une action de 2 à 5 min).
-3. **Normal** : exercice principal du jour (`program_steps.day_index = program_day`).
+Ordre : reprise, sinon minimal, sinon normal.
+1. **Reprise** (code `recovery`, affichée « Reprise ») : aucune activité pendant les 3 jours complets qui précèdent la date du plan (J-1, J-2 et J-3). Un compte onboardé à J-3 ou après n'est jamais en reprise. Exercice minimal de l'étape en cours ; le programme n'avance pas.
+2. **Minimal** si l'une des conditions est vraie : énergie de la veille ≤ 2 ; temps disponible ≤ 5 min ; réalisation < 50 % calculée sur les jours qui avaient un plan parmi les 3 derniers (règle non appliquée s'il y en a moins de 2) ; humeur ≤ 2 les 5 derniers jours (le message bienveillant et les ressources d'aide viendront plus tard). « Charge réduite d'un cran » = ce mode minimal.
+3. **Normal** sinon.
 
-Le jour du programme avance de 1 chaque fois qu'un plan normal ou minimal est réalisé. Le jour où une étape introduit une habitude, proposer de l'ajouter.
+**Pendant un programme** : un seul exercice (principal en mode normal, minimal en mode minimal ou reprise) et le principe de l'étape (`program_steps.principle_id`). Si l'exercice principal dépasse le temps disponible, l'exercice minimal le remplace et le mode passe à minimal. Le filtre d'énergie ne s'applique pas aux exercices du programme.
 
-### 5.2 Après le jour 28 (ou sans programme)
-Filtres éliminatoires sur les exercices `published` :
-- durée ≤ temps disponible ;
-- énergie compatible (Basse uniquement si énergie ≤ 2) ;
-- prérequis déjà faits ;
-- délai de répétition respecté (« Non » = jamais deux fois) ;
-- persona de l'utilisateur ou « Tous » ;
-- difficulté ≤ niveau courant + 1 ;
-- exclusion 60 jours d'un exercice noté 1/5.
+**Remplacement d'un exercice du programme** s'il a été sauté 2 fois ou plus (« Trop dur » compte comme un saut), noté 1/5 il y a moins de 60 jours, s'il lui manque un prérequis (par exemple si seule la version minimale d'un jour précédent a été faite) ou s'il n'est pas publié. Ordre : exercice plus court partageant le principe de l'étape et passant tous les filtres du § 5.2 ; sinon l'exercice minimal de l'étape ; sinon le meilleur candidat du catalogue. Le principe du jour reste celui de l'étape.
+
+**Habitude introduite** : le jour où une étape introduit une habitude, le plan la propose (`daily_plans.introduced_habit_id`), sauf si l'utilisateur l'a déjà.
+
+**Avancement du programme** : seul le serveur le fait avancer. Le jour couvert par un plan est déduit du plan précédent : jour du plan précédent + 1 si son exercice (normal ou minimal) est « fait » et si ce n'était pas un plan de reprise, sinon le même jour. Recalculer un plan ne fait donc jamais avancer deux fois. `profiles.program_day` suit le plan le plus récent ; `program_day` et `program_start_date` ne sont écrits que par le serveur (et par `complete_onboarding`). Après le dernier jour du programme : mode catalogue.
+
+### 5.2 Mode catalogue (après le jour 28 ou sans programme)
+Filtres éliminatoires :
+- jamais levés : exercice publié ; pas noté 1/5 depuis moins de 60 jours ; prérequis déjà faits ; durée ≤ temps disponible ;
+- assouplissables : persona de l'utilisateur ou « Tous » ; énergie acceptée ; difficulté ≤ maximum du niveau ; délai de répétition respecté depuis la dernière réalisation (« Non » = jamais refait) ; exclusion des exercices sautés 2 fois.
+
+**Assouplissement** si aucun candidat ne passe : lever dans cet ordre en s'arrêtant dès qu'il y a un candidat : délai de répétition, puis exclusion des exercices sautés 2 fois, puis difficulté maximale +1, puis énergie, puis persona. En dernier recours : tout exercice de 5 min au plus passant les filtres jamais levés. Chaque étape est une règle journalisée (`relaxed_*`).
 
 Score des candidats (poids de départ, à recalibrer après 4 semaines de bêta) :
 
-`score = 0,30 × domaine + 0,25 × blocage + 0,15 × affinité (notes passées du même domaine) + 0,15 × nouveauté + 0,15 × équilibre des domaines sur 14 j`
+`score = 0,30 × domaine + 0,25 × blocage + 0,15 × affinité + 0,15 × nouveauté + 0,15 × équilibre`
+- domaine : 1 / 0,75 / 0,5 selon le rang dans les domaines prioritaires, 0 sinon ;
+- blocage : 1 si l'exercice traite un blocage de l'utilisateur ;
+- affinité : note moyenne des exercices du même domaine ramenée entre 0 et 1 ; valeur neutre 0,5 tant qu'il y a moins de 10 exercices notés ;
+- nouveauté : 1 si jamais proposé, sinon min(1, jours depuis la dernière proposition / 30) ;
+- équilibre : 1 − part du domaine dans les exercices proposés sur 14 jours.
+Égalité départagée par l'identifiant (déterminisme).
 
-1 exercice en mode minimal, 2 en mode normal si le temps disponible est d'au moins 30 minutes. Démarrage à froid : l'affinité n'entre en jeu qu'après 10 exercices notés.
+Nombre d'exercices : 1, ou 2 si le mode est normal et le temps disponible d'au moins 30 min (le second différent et tenant dans le temps restant). En mode minimal ou reprise : 1 exercice de 5 min au plus. Principe du jour : premier principe de l'exercice principal.
 
 ### 5.3 Règles d'ajustement
 | Condition | Action |
 | --- | --- |
-| Réalisation < 50 % pendant 3 jours | Charge réduite d'un cran |
-| Réalisation > 85 % pendant 7 jours | Niveau +1, un exercice plus exigeant introduit |
-| Énergie ≤ 2 deux jours de suite | Mode minimal |
-| Humeur ≤ 2 pendant 5 jours | Mode minimal + message bienveillant + ressources d'aide (en France, le 3114), sans diagnostic |
-| Habitude < 30 % sur 14 jours | Le bilan propose de la simplifier ou de la remplacer |
-| Exercice sauté 2 fois | Remplacé par un exercice plus court du même principe |
-| 3 jours sans activité | Plan de reprise doux |
-| Objectif en retard de plus de 20 % sur la trajectoire | Le bilan propose de réviser l'échéance |
+| Réalisation < 50 % sur les jours avec plan parmi les 3 derniers (≥ 2 jours) | Mode minimal |
+| Réalisation > 85 % sur les 7 derniers jours, tous avec plan | Difficulté maximale +1 ce jour-là en mode catalogue (montée durable via `profile_stats` au lot 5) |
+| Énergie ≤ 2 la veille | Mode minimal ; deux jours de suite : règle journalisée |
+| Humeur ≤ 2 pendant 5 jours | Mode minimal dès le lot 3 ; message bienveillant + ressources d'aide (en France, le 3114), sans diagnostic, au lot 8 |
+| Habitude < 30 % sur 14 jours | Le bilan propose de la simplifier ou de la remplacer (lot 6) |
+| Exercice sauté 2 fois (« Trop dur » compris) | Remplacé par un exercice plus court du même principe |
+| 3 jours complets sans activité | Plan de reprise doux |
+| Objectif en retard de plus de 20 % (valeur actuelle < 80 % de la trajectoire linéaire de 0 à la cible entre la création et l'échéance) | Détecté et journalisé dès le lot 3 ; le bilan propose de réviser l'échéance (lot 6) |
 
 Principe du jour (décision du 20 novembre 2026) :
 - **Pendant un programme**, le principe de l'étape fait foi (`program_steps.principle_id`), même s'il ne fait pas partie des principes de l'exercice principal. L'import signale ces cas par un avertissement (actuellement PR2 J5, PR2 J14 et PR3 J16).
 - **En mode catalogue** (après le jour 28 ou sans programme), c'est le premier principe de l'exercice principal (`exercise_principles.position = 1`).
 
 ### 5.4 « Pourquoi aujourd'hui » et IA
-- Gratuit : phrase construite par les règles (ex. « Ton énergie était basse hier : voici une version courte pour garder le rythme. », « Semaine 2 de ton programme : priorités et focus. »).
+- Gratuit : phrase construite par des modèles FR et EN, choisis selon la règle déclenchée la plus prioritaire (reprise, énergie basse, peu de temps, humeur basse, réalisation faible, remplacement, montée de niveau, thème de la semaine, programme terminé, domaine prioritaire, variété). Exemples : « Ton énergie était basse hier : voici une version courte pour garder le rythme. », « Semaine 2 de ton programme : priorités et focus. ». Le texte est enregistré dans la langue du profil (`daily_plans.why_today`) ; la clé du modèle et ses paramètres sont conservés dans `engine_decisions.why`.
 - Premium avec consentement IA : le LLM reçoit un profil résumé et pseudonymisé (ni nom ni e-mail), les 3 derniers check-ins et les 10 meilleurs candidats ; il choisit 1 à 3 exercices parmi les identifiants fournis, personnalise la consigne et rédige le « pourquoi aujourd'hui » en 2 phrases maximum, dans la langue de l'utilisateur. Sortie JSON validée par schéma ; en cas d'échec, repli sur le meilleur score sans personnalisation.
 - Bilan hebdo premium : le LLM résume la semaine et propose 1 à 3 ajustements ; en gratuit, résumé et propositions par règles.
 
-Chaque calcul écrit une ligne dans `engine_decisions` (règles déclenchées, candidats, modèle, sortie, repli, latence).
+Chaque calcul écrit une ligne dans `engine_decisions` (règles déclenchées, 10 meilleurs candidats avec le détail du score, pourquoi aujourd'hui, modèle, sortie, repli, latence).
+
+### 5.4 bis Edge Function `generate-plan`
+- L'utilisateur est identifié par son JWT, jamais par un paramètre ; le corps n'accepte que `{ "date" }` (aujourd'hui ou demain dans son fuseau, aujourd'hui par défaut). Profil non onboardé : erreur 409.
+- Idempotente : si le plan de la date existe et qu'aucun de ses exercices n'a été touché, il est recalculé (même identifiant) ; sinon il est renvoyé tel quel.
+- `daily_plans`, `plan_items`, `engine_decisions` et `profiles.program_day` sont écrits en une seule transaction (`save_daily_plan`, réservée au serveur).
+- Recalcul après réalisation : quand l'exercice du jour J passe à « fait », le plan de J+1 doit être recalculé s'il existe et n'a pas été touché ; c'est ce qui fait avancer le programme si l'exercice est fait après le check-in. L'appel est déclenché par l'app (lot 4).
 
 ### 5.5 Rappels
 Matin à `notify_morning` (« Ton exercice du jour est prêt »), soir à `notify_evening` (« 60 secondes pour ton check-in »).
@@ -174,7 +197,7 @@ Utilisateur (RLS sur `user_id = auth.uid()`, aucun accès anonyme) :
 - `user_habits` : id, user_id, template_id (nullable), title, cue, minimal_version, frequency, active. Décision du 21 novembre 2026 : pour une habitude issue d'un modèle, title, cue et minimal_version restent NULL tant que l'utilisateur ne les modifie pas, et l'app affiche le texte du modèle dans la langue courante ; seul ce qui a été personnalisé est enregistré (par exemple un signal). Une habitude sans modèle doit avoir son propre titre (contrainte `template_id is not null or title is not null`). La fréquence est copiée du modèle à la création.
 - `habit_logs` : user_habit_id, user_id, date, done
 - `checkins` : user_id, date, energy, mood, minutes_tomorrow, reflection, note
-- `daily_plans` : id, user_id, date (unique par utilisateur), principle_id, mode (normal / minimal / recovery, affiché « Reprise »), program_day (NULL en mode catalogue), why_today
+- `daily_plans` : id, user_id, date (unique par utilisateur), principle_id, mode (normal / minimal / recovery, affiché « Reprise »), program_day (NULL en mode catalogue), why_today, introduced_habit_id (habitude proposée par l'étape du jour)
 - `plan_items` : id, plan_id, user_id, exercise_id, position, personalized_instructions, status (todo / done / skipped / too_hard), proof_value, rating, completed_at
 
 Cohérence du `user_id` recopié dans `habit_logs` et `plan_items` (pour des politiques RLS simples) : clés étrangères composites `habit_logs (user_habit_id, user_id) → user_habits (id, user_id)` et `plan_items (plan_id, user_id) → daily_plans (id, user_id)`. Un utilisateur ne peut donc pas écrire de log sur l'habitude d'un autre.
@@ -186,7 +209,7 @@ Droits par table : CRUD complet sur ses lignes pour `goals`, `user_habits`, `hab
 - `favorites` : user_id, entity_type, entity_id
 - `profile_stats` : user_id, completion_7d, completion_by_domain (jsonb), energy_trend, avg_minutes, level, updated_at (recalculée chaque nuit)
 
-Moteur : `engine_decisions` : id, user_id, plan_id, rules_fired[], candidates (jsonb), llm_model, llm_input_hash, llm_output (jsonb), fallback_used, latency_ms, created_at. Lecture réservée aux admins.
+Moteur : `engine_decisions` : id, user_id, plan_id, rules_fired[], candidates (jsonb), why (jsonb : clé, paramètres, texte), llm_model, llm_input_hash, llm_output (jsonb), fallback_used, latency_ms, created_at. Lecture réservée aux admins. Fonctions serveur (service_role uniquement) : `save_daily_plan` (enregistrement transactionnel et idempotent d'un plan) et `engine_exercise_history` (historique agrégé par exercice).
 
 Dates utilisateur stockées en date locale, calculées avec `profiles.timezone`. Similarité entre exercices (pgvector) : reportée après la V1, le score d'affinité V1 se fonde sur les notes par domaine.
 

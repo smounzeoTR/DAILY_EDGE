@@ -32,10 +32,10 @@ Acceptation : `supabase db reset` charge 15 sources, 115 principes, 287 exercice
 Acceptation : un nouvel utilisateur termine l'onboarding en moins de 5 minutes et arrive sur Aujourd'hui avec son programme et ses 3 habitudes.
 
 ## Lot 3 — Moteur de plan
-- [ ] Fonction pure `buildPlan(input) → { mode, principleId, items[], whyToday, rulesFired[] }` dans `supabase/functions/_shared/engine/`.
-- [ ] Modes reprise / minimal / normal, avancement du programme, habitude introduite, mode catalogue après le jour 28 (filtres + score), exclusions (note 1/5, sauté 2 fois), « pourquoi aujourd'hui » par règles en FR et EN.
-- [ ] Tests Vitest : au moins un cas par règle de `cahier-des-charges.md` § 5.
-- [ ] Edge Function `generate-plan` : charge les données, appelle `buildPlan`, écrit `daily_plans`, `plan_items`, `engine_decisions` ; idempotente pour une date donnée.
+- [x] Fonction pure `buildPlan(input) → { mode, principleId, items[], whyToday, rulesFired[] }` dans `supabase/functions/_shared/engine/`.
+- [x] Modes reprise / minimal / normal, avancement du programme, habitude introduite, mode catalogue après le jour 28 (filtres + score), exclusions (note 1/5, sauté 2 fois), « pourquoi aujourd'hui » par règles en FR et EN.
+- [x] Tests Vitest : au moins un cas par règle de `cahier-des-charges.md` § 5.
+- [x] Edge Function `generate-plan` : charge les données, appelle `buildPlan`, écrit `daily_plans`, `plan_items`, `engine_decisions` ; idempotente pour une date donnée.
 
 Acceptation : tous les tests passent ; appeler la fonction deux fois pour la même date ne crée pas de doublon.
 
@@ -44,6 +44,7 @@ Acceptation : tous les tests passent ; appeler la fonction deux fois pour la mê
 - [ ] Coche des habitudes et version minimale en un geste.
 - [ ] Génération du plan à la première ouverture s'il n'existe pas.
 - [ ] Check-in du soir (§ 3.3) → appel de `generate-plan` pour le lendemain.
+- [ ] Quand l'exercice du jour J passe à « fait », rappeler `generate-plan` pour J+1 (recalcul du plan de demain s'il existe et n'a pas été touché : c'est ce qui fait avancer le programme si l'exercice est fait après le check-in).
 - [ ] Notifications locales matin et soir, replanifiées quand les heures changent.
 - [ ] pg_cron : génération de secours à 2 h locale pour les utilisateurs sans plan.
 

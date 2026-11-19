@@ -64,6 +64,9 @@ Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le tél�
 | Clés et URL locales | `supabase status` |
 | Importer le catalogue | `npm run import:catalog` (lit `data/catalogue.xlsx`, écrit `supabase/seed.sql`, puis `supabase db reset`) |
 | Tests base de données (pgTAP) | `npm run test:db` (= `supabase test db`, fichiers dans `supabase/tests/database/`) |
+| Tests d'intégration (Edge Functions) | `npm run test:integration` (Supabase local lancé ; après une nouvelle fonction ou un changement de `config.toml` : `supabase stop && supabase start`) |
+| Vérifier les Edge Functions (Deno) | `npm run check:functions` (`deno check` + `deno lint`, inclus dans `npm run typecheck`) |
+| Appeler `generate-plan` en local | `POST http://127.0.0.1:54321/functions/v1/generate-plan` avec `Authorization: Bearer <JWT utilisateur>` et `{ "date"?: "YYYY-MM-DD" }` |
 | Types TypeScript de la base | `npm run gen:types` (après chaque migration ; écrit `app/src/lib/database.types.ts` et `supabase/functions/_shared/database.types.ts`) |
 | SQL dans la base locale | `docker exec -it supabase_db_daily-edge psql -U postgres` (psql n'est pas installé sur le Mac) |
 | Démarrer l'app | `cd app && npx expo start` (QR code pour Expo Go ; `--tunnel` si réseau filtrant ; `-c` pour vider le cache) |
@@ -79,12 +82,14 @@ Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le tél�
 | Formatage | `npm run format` / `npm run format:check` |
 | Diagnostic Expo | `cd app && npx expo-doctor` |
 
-À lancer avant de déclarer un lot terminé : `npm run typecheck && npm run lint && npm run format:check && npm test && npm run test:db`, puis les scénarios Maestro de `app/e2e/` sur le simulateur.
+À lancer avant de déclarer un lot terminé : `npm run typecheck && npm run lint && npm run format:check && npm test && npm run test:db && npm run test:integration`, puis les scénarios Maestro de `app/e2e/` sur le simulateur.
 
 Notes :
 - Sur le téléphone, `localhost` désigne le téléphone : `EXPO_PUBLIC_SUPABASE_URL` doit pointer vers l'IP locale du Mac (voir `app/.env.example`).
 - `npx expo lint` refuse ESLint 9.39 (bug de détection) : le script `lint` appelle `eslint .` directement.
 - Moteur : imports relatifs avec extension `.ts` (exigé par Deno, accepté par Vitest).
+- Edge Functions : dépendances npm épinglées dans le `deno.json` de chaque fonction. Deno refuse les versions publiées depuis moins d'environ un jour : épingler une version un peu plus ancienne si besoin.
+- Moteur : `buildPlan` ne lit jamais l'horloge ; la date du plan est calculée par l'Edge Function dans le fuseau de l'utilisateur.
 - `app/.env` : `EXPO_PUBLIC_SUPABASE_URL` et `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (clé `sb_publishable_…` de `supabase status`).
 - Routage (Expo Router, `Stack.Protected`) : non connecté → `(public)` (présentation, une fois par appareil, puis connexion) ; connecté sans `onboarded_at` → `(onboarding)` ; sinon → `(app)`.
 - Stockage local (session, brouillon d'onboarding, préférences) : `app/src/lib/storage.ts` (expo-sqlite, non chiffré en V1).
