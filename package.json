@@ -1,0 +1,19 @@
+{
+  "name": "daily-edge",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit -p tsconfig.json && npm --prefix app run typecheck",
+    "lint": "npm --prefix app run lint",
+    "format": "prettier --write \"supabase/functions/**/*.ts\" \"*.ts\" && npm --prefix app run format",
+    "format:check": "prettier --check \"supabase/functions/**/*.ts\" \"*.ts\" && npm --prefix app run format:check"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "prettier": "^3.10.1",
+    "typescript": "~6.0.3",
+    "vitest": "^5.1.1"
+  }
+}
