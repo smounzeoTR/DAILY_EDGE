@@ -1,4 +1,4 @@
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Platform, Pressable, StyleSheet, View } from 'react-native';
@@ -39,10 +39,12 @@ export function DateField({
   const { colors, scheme } = useTheme();
   const [open, setOpen] = useState(false);
   const date = value ? fromIsoDate(value) : minimumDate;
-  const handle = (event: DateTimePickerEvent, selected?: Date) => {
+  // onValueChange: date picked; onDismiss: Android dialog cancelled
+  const pick = (_event: unknown, selected: Date) => {
     setOpen(false);
-    if (event.type === 'set' && selected) onChange(localDateString(selected));
+    onChange(localDateString(selected));
   };
+  const dismiss = () => setOpen(false);
 
   if (Platform.OS === 'ios') {
     return (
@@ -55,7 +57,7 @@ export function DateField({
           locale={i18n.language}
           themeVariant={scheme}
           accentColor={colors.primary}
-          onChange={handle}
+          onValueChange={pick}
         />
       </View>
     );
@@ -70,7 +72,13 @@ export function DateField({
         <AppText>{value ? date.toLocaleDateString(i18n.language) : placeholder}</AppText>
       </Pressable>
       {open ? (
-        <DateTimePicker value={date} mode="date" minimumDate={minimumDate} onChange={handle} />
+        <DateTimePicker
+          value={date}
+          mode="date"
+          minimumDate={minimumDate}
+          onValueChange={pick}
+          onDismiss={dismiss}
+        />
       ) : null}
     </>
   );
@@ -87,10 +95,11 @@ export function TimeField({
 }) {
   const { colors, scheme } = useTheme();
   const [open, setOpen] = useState(false);
-  const handle = (event: DateTimePickerEvent, selected?: Date) => {
+  const pick = (_event: unknown, selected: Date) => {
     setOpen(false);
-    if (event.type === 'set' && selected) onChange(toTime(selected));
+    onChange(toTime(selected));
   };
+  const dismiss = () => setOpen(false);
   return (
     <View style={[styles.timeRow, { backgroundColor: colors.card, borderColor: colors.border }]}>
       <AppText variant="bodyStrong">{label}</AppText>
@@ -101,7 +110,7 @@ export function TimeField({
           display="compact"
           themeVariant={scheme}
           accentColor={colors.primary}
-          onChange={handle}
+          onValueChange={pick}
           accessibilityLabel={label}
         />
       ) : (
@@ -116,7 +125,13 @@ export function TimeField({
             </AppText>
           </Pressable>
           {open ? (
-            <DateTimePicker value={fromTime(value)} mode="time" is24Hour onChange={handle} />
+            <DateTimePicker
+              value={fromTime(value)}
+              mode="time"
+              is24Hour
+              onValueChange={pick}
+              onDismiss={dismiss}
+            />
           ) : null}
         </>
       )}
