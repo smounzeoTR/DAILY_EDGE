@@ -1,0 +1,10 @@
+{
+  "app": {
+    "name": "Daily Edge",
+    "signature": "1% better, every day.",
+    "tagline": "Your daily coach, in 10 minutes."
+  },
+  "home": {
+    "comingSoon": "Every day, an edge. The app is coming soon."
+  }
+}
