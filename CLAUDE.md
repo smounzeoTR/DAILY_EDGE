@@ -34,7 +34,7 @@ Maquette validée (référence visuelle et fonctionnelle) : https://daily-edge-p
 ```
 DAILY_EDGE/
   app/                      # application Expo
-    app/                    # routes Expo Router : (auth), (onboarding), (tabs)/today, progress, library, settings, checkin, weekly-review, admin
+    src/app/                # routes Expo Router (convention SDK 58) : (auth), (onboarding), (tabs)/today, progress, library, settings, checkin, weekly-review, admin
     src/components/ src/theme/ src/i18n/ src/lib/ (supabase, queries) src/features/
   supabase/
     migrations/             # SQL versionné
@@ -51,7 +51,30 @@ DAILY_EDGE/
 
 ## Commandes
 
-À compléter au fil du lot 0 : démarrage Expo, `supabase start`, `supabase db reset` (rejoue migrations + seed), tests (`npx vitest`), lint, typecheck.
+Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le téléphone. Deux `package.json` séparés (racine = tests et outillage, `app/` = application), sans workspaces.
+
+| Action | Commande (depuis la racine sauf mention) |
+| --- | --- |
+| Installer les dépendances | `npm install && npm --prefix app install` |
+| Ajouter une dépendance à l'app | `cd app && npx expo install <paquet>` (versions compatibles SDK) |
+| Démarrer Supabase local | `supabase start` (API 54321, Studio http://127.0.0.1:54323, e-mails Mailpit http://127.0.0.1:54324) |
+| Arrêter Supabase | `supabase stop` |
+| Rejouer migrations + seed | `supabase db reset` |
+| Nouvelle migration | `supabase migration new <nom>` |
+| Clés et URL locales | `supabase status` |
+| Démarrer l'app | `cd app && npx expo start` (QR code pour Expo Go ; `--tunnel` si réseau filtrant ; `-c` pour vider le cache) |
+| Tests (moteur, i18n, scripts) | `npm test` (= `vitest run`), `npm run test:watch` |
+| Typecheck (racine + app) | `npm run typecheck` |
+| Lint | `npm run lint` |
+| Formatage | `npm run format` / `npm run format:check` |
+| Diagnostic Expo | `cd app && npx expo-doctor` |
+
+À lancer avant de déclarer un lot terminé : `npm run typecheck && npm run lint && npm run format:check && npm test`.
+
+Notes :
+- Sur le téléphone, `localhost` désigne le téléphone : `EXPO_PUBLIC_SUPABASE_URL` doit pointer vers l'IP locale du Mac (voir `app/.env.example`).
+- `npx expo lint` refuse ESLint 9.39 (bug de détection) : le script `lint` appelle `eslint .` directement.
+- Moteur : imports relatifs avec extension `.ts` (exigé par Deno, accepté par Vitest).
 
 ## Règles de travail
 

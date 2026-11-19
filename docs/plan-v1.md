@@ -4,13 +4,13 @@ Neuf lots, chacun livrable et testable seul. On ne commence un lot que lorsque l
 
 ## Lot 0 — Mise en place (½ journée)
 - [ ] Prérequis vérifiés : Node LTS, Docker Desktop lancé, Supabase CLI (`brew install supabase/tap/supabase`), Expo Go sur le téléphone, Git.
-- [ ] `git init`, `.gitignore` (node_modules, .env*, .expo, supabase/.temp).
-- [ ] App Expo TypeScript avec Expo Router dans `app/` (`npx create-expo-app@latest app`), TypeScript strict, ESLint + Prettier.
-- [ ] `supabase init` à la racine, `supabase start` fonctionne en local.
-- [ ] Vitest à la racine pour les tests du moteur.
-- [ ] Jetons de thème clair/sombre, polices, composant Logo (voir `identite-visuelle.md`).
-- [ ] i18n FR/EN branché, détection de la langue du téléphone.
-- [ ] Section « Commandes » de `CLAUDE.md` complétée.
+- [x] `git init`, `.gitignore` (node_modules, .env*, .expo, supabase/.temp).
+- [x] App Expo TypeScript avec Expo Router dans `app/` (`npx create-expo-app@latest app`), TypeScript strict, ESLint + Prettier.
+- [x] `supabase init` à la racine, `supabase start` fonctionne en local.
+- [x] Vitest à la racine pour les tests du moteur.
+- [x] Jetons de thème clair/sombre, polices, composant Logo (voir `identite-visuelle.md`).
+- [x] i18n FR/EN branché, détection de la langue du téléphone.
+- [x] Section « Commandes » de `CLAUDE.md` complétée.
 
 Acceptation : l'app s'ouvre dans Expo Go avec le logo et un texte traduit ; `supabase start` et `npx vitest` passent.
 
