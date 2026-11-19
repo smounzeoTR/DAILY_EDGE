@@ -1,0 +1,21 @@
+diff --git a/node_modules/expo-dev-launcher/ios/SwiftUI/Navigation/DevLauncherToolbar.swift b/node_modules/expo-dev-launcher/ios/SwiftUI/Navigation/DevLauncherToolbar.swift
+index 23e857f..802e07b 100644
+--- a/node_modules/expo-dev-launcher/ios/SwiftUI/Navigation/DevLauncherToolbar.swift
++++ b/node_modules/expo-dev-launcher/ios/SwiftUI/Navigation/DevLauncherToolbar.swift
+@@ -16,15 +16,8 @@ extension View {
+ extension ToolbarContent {
+   @ToolbarContentBuilder
+   func verticalBarPreferred() -> some ToolbarContent {
+-#if os(iOS) && compiler(>=6.4)
+-    if #available(iOS 27.1, *) {
+-      axisBehavior(.verticalPreferred)
+-    } else {
+-      self
+-    }
+-#else
++    // Patched: axisBehavior needs the iOS 27.1 SDK; Xcode 27.0 ships Swift 6.4 with SDK 27.0.
+     self
+-#endif
+   }
+ 
+   @ToolbarContentBuilder
