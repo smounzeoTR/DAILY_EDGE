@@ -24,10 +24,10 @@ Acceptation : l'app s'ouvre dans Expo Go avec le logo et un texte traduit ; `sup
 Acceptation : `supabase db reset` charge 15 sources, 115 principes, 287 exercices, 42 habitudes, 4 programmes et 112 étapes sans erreur ; un test vérifie qu'un utilisateur ne lit pas les données d'un autre.
 
 ## Lot 2 — Accueil, authentification et onboarding
-- [ ] Splash, 3 écrans de présentation (avec les corrections de `corrections-maquette.md`), connexion par lien magique.
-- [ ] 12 questions, une par écran, barre de progression, « Passer » sauf Q1.
-- [ ] Consentements séparés, écran « Ton programme » (règle d'attribution), choix de 3 habitudes filtrées, signal modifiable.
-- [ ] Écriture de `goals`, `profiles`, `user_habits`, `program_start_date`, `program_day = 1`.
+- [x] Splash, 3 écrans de présentation (avec les corrections de `corrections-maquette.md`), connexion par code à 6 chiffres envoyé par e-mail (OTP). Lien magique abandonné en V1 : liens profonds non fiables dans Expo Go (décision du 21 novembre 2026).
+- [x] 12 questions, une par écran, barre de progression, « Passer » sauf Q1.
+- [x] Consentements séparés, écran « Ton programme » (règle d'attribution), choix de 3 habitudes filtrées, signal modifiable.
+- [x] Écriture de `goals`, `profiles`, `user_habits`, `program_start_date`, `program_day = 1` en une transaction (fonction Postgres `complete_onboarding`) ; brouillon local si l'app est fermée en cours de route.
 
 Acceptation : un nouvel utilisateur termine l'onboarding en moins de 5 minutes et arrive sur Aujourd'hui avec son programme et ses 3 habitudes.
 
@@ -69,3 +69,5 @@ Acceptation : sur le téléphone, une journée complète (exercice, habitudes, c
 - [ ] Message bienveillant et ressources d'aide (3114) si humeur ≤ 2 pendant 5 jours.
 - [ ] Sentry et PostHog (UE), politique de confidentialité, mentions dans l'onboarding.
 - [ ] Projet Supabase de recette (région UE), builds EAS, TestFlight et test interne Android.
+- [ ] Réévaluer le stockage local chiffré : session Supabase et brouillon d'onboarding sont en V1 dans expo-sqlite, non chiffré (piste : SecureStore pour la clé + chiffrement des valeurs).
+- [ ] Lien magique avec liens universels (iOS) et App Links (Android), si utile en plus du code.

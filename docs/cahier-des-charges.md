@@ -33,7 +33,7 @@ Règle d'attribution (après l'onboarding) :
 1. Premier domaine prioritaire = « Argent & patrimoine » → Débutant financier, PR4.
 2. Sinon : entrepreneur ou indépendant → Entrepreneur, PR1 ; salarié → Salarié, PR2 ; étudiant ou en transition → Reconverti, PR3.
 
-Le persona est un point de départ, modifiable ensuite.
+Situation non renseignée (Q5 passée) → Entrepreneur, PR1. Sur l'écran « Ton programme », « Changer de programme » affiche les programmes publiés ; le choix remplace le persona et le programme. Le persona est un point de départ, modifiable ensuite.
 
 ## 3. Écrans
 
@@ -57,7 +57,7 @@ Splash (logo soleil levant), trois écrans de présentation (voir `corrections-m
 | 11 | Ton niveau en développement personnel | débutant, intermédiaire, avancé | level |
 | 12 | Heures des rappels | matin et soir | notify_morning, notify_evening |
 
-Toutes les questions sauf la 1 peuvent être passées. Ensuite :
+Toutes les questions sauf la 1 peuvent être passées (Q8 passée → 15 minutes ; rappels par défaut 07:30 et 21:00). L'échéance (Q3), si elle est donnée, doit être dans le futur. Les réponses en cours sont gardées sur l'appareil si l'app est fermée. Ensuite :
 1. Consentements, deux cases séparées : check-in du soir (humeur, énergie) et personnalisation par IA. L'app reste utilisable sans.
 2. Écran « Ton programme » : nom, description et ses 4 semaines (thèmes).
 3. Choix de 3 habitudes parmi les modèles, filtrés sur les domaines prioritaires et le persona ; le signal proposé est modifiable.
@@ -171,13 +171,15 @@ Utilisateur (RLS sur `user_id = auth.uid()`, aucun accès anonyme) :
 - `profiles` : user_id, display_name, locale, timezone, situation, priority_domains[] (3 max), blockers[], daily_minutes, chronotype, motivation_style, level, persona, program_id, program_start_date, program_day, notify_morning, notify_evening, consent_checkin, consent_ai, consent_at, role (user / admin, non modifiable par l'utilisateur), onboarded_at. Créé automatiquement à l'inscription (trigger sur `auth.users`), avec un abonnement `free`.
 - `subscriptions` : user_id, plan (free / premium), provider, status, current_period_end
 - `goals` : id, user_id, title, why, target_value, unit, deadline, current_value, status
-- `user_habits` : id, user_id, template_id (nullable), title, cue, minimal_version, frequency, active
+- `user_habits` : id, user_id, template_id (nullable), title, cue, minimal_version, frequency, active. Décision du 21 novembre 2026 : pour une habitude issue d'un modèle, title, cue et minimal_version restent NULL tant que l'utilisateur ne les modifie pas, et l'app affiche le texte du modèle dans la langue courante ; seul ce qui a été personnalisé est enregistré (par exemple un signal). Une habitude sans modèle doit avoir son propre titre (contrainte `template_id is not null or title is not null`). La fréquence est copiée du modèle à la création.
 - `habit_logs` : user_habit_id, user_id, date, done
 - `checkins` : user_id, date, energy, mood, minutes_tomorrow, reflection, note
 - `daily_plans` : id, user_id, date (unique par utilisateur), principle_id, mode (normal / minimal / recovery, affiché « Reprise »), program_day (NULL en mode catalogue), why_today
 - `plan_items` : id, plan_id, user_id, exercise_id, position, personalized_instructions, status (todo / done / skipped / too_hard), proof_value, rating, completed_at
 
 Cohérence du `user_id` recopié dans `habit_logs` et `plan_items` (pour des politiques RLS simples) : clés étrangères composites `habit_logs (user_habit_id, user_id) → user_habits (id, user_id)` et `plan_items (plan_id, user_id) → daily_plans (id, user_id)`. Un utilisateur ne peut donc pas écrire de log sur l'habitude d'un autre.
+
+Fin de l'onboarding : fonction `complete_onboarding` (security invoker), qui écrit en une transaction l'objectif, le profil (réponses, persona déduit du programme choisi, programme, `program_start_date` = date du jour dans le fuseau de l'utilisateur, `program_day = 1`, consentements, `onboarded_at`) et les 3 habitudes. Elle refuse une échéance qui n'est pas dans le futur, un programme non publié, autre chose que 3 modèles d'habitude distincts et publiés, et un second appel.
 
 Droits par table : CRUD complet sur ses lignes pour `goals`, `user_habits`, `habit_logs`, `checkins`, `favorites` ; lecture seule pour `subscriptions`, `daily_plans`, `profile_stats` (écrites côté serveur) ; modification limitée à certaines colonnes pour `profiles` (jamais `role`), `plan_items` (status, proof_value, rating, completed_at) et `weekly_reviews` (accepted).
 - `weekly_reviews` : id, user_id, week_start, summary, proposals (jsonb), accepted (jsonb)

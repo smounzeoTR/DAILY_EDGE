@@ -68,18 +68,26 @@ Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le tél�
 | SQL dans la base locale | `docker exec -it supabase_db_daily-edge psql -U postgres` (psql n'est pas installé sur le Mac) |
 | Démarrer l'app | `cd app && npx expo start` (QR code pour Expo Go ; `--tunnel` si réseau filtrant ; `-c` pour vider le cache) |
 | Démarrer sur le simulateur iOS | `cd app && npx expo start --ios` (ou touche `i` dans Metro) ; mode sombre : `xcrun simctl ui booted appearance dark` |
+| Forcer Expo Go (expo-dev-client installé) | `cd app && npx expo start --go --ios` |
+| Rebuild du development build (nouveau module natif) | `cd app && npx expo prebuild --platform ios && cd ios && pod install`, puis ⌘R dans Xcode |
+| Se connecter en local | e-mail quelconque dans l'app, puis le code à 6 chiffres dans Mailpit (http://127.0.0.1:54324) |
+| Config Supabase modifiée (`config.toml`, modèles d'e-mail) | `supabase stop && supabase start` (un `db reset` ne recharge pas la config) |
+| Tests de bout en bout (simulateur iOS, Maestro) | Metro lancé (`cd app && npx expo start --go`), puis `export PATH="/opt/homebrew/opt/openjdk/bin:$PATH" && maestro test app/e2e/lot2-sign-in-onboarding.yaml -e APP_URL=exp://127.0.0.1:8081`. Installation : `brew install openjdk mobile-dev-inc/tap/maestro` (pas le cask `maestro`, qui est un autre logiciel) |
 | Tests (moteur, i18n, scripts) | `npm test` (= `vitest run`), `npm run test:watch` |
 | Typecheck (racine + app) | `npm run typecheck` |
 | Lint | `npm run lint` |
 | Formatage | `npm run format` / `npm run format:check` |
 | Diagnostic Expo | `cd app && npx expo-doctor` |
 
-À lancer avant de déclarer un lot terminé : `npm run typecheck && npm run lint && npm run format:check && npm test && npm run test:db`.
+À lancer avant de déclarer un lot terminé : `npm run typecheck && npm run lint && npm run format:check && npm test && npm run test:db`, puis les scénarios Maestro de `app/e2e/` sur le simulateur.
 
 Notes :
 - Sur le téléphone, `localhost` désigne le téléphone : `EXPO_PUBLIC_SUPABASE_URL` doit pointer vers l'IP locale du Mac (voir `app/.env.example`).
 - `npx expo lint` refuse ESLint 9.39 (bug de détection) : le script `lint` appelle `eslint .` directement.
 - Moteur : imports relatifs avec extension `.ts` (exigé par Deno, accepté par Vitest).
+- `app/.env` : `EXPO_PUBLIC_SUPABASE_URL` et `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (clé `sb_publishable_…` de `supabase status`).
+- Routage (Expo Router, `Stack.Protected`) : non connecté → `(public)` (présentation, une fois par appareil, puis connexion) ; connecté sans `onboarded_at` → `(onboarding)` ; sinon → `(app)`.
+- Stockage local (session, brouillon d'onboarding, préférences) : `app/src/lib/storage.ts` (expo-sqlite, non chiffré en V1).
 
 ## Règles de travail
 
