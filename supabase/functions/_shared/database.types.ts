@@ -906,7 +906,7 @@ export type Database = {
           id: string;
           minimal_version: string | null;
           template_id: string | null;
-          title: string;
+          title: string | null;
           updated_at: string;
           user_id: string;
         };
@@ -919,7 +919,7 @@ export type Database = {
           id?: string;
           minimal_version?: string | null;
           template_id?: string | null;
-          title: string;
+          title?: string | null;
           updated_at?: string;
           user_id: string;
         };
@@ -931,7 +931,7 @@ export type Database = {
           id?: string;
           minimal_version?: string | null;
           template_id?: string | null;
-          title?: string;
+          title?: string | null;
           updated_at?: string;
           user_id?: string;
         };
@@ -984,6 +984,31 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      complete_onboarding: {
+        Args: {
+          p_blockers?: Database['public']['Enums']['blocker'][];
+          p_chronotype?: Database['public']['Enums']['chronotype'];
+          p_consent_ai?: boolean;
+          p_consent_checkin?: boolean;
+          p_daily_minutes?: number;
+          p_goal_deadline?: string;
+          p_goal_target_value?: number;
+          p_goal_title: string;
+          p_goal_unit?: string;
+          p_goal_why?: string;
+          p_habits: Json;
+          p_level?: Database['public']['Enums']['user_level'];
+          p_locale?: string;
+          p_motivation_style?: Database['public']['Enums']['motivation_style'];
+          p_notify_evening?: string;
+          p_notify_morning?: string;
+          p_priority_domains?: Database['public']['Enums']['domain'][];
+          p_program_id: string;
+          p_situation?: Database['public']['Enums']['situation'];
+          p_timezone?: string;
+        };
+        Returns: undefined;
+      };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
     };
     Enums: {
