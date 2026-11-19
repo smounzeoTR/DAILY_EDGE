@@ -13,3 +13,4 @@ ios/
 android/
 coverage/
 *.tsbuildinfo
+/build/

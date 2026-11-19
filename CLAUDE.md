@@ -63,6 +63,7 @@ Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le tél�
 | Nouvelle migration | `supabase migration new <nom>` |
 | Clés et URL locales | `supabase status` |
 | Démarrer l'app | `cd app && npx expo start` (QR code pour Expo Go ; `--tunnel` si réseau filtrant ; `-c` pour vider le cache) |
+| Démarrer sur le simulateur iOS | `cd app && npx expo start --ios` (ou touche `i` dans Metro) ; mode sombre : `xcrun simctl ui booted appearance dark` |
 | Tests (moteur, i18n, scripts) | `npm test` (= `vitest run`), `npm run test:watch` |
 | Typecheck (racine + app) | `npm run typecheck` |
 | Lint | `npm run lint` |
