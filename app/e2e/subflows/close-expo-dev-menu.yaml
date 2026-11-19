@@ -1,0 +1,12 @@
+# Expo Go opens its developer menu on some launches; close it if present.
+appId: host.exp.Exponent
+---
+- waitForAnimationToEnd:
+    timeout: 5000
+- runFlow:
+    when:
+      visible: 'Toggle performance monitor'
+    commands:
+      - tapOn: 'Close'
+      - waitForAnimationToEnd:
+          timeout: 3000
