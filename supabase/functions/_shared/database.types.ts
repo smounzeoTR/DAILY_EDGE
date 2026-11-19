@@ -65,6 +65,7 @@ export type Database = {
           created_at: string;
           date: string;
           id: string;
+          introduced_habit_id: string | null;
           mode: Database['public']['Enums']['plan_mode'];
           principle_id: string | null;
           program_day: number | null;
@@ -76,6 +77,7 @@ export type Database = {
           created_at?: string;
           date: string;
           id?: string;
+          introduced_habit_id?: string | null;
           mode: Database['public']['Enums']['plan_mode'];
           principle_id?: string | null;
           program_day?: number | null;
@@ -86,6 +88,7 @@ export type Database = {
           created_at?: string;
           date?: string;
           id?: string;
+          introduced_habit_id?: string | null;
           mode?: Database['public']['Enums']['plan_mode'];
           principle_id?: string | null;
           program_day?: number | null;
@@ -93,6 +96,13 @@ export type Database = {
           why_today?: string | null;
         };
         Relationships: [
+          {
+            foreignKeyName: 'daily_plans_introduced_habit_id_fkey';
+            columns: ['introduced_habit_id'];
+            isOneToOne: false;
+            referencedRelation: 'habit_templates';
+            referencedColumns: ['id'];
+          },
           {
             foreignKeyName: 'daily_plans_principle_id_fkey';
             columns: ['principle_id'];
@@ -115,6 +125,7 @@ export type Database = {
           plan_id: string | null;
           rules_fired: string[];
           user_id: string;
+          why: Json | null;
         };
         ComputedFields: never;
         Insert: {
@@ -129,6 +140,7 @@ export type Database = {
           plan_id?: string | null;
           rules_fired?: string[];
           user_id: string;
+          why?: Json | null;
         };
         Update: {
           candidates?: NonNullable<Json>;
@@ -142,6 +154,7 @@ export type Database = {
           plan_id?: string | null;
           rules_fired?: string[];
           user_id?: string;
+          why?: Json | null;
         };
         Relationships: [
           {
@@ -1009,7 +1022,20 @@ export type Database = {
         };
         Returns: undefined;
       };
+      engine_exercise_history: {
+        Args: { p_user_id: string };
+        Returns: {
+          exercise_id: string;
+          last_done_on: string;
+          last_rating1_on: string;
+          skips: number;
+        }[];
+      };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
+      save_daily_plan: {
+        Args: { p_date: string; p_decision: Json; p_plan: Json; p_user_id: string };
+        Returns: Json;
+      };
     };
     Enums: {
       blocker:
