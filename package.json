@@ -7,11 +7,15 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit -p tsconfig.json && npm --prefix app run typecheck",
     "lint": "npm --prefix app run lint",
-    "format": "prettier --write \"supabase/functions/**/*.ts\" \"*.ts\" && npm --prefix app run format",
-    "format:check": "prettier --check \"supabase/functions/**/*.ts\" \"*.ts\" && npm --prefix app run format:check"
+    "format": "prettier --write \"supabase/functions/**/*.ts\" \"scripts/**/*.ts\" \"*.ts\" && npm --prefix app run format",
+    "format:check": "prettier --check \"supabase/functions/**/*.ts\" \"scripts/**/*.ts\" \"*.ts\" && npm --prefix app run format:check",
+    "import:catalog": "node scripts/import-catalog/index.ts",
+    "test:db": "supabase test db",
+    "gen:types": "supabase gen types typescript --local > app/src/lib/database.types.ts && cp app/src/lib/database.types.ts supabase/functions/_shared/database.types.ts && prettier --write app/src/lib/database.types.ts supabase/functions/_shared/database.types.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "exceljs": "^4.4.0",
     "prettier": "^3.10.1",
     "typescript": "~6.0.3",
     "vitest": "^5.1.1"
