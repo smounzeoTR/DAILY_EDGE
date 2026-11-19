@@ -1,7 +1,8 @@
-// Plan engine: pure function (profile + history + catalog -> plan), implemented in lot 3.
-// Must stay free of I/O and runtime-specific APIs so it runs in both Deno and Vitest.
-// Use explicit `.ts` extensions in relative imports (required by Deno).
+// Plan engine: pure function (profile + history + catalogue -> plan).
+// No I/O, no clock, no npm dependency: runs in Deno (Edge Functions) and Vitest.
+// Relative imports use explicit `.ts` extensions (required by Deno).
 
-export type PlanMode = 'normal' | 'minimal' | 'recovery';
+export { buildPlan } from './buildPlan.ts';
+export type * from './types.ts';
 
-export const PLAN_MODES: readonly PlanMode[] = ['normal', 'minimal', 'recovery'];
+export const PLAN_MODES = ['normal', 'minimal', 'recovery'] as const;
