@@ -410,6 +410,10 @@ deno_version = 2
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
 
+# Plan generation: the user comes from the JWT only
+[functions.generate-plan]
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327
