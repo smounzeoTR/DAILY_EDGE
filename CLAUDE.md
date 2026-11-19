@@ -62,6 +62,10 @@ Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le tél�
 | Rejouer migrations + seed | `supabase db reset` |
 | Nouvelle migration | `supabase migration new <nom>` |
 | Clés et URL locales | `supabase status` |
+| Importer le catalogue | `npm run import:catalog` (lit `data/catalogue.xlsx`, écrit `supabase/seed.sql`, puis `supabase db reset`) |
+| Tests base de données (pgTAP) | `npm run test:db` (= `supabase test db`, fichiers dans `supabase/tests/database/`) |
+| Types TypeScript de la base | `npm run gen:types` (après chaque migration ; écrit `app/src/lib/database.types.ts` et `supabase/functions/_shared/database.types.ts`) |
+| SQL dans la base locale | `docker exec -it supabase_db_daily-edge psql -U postgres` (psql n'est pas installé sur le Mac) |
 | Démarrer l'app | `cd app && npx expo start` (QR code pour Expo Go ; `--tunnel` si réseau filtrant ; `-c` pour vider le cache) |
 | Démarrer sur le simulateur iOS | `cd app && npx expo start --ios` (ou touche `i` dans Metro) ; mode sombre : `xcrun simctl ui booted appearance dark` |
 | Tests (moteur, i18n, scripts) | `npm test` (= `vitest run`), `npm run test:watch` |
@@ -70,7 +74,7 @@ Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le tél�
 | Formatage | `npm run format` / `npm run format:check` |
 | Diagnostic Expo | `cd app && npx expo-doctor` |
 
-À lancer avant de déclarer un lot terminé : `npm run typecheck && npm run lint && npm run format:check && npm test`.
+À lancer avant de déclarer un lot terminé : `npm run typecheck && npm run lint && npm run format:check && npm test && npm run test:db`.
 
 Notes :
 - Sur le téléphone, `localhost` désigne le téléphone : `EXPO_PUBLIC_SUPABASE_URL` doit pointer vers l'IP locale du Mac (voir `app/.env.example`).

@@ -106,7 +106,7 @@ Règles éditoriales : principes reformulés, jamais de citation longue ; exerci
 Le plan du lendemain est créé à la validation du check-in du soir, sinon par pg_cron à 2 h (heure locale de l'utilisateur), sinon à la première ouverture de la journée.
 
 ### 5.1 Choix du mode
-1. **Reprise** : aucune activité depuis 3 jours ou plus → exercice minimal du jour en cours, message d'accueil bienveillant ; le programme n'avance pas.
+1. **Reprise** (code `recovery`) : aucune activité depuis 3 jours ou plus → exercice minimal du jour en cours, message d'accueil bienveillant ; le programme n'avance pas.
 2. **Minimal** : énergie ≤ 2 au dernier check-in, ou temps disponible = 5 min, ou moins de 50 % d'exercices faits sur les 3 derniers jours → `minimal_exercise_id` du jour du programme (une action de 2 à 5 min).
 3. **Normal** : exercice principal du jour (`program_steps.day_index = program_day`).
 
@@ -140,7 +140,9 @@ Score des candidats (poids de départ, à recalibrer après 4 semaines de bêta)
 | 3 jours sans activité | Plan de reprise doux |
 | Objectif en retard de plus de 20 % sur la trajectoire | Le bilan propose de réviser l'échéance |
 
-Le principe du jour est le premier principe de l'exercice principal.
+Principe du jour (décision du 20 novembre 2026) :
+- **Pendant un programme**, le principe de l'étape fait foi (`program_steps.principle_id`), même s'il ne fait pas partie des principes de l'exercice principal. L'import signale ces cas par un avertissement (actuellement PR2 J5, PR2 J14 et PR3 J16).
+- **En mode catalogue** (après le jour 28 ou sans programme), c'est le premier principe de l'exercice principal (`exercise_principles.position = 1`).
 
 ### 5.4 « Pourquoi aujourd'hui » et IA
 - Gratuit : phrase construite par les règles (ex. « Ton énergie était basse hier : voici une version courte pour garder le rythme. », « Semaine 2 de ton programme : priorités et focus. »).
@@ -154,22 +156,35 @@ Matin à `notify_morning` (« Ton exercice du jour est prêt »), soir à `notif
 
 ## 6. Schéma de données (PostgreSQL)
 
-Contenu (lecture seule côté app, `published` uniquement) : `sources`, `principles`, `principle_sources`, `exercises`, `exercise_principles`, `exercise_tags` (domain, persona, blocker), `exercise_prerequisites`, `habit_templates`, `programs`, `program_steps`. Les textes FR/EN sont stockés en colonnes `*_fr` / `*_en` en V1 (une table `content_translations` reste possible en V2 pour d'autres langues).
+Le schéma de référence est dans `supabase/migrations/` ; cette section en donne la vue d'ensemble. Les libellés français du catalogue sont convertis en codes anglais (types énumérés) par `scripts/import-catalog`.
 
-Utilisateur (RLS sur `user_id = auth.uid()`) :
-- `profiles` : user_id, display_name, locale, timezone, situation, priority_domains[], blockers[], daily_minutes, chronotype, motivation_style, level, persona, program_id, program_start_date, program_day, notify_morning, notify_evening, consent_checkin, consent_ai, consent_at, role (user / admin)
+Contenu (lecture seule côté app, `published` uniquement ; sources et tables de liaison lisibles par tous ; écriture réservée au rôle admin). Clés primaires = identifiants du catalogue (S01, P001, E001, H01, PR1) :
+- `sources`, `principles`, `principle_sources` (position)
+- `exercises` : domaine (un seul, colonne `domain`), `personas persona[]` (tableau vide = « Tous »), `blockers blocker[]`, `repeat_after_days` (NULL = « Non », jamais répété), `proof_type`, `status`. Décision du 20 novembre 2026 : tableaux typés à la place d'une table `exercise_tags`.
+- `exercise_principles` (position ; 1 = principe principal), `exercise_prerequisites`
+- `habit_templates` (`personas persona[]`, `frequency`), `habit_template_principles` (position)
+- `programs`, `program_steps` (program_id, day_index, theme_fr/en, principle_id, main_exercise_id, minimal_exercise_id, introduced_habit_id)
+
+Les textes FR/EN sont stockés en colonnes `*_fr` / `*_en` en V1 (une table `content_translations` reste possible en V2 pour d'autres langues).
+
+Utilisateur (RLS sur `user_id = auth.uid()`, aucun accès anonyme) :
+- `profiles` : user_id, display_name, locale, timezone, situation, priority_domains[] (3 max), blockers[], daily_minutes, chronotype, motivation_style, level, persona, program_id, program_start_date, program_day, notify_morning, notify_evening, consent_checkin, consent_ai, consent_at, role (user / admin, non modifiable par l'utilisateur), onboarded_at. Créé automatiquement à l'inscription (trigger sur `auth.users`), avec un abonnement `free`.
 - `subscriptions` : user_id, plan (free / premium), provider, status, current_period_end
 - `goals` : id, user_id, title, why, target_value, unit, deadline, current_value, status
 - `user_habits` : id, user_id, template_id (nullable), title, cue, minimal_version, frequency, active
-- `habit_logs` : user_habit_id, date, done
+- `habit_logs` : user_habit_id, user_id, date, done
 - `checkins` : user_id, date, energy, mood, minutes_tomorrow, reflection, note
-- `daily_plans` : id, user_id, date, principle_id, mode (normal / minimal / reprise), why_today
-- `plan_items` : plan_id, exercise_id, personalized_instructions, status (todo / done / skipped / too_hard), proof_value, rating
+- `daily_plans` : id, user_id, date (unique par utilisateur), principle_id, mode (normal / minimal / recovery, affiché « Reprise »), program_day (NULL en mode catalogue), why_today
+- `plan_items` : id, plan_id, user_id, exercise_id, position, personalized_instructions, status (todo / done / skipped / too_hard), proof_value, rating, completed_at
+
+Cohérence du `user_id` recopié dans `habit_logs` et `plan_items` (pour des politiques RLS simples) : clés étrangères composites `habit_logs (user_habit_id, user_id) → user_habits (id, user_id)` et `plan_items (plan_id, user_id) → daily_plans (id, user_id)`. Un utilisateur ne peut donc pas écrire de log sur l'habitude d'un autre.
+
+Droits par table : CRUD complet sur ses lignes pour `goals`, `user_habits`, `habit_logs`, `checkins`, `favorites` ; lecture seule pour `subscriptions`, `daily_plans`, `profile_stats` (écrites côté serveur) ; modification limitée à certaines colonnes pour `profiles` (jamais `role`), `plan_items` (status, proof_value, rating, completed_at) et `weekly_reviews` (accepted).
 - `weekly_reviews` : id, user_id, week_start, summary, proposals (jsonb), accepted (jsonb)
 - `favorites` : user_id, entity_type, entity_id
 - `profile_stats` : user_id, completion_7d, completion_by_domain (jsonb), energy_trend, avg_minutes, level, updated_at (recalculée chaque nuit)
 
-Moteur : `engine_decisions` : id, user_id, plan_id, rules_fired[], candidates (jsonb), llm_model, llm_input_hash, llm_output (jsonb), fallback_used, latency_ms, created_at.
+Moteur : `engine_decisions` : id, user_id, plan_id, rules_fired[], candidates (jsonb), llm_model, llm_input_hash, llm_output (jsonb), fallback_used, latency_ms, created_at. Lecture réservée aux admins.
 
 Dates utilisateur stockées en date locale, calculées avec `profiles.timezone`. Similarité entre exercices (pgvector) : reportée après la V1, le score d'affinité V1 se fonde sur les notes par domaine.
 

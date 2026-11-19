@@ -15,11 +15,11 @@ Neuf lots, chacun livrable et testable seul. On ne commence un lot que lorsque l
 Acceptation : l'app s'ouvre dans Expo Go avec le logo et un texte traduit ; `supabase start` et `npx vitest` passent.
 
 ## Lot 1 — Base de données et catalogue
-- [ ] Migrations : tables de contenu, tables utilisateur, `engine_decisions`, types énumérés, index.
-- [ ] RLS : contenu lisible si `published` ; tables utilisateur limitées à `auth.uid()` ; écriture du contenu réservée au rôle admin.
-- [ ] Création automatique de `profiles` et `subscriptions` (free) à l'inscription (trigger sur `auth.users`).
-- [ ] `scripts/import-catalog` : lit l'export de `data/` (xlsx ou csv), normalise (« — » → vide, « Non » → non répétable, « Tous », listes « S01, S04 » → tables de liaison, statuts → enum), génère `supabase/seed.sql`, signale les références cassées.
-- [ ] Types TypeScript générés (`supabase gen types typescript --local`).
+- [x] Migrations : tables de contenu, tables utilisateur, `engine_decisions`, types énumérés, index.
+- [x] RLS : contenu lisible si `published` ; tables utilisateur limitées à `auth.uid()` ; écriture du contenu réservée au rôle admin.
+- [x] Création automatique de `profiles` et `subscriptions` (free) à l'inscription (trigger sur `auth.users`).
+- [x] `scripts/import-catalog` : lit l'export de `data/` (xlsx ou csv), normalise (« — » → vide, « Non » → non répétable, « Tous », listes « S01, S04 » → tables de liaison, statuts → enum), génère `supabase/seed.sql`, signale les références cassées.
+- [x] Types TypeScript générés (`supabase gen types typescript --local`).
 
 Acceptation : `supabase db reset` charge 15 sources, 115 principes, 287 exercices, 42 habitudes, 4 programmes et 112 étapes sans erreur ; un test vérifie qu'un utilisateur ne lit pas les données d'un autre.
 
