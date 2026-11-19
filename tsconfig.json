@@ -9,7 +9,18 @@
     "noUncheckedIndexedAccess": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["vitest.config.ts", "supabase/functions/_shared/**/*.ts", "scripts/**/*.ts"]
+  "include": [
+    "vitest.config.ts",
+    "supabase/functions/_shared/**/*.ts",
+    "scripts/**/*.ts",
+    "vitest.integration.config.ts",
+    "tests/**/*.ts"
+  ],
+  "exclude": [
+    "supabase/functions/generate-plan"
+  ]
 }
