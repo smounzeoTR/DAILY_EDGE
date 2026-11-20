@@ -4,8 +4,10 @@
     "strict": true,
     "paths": {
       "@/*": ["./src/*"],
-      "@/assets/*": ["./assets/*"]
-    }
+      "@/assets/*": ["./assets/*"],
+      "@shared/*": ["../supabase/functions/_shared/*"]
+    },
+    "allowImportingTsExtensions": true
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }

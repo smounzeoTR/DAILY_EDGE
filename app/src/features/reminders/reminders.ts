@@ -9,6 +9,11 @@ import { timeToMinutes } from '../today/day';
 
 const ASKED_KEY = 'pref.remindersAsked';
 export const CHECKIN_URL = '/checkin';
+export const REVIEW_URL = '/review/current';
+// Weekly review is generated from Sunday 18:00
+const REVIEW_EARLIEST = '18:00';
+// expo-notifications weekday: 1 = Sunday
+const SUNDAY = 1;
 
 // Show reminders even when the app is open
 Notifications.setNotificationHandler({
@@ -73,6 +78,23 @@ export async function scheduleReminders(times: {
     trigger: {
       type: Notifications.SchedulableTriggerInputTypes.DAILY,
       ...toHourMinute(times.evening, '21:00'),
+    },
+  });
+  // Sunday: weekly review, at the evening reminder time but never before 18:00
+  const evening = timeToMinutes(times.evening) ?? (timeToMinutes('21:00') as number);
+  const earliest = timeToMinutes(REVIEW_EARLIEST) as number;
+  const reviewAt = Math.max(evening, earliest);
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: i18n.t('reminders.reviewTitle'),
+      body: i18n.t('reminders.reviewBody'),
+      data: { url: REVIEW_URL },
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+      weekday: SUNDAY,
+      hour: Math.floor(reviewAt / 60),
+      minute: reviewAt % 60,
     },
   });
 }

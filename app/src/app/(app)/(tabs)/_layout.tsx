@@ -39,6 +39,13 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <TabIcon name="library" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: t('tabs.settings'),
+          tabBarIcon: ({ color }) => <TabIcon name="settings" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }

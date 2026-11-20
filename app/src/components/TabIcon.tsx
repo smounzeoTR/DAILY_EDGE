@@ -2,7 +2,7 @@
 import type { ColorValue } from 'react-native';
 import Svg, { Circle, Line, Path, Rect } from 'react-native-svg';
 
-export type TabIconName = 'today' | 'progress' | 'library';
+export type TabIconName = 'today' | 'progress' | 'library' | 'settings';
 
 export function TabIcon({
   name,
@@ -45,6 +45,17 @@ export function TabIcon({
           <Rect x={4} y={13} width={4} height={7} rx={1.5} fill={color} />
           <Rect x={10} y={8} width={4} height={12} rx={1.5} fill={color} />
           <Rect x={16} y={4} width={4} height={16} rx={1.5} fill={color} />
+        </>
+      ) : null}
+      {name === 'settings' ? (
+        <>
+          <Circle cx={12} cy={12} r={3.2} stroke={color} strokeWidth={2} />
+          <Path
+            d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8"
+            stroke={color}
+            strokeWidth={2}
+            strokeLinecap="round"
+          />
         </>
       ) : null}
       {name === 'library' ? (

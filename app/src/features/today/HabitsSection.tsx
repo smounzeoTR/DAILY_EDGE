@@ -8,7 +8,7 @@ import { habitText } from '@/i18n/localize';
 import type { useUserHabits } from '@/lib/queries';
 import { radius, spacing, useTheme } from '@/theme';
 
-import { habitStatusOn, type HabitFrequency, type HabitLog } from '../habits/schedule';
+import { habitStatusOn, type HabitFrequency, type HabitLog } from '@shared/habits/schedule.ts';
 import { localToday } from './day';
 
 type Habit = NonNullable<ReturnType<typeof useUserHabits>['data']>[number];
@@ -58,7 +58,6 @@ export function HabitsSection({
     <View style={styles.list}>
       <AppText variant="subtitle">{t('today.habitsTitle')}</AppText>
       {rows.map(({ habit, status }) => {
-        const title = habitText(habit.title, habit.template, 'title', language);
         const cue = habitText(habit.cue, habit.template, 'default_cue', language);
         const minimal = habitText(
           habit.minimal_version,
@@ -66,6 +65,11 @@ export function HabitsSection({
           'minimal_version',
           language,
         );
+        // Simplified (weekly review): the minimal version becomes the main action
+        const title =
+          habit.simplified && minimal
+            ? minimal
+            : habitText(habit.title, habit.template, 'title', language);
         const doneToday = status.state === 'done' || status.state === 'done_minimal';
         const periodKey = PERIOD_LABEL[habit.frequency];
         const stateText =
@@ -93,7 +97,10 @@ export function HabitsSection({
               // State text is announced with the title (minimal version, done this period)
               accessibilityValue={stateText ? { text: stateText } : undefined}
               onPress={() =>
-                onAction({ habitId: habit.id, action: doneToday ? 'uncheck' : 'check' })
+                onAction({
+                  habitId: habit.id,
+                  action: doneToday ? 'uncheck' : habit.simplified ? 'minimal' : 'check',
+                })
               }
               style={styles.main}
             >
@@ -125,7 +132,7 @@ export function HabitsSection({
                 ) : null}
               </View>
             </Pressable>
-            {!doneToday && minimal ? (
+            {!doneToday && minimal && !habit.simplified ? (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t('today.minimalFor', { title })}

@@ -23,6 +23,10 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="exercise/[id]" />
       <Stack.Screen name="principle/[id]" />
+      <Stack.Screen name="review/[id]" />
+      <Stack.Screen name="settings/goal" />
+      <Stack.Screen name="settings/habits" />
+      <Stack.Screen name="settings/program" />
       <Stack.Screen name="checkin" options={{ presentation: 'modal' }} />
       <Stack.Screen name="reminders" options={{ presentation: 'modal' }} />
     </Stack>

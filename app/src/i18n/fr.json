@@ -238,12 +238,15 @@
     "morningTitle": "Daily Edge",
     "morningBody": "Ton exercice du jour est prêt.",
     "eveningTitle": "Daily Edge",
-    "eveningBody": "60 secondes pour ton check-in."
+    "eveningBody": "60 secondes pour ton check-in.",
+    "reviewTitle": "Daily Edge",
+    "reviewBody": "Ton bilan de la semaine est prêt."
   },
   "tabs": {
     "today": "Aujourd'hui",
     "progress": "Progression",
-    "library": "Bibliothèque"
+    "library": "Bibliothèque",
+    "settings": "Réglages"
   },
   "progress": {
     "title": "Ta progression",
@@ -274,7 +277,9 @@
     "energyA11y": "Courbe de ton énergie sur 14 jours",
     "reflections": "Tes réflexions",
     "noReflections": "Tes réflexions du soir apparaîtront ici.",
-    "more": "Voir plus"
+    "more": "Voir plus",
+    "reviews": "Tes bilans de la semaine",
+    "reviewOf": "Semaine du {{date}}"
   },
   "library": {
     "title": "Bibliothèque",
@@ -316,5 +321,92 @@
       "dailyLimit": "Tu as déjà ajouté 3 exercices aujourd'hui : c'est largement suffisant !",
       "invalid": "Cet exercice n'est plus disponible."
     }
+  },
+  "review": {
+    "title": "Bilan de la semaine",
+    "ready": "Ton bilan de la semaine est prêt.",
+    "open": "Voir mon bilan",
+    "week": "Du {{start}} au {{end}}",
+    "summary": "Ta semaine",
+    "exercises": "Exercices réalisés : {{done}} sur {{planned}}",
+    "energy": "Énergie moyenne : {{value}} / 5",
+    "bestDay": "Ton meilleur jour : {{day}}",
+    "kind": "Chaque semaine compte, même les plus légères : l'important est de continuer.",
+    "proposalsTitle": "Ajustements proposés",
+    "noProposal": "Rien à ajuster cette semaine : continue comme ça !",
+    "accept": "Accepter",
+    "refuse": "Refuser",
+    "acceptFor": "Accepter : {{text}}",
+    "refuseFor": "Refuser : {{text}}",
+    "accepted": "Accepté",
+    "refused": "Refusé",
+    "closed": "Ce bilan est terminé : un nouveau arrive dimanche soir.",
+    "none": "Pas encore de bilan : le premier arrive dimanche soir.",
+    "proposals": {
+      "habit_simplify": "Simplifier « {{habit}} » : passer à sa version minimale ({{minimal}}).",
+      "habit_replace": "Remplacer « {{habit}} » par « {{template}} ».",
+      "goal_deadline": "Reporter l'échéance de ton objectif au {{date}}, au rythme où tu avances vraiment.",
+      "update_goal_progress": "Mets à jour ton avancement : on pourra ajuster ton objectif plus justement.",
+      "level_up": "Passer au niveau {{level}} : tu dépasses 85 % depuis 2 semaines.",
+      "daily_minutes": "Prévoir {{minutes}} min par jour (tu y passes environ {{average}} min)."
+    }
+  },
+  "settings": {
+    "title": "Réglages",
+    "language": "Langue",
+    "theme": "Thème",
+    "themes": {
+      "auto": "Automatique",
+      "light": "Clair",
+      "dark": "Sombre"
+    },
+    "reminders": "Heures des rappels",
+    "goal": "Objectif",
+    "noGoal": "Aucun objectif en cours.",
+    "manageGoal": "Modifier mon objectif",
+    "habits": "Habitudes",
+    "manageHabits": "Gérer mes habitudes",
+    "program": "Programme",
+    "noProgram": "Aucun programme",
+    "changeProgram": "Changer de programme",
+    "consents": "Consentements",
+    "data": "Mes données",
+    "exportBody": "Un fichier JSON de toutes tes données, à enregistrer ou partager.",
+    "export": "Exporter mes données",
+    "exportError": "L'export n'a pas abouti. Réessaie dans un instant.",
+    "delete": "Supprimer mon compte",
+    "deleteTitle": "Supprimer ton compte ?",
+    "deleteBody": "Tu auras 30 jours pour changer d'avis. Ensuite, toutes tes données seront effacées.",
+    "deleteKeep": "Annuler",
+    "deleteContinue": "Continuer",
+    "deleteConfirmTitle": "Dernière confirmation",
+    "deleteConfirmBody": "Ton compte sera supprimé dans 30 jours, sauf si tu annules d'ici là.",
+    "deleteConfirm": "Supprimer définitivement",
+    "eraseTitle": "Effacer aussi tes humeurs et énergies ?",
+    "eraseBody": "Celles déjà enregistrées peuvent être effacées. Le reste de ton historique est conservé.",
+    "eraseKeep": "Les garder",
+    "eraseConfirm": "Les effacer",
+    "erased": "Humeurs et énergies effacées.",
+    "save": "Enregistrer",
+    "goalEdit": "Ton objectif",
+    "goalNew": "Nouvel objectif",
+    "goalAchieved": "Objectif atteint, bravo !",
+    "habitsTitle": "Tes habitudes",
+    "habitsCount": "{{count}} actives sur {{max}} au maximum",
+    "habitActive": "Active : {{title}}",
+    "habitSimplified": "Version minimale",
+    "addHabit": "Ajouter une habitude",
+    "addHabitTitle": "Choisis une habitude",
+    "addHabitFor": "Ajouter : {{title}}",
+    "tooManyHabits": "6 habitudes actives au maximum : désactive-en une d'abord.",
+    "programTitle": "Changer de programme",
+    "programConfirmTitle": "Passer à « {{name}} » ?",
+    "programConfirmBody": "Tu recommenceras au jour 1. Ton historique est conservé.",
+    "programConfirm": "Recommencer au jour 1"
+  },
+  "deletion": {
+    "title": "Ton compte sera supprimé le {{date}}",
+    "body": "D'ici là, tu peux annuler la suppression ou exporter tes données. Ensuite, tout sera définitivement effacé.",
+    "cancel": "Annuler la suppression"
   }
 }

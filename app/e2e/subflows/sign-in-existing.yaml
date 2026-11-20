@@ -1,0 +1,27 @@
+# Existing account (env EMAIL): fresh device, intro, sign-in with the 6-digit code (Mailpit).
+appId: host.exp.Exponent
+# APP_URL, MAILPIT_URL (and EMAIL) come from the calling flow / CLI: no defaults here,
+# they would override the values passed with -e
+---
+- clearState
+- evalScript: ${output.email = EMAIL}
+- openLink: ${APP_URL}
+- extendedWaitUntil:
+    visible: 'Un principe par jour, tiré des meilleurs livres\.|Connecte-toi'
+    timeout: 60000
+- runFlow: close-expo-dev-menu.yaml
+- runFlow:
+    when:
+      visible: 'Un principe par jour, tiré des meilleurs livres\.'
+    # "Passer" sits under Expo Go's floating gear button: go through the slides instead
+    commands:
+      - tapOn: 'Suivant'
+      - tapOn: 'Suivant'
+      - tapOn: 'Commencer'
+- assertVisible: 'Connecte-toi'
+- tapOn: 'toi@exemple.com'
+- inputText: ${output.email}
+- tapOn: 'Recevoir mon code'
+- assertVisible: 'Entre ton code'
+- runScript: ../scripts/get-otp.js
+- inputText: ${output.code}

@@ -17,7 +17,8 @@ void SplashScreen.preventAutoHideAsync();
 // Guarded screens fall back to the index route, which redirects
 export const unstable_settings = { anchor: 'index' };
 
-// Routing: signed out -> (public); signed in, not onboarded -> (onboarding); else -> (app)
+// Routing: signed out -> (public); deletion requested -> (deletion);
+// signed in, not onboarded -> (onboarding); else -> (app)
 function RootNavigator() {
   const { scheme, colors } = useTheme();
   const { session, initializing } = useAuth();
@@ -28,6 +29,7 @@ function RootNavigator() {
   if (session && profile.isError) return <SplashView onRetry={() => void profile.refetch()} />;
 
   const signedIn = session !== null;
+  const deleting = Boolean(profile.data?.deletion_requested_at);
   const onboarded = Boolean(profile.data?.onboarded_at);
 
   return (
@@ -43,10 +45,13 @@ function RootNavigator() {
         <Stack.Protected guard={!signedIn}>
           <Stack.Screen name="(public)" />
         </Stack.Protected>
-        <Stack.Protected guard={signedIn && !onboarded}>
+        <Stack.Protected guard={signedIn && deleting}>
+          <Stack.Screen name="(deletion)" />
+        </Stack.Protected>
+        <Stack.Protected guard={signedIn && !deleting && !onboarded}>
           <Stack.Screen name="(onboarding)" />
         </Stack.Protected>
-        <Stack.Protected guard={signedIn && onboarded}>
+        <Stack.Protected guard={signedIn && !deleting && onboarded}>
           <Stack.Screen name="(app)" />
         </Stack.Protected>
       </Stack>

@@ -1,6 +1,6 @@
 // Today: plan of the day (generated on first open if missing), principle, exercise,
 // why today, proposed habit, habits and evening check-in.
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,7 +10,7 @@ import { LanguageToggle } from '@/components/LanguageToggle';
 import { Logo } from '@/components/Logo';
 import { SplashView } from '@/components/SplashView';
 import { AppText, Button, Card, Screen } from '@/components/ui';
-import { addDays } from '@/features/habits/schedule';
+import { addDays } from '@shared/habits/schedule.ts';
 import { scheduleReminders, shouldShowPrimer } from '@/features/reminders/reminders';
 import { canEditResult, isEveningHighlight, localToday } from '@/features/today/day';
 import { ExerciseCard, type ResultInput } from '@/features/today/ExerciseCard';
@@ -20,6 +20,8 @@ import { localized } from '@/i18n/localize';
 import { useAuth, useUserId } from '@/lib/auth/AuthProvider';
 import {
   generatePlan,
+  generateReview,
+  isReviewOpen,
   queryKeys,
   useCheckin,
   useHabitLogs,
@@ -64,6 +66,13 @@ export default function Today() {
   const habits = useUserHabits(userId);
   const logs = useHabitLogs(userId, addDays(today, -31));
   const checkin = useCheckin(userId, today);
+  // Weekly review: generated server side when due (Sunday from 18:00 or missed week)
+  const review = useQuery({
+    queryKey: ['currentReview', userId],
+    queryFn: generateReview,
+    staleTime: 30 * 60 * 1000,
+    retry: 1,
+  });
 
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState(false);
@@ -272,6 +281,18 @@ export default function Today() {
               style={styles.flex}
             />
           </View>
+        </Card>
+      ) : null}
+
+      {review.data &&
+      isReviewOpen(review.data, now) &&
+      review.data.proposals.some((_, i) => !review.data?.accepted[String(i)]) ? (
+        <Card>
+          <AppText variant="caption" tone="link">
+            {t('review.title')}
+          </AppText>
+          <AppText variant="bodyStrong">{t('review.ready')}</AppText>
+          <Button label={t('review.open')} onPress={() => router.push('/review/current')} />
         </Card>
       ) : null}
 

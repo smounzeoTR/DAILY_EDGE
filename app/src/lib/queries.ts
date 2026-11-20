@@ -41,7 +41,7 @@ export function useProfile(userId: string | undefined) {
         supabase
           .from('profiles')
           .select(
-            'user_id, display_name, locale, timezone, onboarded_at, program_id, program_day, notify_morning, notify_evening, consent_checkin',
+            'user_id, display_name, locale, timezone, onboarded_at, program_id, program_day, notify_morning, notify_evening, consent_checkin, consent_ai, level, daily_minutes, persona, deletion_requested_at',
           )
           .eq('user_id', userId ?? '')
           .single(),
@@ -126,7 +126,7 @@ export function useUserHabits(userId: string) {
         supabase
           .from('user_habits')
           .select(
-            'id, title, cue, minimal_version, active, frequency, template_id, created_at, template:habit_templates(title_fr, title_en, default_cue_fr, default_cue_en, minimal_version_fr, minimal_version_en)',
+            'id, title, cue, minimal_version, active, simplified, frequency, template_id, created_at, template:habit_templates(title_fr, title_en, default_cue_fr, default_cue_en, minimal_version_fr, minimal_version_en)',
           )
           .eq('active', true)
           .order('created_at'),
@@ -346,4 +346,97 @@ export async function fetchReflections(page: number) {
       .order('date', { ascending: false })
       .range(page * REFLECTIONS_PAGE, (page + 1) * REFLECTIONS_PAGE - 1),
   );
+}
+
+// ---------------------------------------------------------------------------
+// Weekly reviews
+// ---------------------------------------------------------------------------
+export type ReviewProposal = {
+  type:
+    | 'habit_simplify'
+    | 'habit_replace'
+    | 'goal_deadline'
+    | 'update_goal_progress'
+    | 'level_up'
+    | 'daily_minutes';
+  priority: number;
+  params: Record<string, string | number>;
+};
+
+export type ReviewStats = {
+  weekStart: string;
+  weekEnd: string;
+  exercisesDone: number;
+  exercisesPlanned: number;
+  habits: { habitId: string; done: number; expected: number; rate: number | null }[];
+  energyAverage: number | null;
+  bestDay: string | null;
+};
+
+export type Review = {
+  id: string;
+  week_start: string;
+  generated_at: string;
+  stats: ReviewStats;
+  proposals: ReviewProposal[];
+  accepted: Record<string, { accept: boolean; at: string }>;
+};
+
+const REVIEW_COLUMNS = 'id, week_start, generated_at, stats, proposals, accepted';
+
+export function useReviews(userId: string) {
+  return useQuery({
+    queryKey: ['reviews', userId],
+    staleTime: 0,
+    queryFn: async () =>
+      ((await unwrap(
+        supabase
+          .from('weekly_reviews')
+          .select(REVIEW_COLUMNS)
+          .order('week_start', { ascending: false }),
+      )) ?? []) as unknown as Review[],
+  });
+}
+
+// Generates the review if due (server side) and returns the current one
+export async function generateReview(): Promise<Review | null> {
+  const { data, error } = await supabase.functions.invoke<{ review: Review | null }>(
+    'generate-review',
+    {
+      body: {},
+    },
+  );
+  if (error) throw error;
+  return data?.review ?? null;
+}
+
+// Current review: the latest, open for 8 days
+export function isReviewOpen(review: Pick<Review, 'generated_at'>, now: Date): boolean {
+  return now.getTime() - new Date(review.generated_at).getTime() < 8 * 86_400_000;
+}
+
+// ---------------------------------------------------------------------------
+// Settings
+// ---------------------------------------------------------------------------
+export function useAllHabits(userId: string) {
+  return useQuery({
+    queryKey: ['allHabits', userId],
+    staleTime: 0,
+    queryFn: () =>
+      unwrap(
+        supabase
+          .from('user_habits')
+          .select(
+            'id, title, cue, active, simplified, template_id, created_at, template:habit_templates(title_fr, title_en, default_cue_fr, default_cue_en, minimal_version_fr, minimal_version_en, domain)',
+          )
+          .order('created_at'),
+      ),
+  });
+}
+
+// All the user's data as a JSON string (server side, engine decisions included)
+export async function exportMyData(): Promise<string> {
+  const { data, error } = await supabase.functions.invoke('export-my-data', { body: {} });
+  if (error) throw error;
+  return typeof data === 'string' ? data : JSON.stringify(data, null, 2);
 }

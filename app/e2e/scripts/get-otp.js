@@ -1,6 +1,7 @@
 /* global MAILPIT_URL, http, json, output */
 // Maestro (GraalJS) globals. Reads the latest sign-in code sent to output.email from Mailpit (local Supabase).
-const base = MAILPIT_URL || 'http://127.0.0.1:54324';
+const base =
+  typeof MAILPIT_URL !== 'undefined' && MAILPIT_URL ? MAILPIT_URL : 'http://127.0.0.1:54324';
 const search = http.get(
   base + '/api/v1/search?query=' + encodeURIComponent('to:"' + output.email + '"'),
 );

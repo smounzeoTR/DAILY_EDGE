@@ -2,9 +2,7 @@
 # added exercise done on Today, Progress updated (streak 1 day, 7-day rate 100 %).
 # Run: maestro test app/e2e/lot5-library-progress.yaml -e APP_URL=exp://127.0.0.1:8081
 appId: host.exp.Exponent
-env:
-  APP_URL: exp://127.0.0.1:8081
-  MAILPIT_URL: http://127.0.0.1:54324
+# APP_URL is required on the command line (-e): an env block here would override it
 ---
 - runFlow: subflows/sign-in-onboarding.yaml
 - tapOn: 'Plus tard'

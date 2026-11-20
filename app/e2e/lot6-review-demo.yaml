@@ -1,0 +1,45 @@
+# Lot 6: demo account (npm run seed:demo) -> weekly review -> one proposal accepted, one refused.
+# Run: npm run seed:demo && maestro test app/e2e/lot6-review-demo.yaml -e APP_URL=exp://127.0.0.1:8081
+appId: host.exp.Exponent
+# APP_URL is required on the command line (-e): it is not defined here on purpose
+env:
+  EMAIL: demo@daily-edge.local
+---
+- runFlow: subflows/sign-in-existing.yaml
+- extendedWaitUntil:
+    visible: 'Un petit rappel, matin et soir \?'
+    timeout: 30000
+- tapOn: 'Plus tard'
+- extendedWaitUntil:
+    visible: 'Jour 10 sur 28.*'
+    timeout: 30000
+- takeScreenshot: e2e-l6-01-demo-today
+
+# Weekly review card on Today
+- scrollUntilVisible:
+    element: 'Voir mon bilan'
+    direction: DOWN
+- assertVisible: 'Ton bilan de la semaine est prêt\.'
+- tapOn: 'Voir mon bilan'
+- extendedWaitUntil:
+    visible: 'Bilan de la semaine'
+    timeout: 15000
+- assertVisible: 'Exercices réalisés : .*'
+- takeScreenshot: e2e-l6-02-review
+
+# Accept the first proposal (simplify a habit), refuse the second (daily time)
+- scrollUntilVisible:
+    element: 'Accepter : Simplifier.*'
+    direction: DOWN
+- tapOn: 'Accepter : Simplifier.*'
+- extendedWaitUntil:
+    visible: 'Accepté'
+    timeout: 10000
+- scrollUntilVisible:
+    element: 'Refuser : Prévoir.*'
+    direction: DOWN
+- tapOn: 'Refuser : Prévoir.*'
+- extendedWaitUntil:
+    visible: 'Refusé'
+    timeout: 10000
+- takeScreenshot: e2e-l6-03-answered

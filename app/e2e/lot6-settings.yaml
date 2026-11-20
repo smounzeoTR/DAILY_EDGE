@@ -1,0 +1,66 @@
+# Lot 6: settings -> language switch, habit deactivated, account deletion requested then cancelled.
+# Run: maestro test app/e2e/lot6-settings.yaml -e APP_URL=exp://127.0.0.1:8081
+appId: host.exp.Exponent
+# APP_URL is required on the command line (-e): an env block here would override it
+---
+- runFlow: subflows/sign-in-onboarding.yaml
+- tapOn: 'Plus tard'
+- extendedWaitUntil:
+    visible: 'Jour 1 sur 28.*'
+    timeout: 30000
+
+# Language: English then back to French
+- tapOn: 'Réglages.*'
+- assertVisible: 'Réglages'
+- tapOn: 'English'
+- extendedWaitUntil:
+    visible: 'Settings'
+    timeout: 10000
+- assertVisible: 'Language'
+- tapOn: 'Français'
+- extendedWaitUntil:
+    visible: 'Réglages'
+    timeout: 10000
+- takeScreenshot: e2e-l6-04-settings
+
+# Deactivate a habit
+- scrollUntilVisible:
+    element: 'Gérer mes habitudes'
+    direction: DOWN
+- tapOn: 'Gérer mes habitudes'
+- assertVisible: 'Tes habitudes'
+- tapOn: 'Active : Une prise de contact'
+- assertVisible:
+    text: 'Active : Une prise de contact'
+    checked: false
+- assertVisible: '2 actives sur 6 au maximum'
+- tapOn: 'Retour'
+
+# Account deletion: double confirmation, deletion screen, then cancel
+- scrollUntilVisible:
+    element: 'Supprimer mon compte'
+    direction: DOWN
+- tapOn: 'Supprimer mon compte'
+- extendedWaitUntil:
+    visible: 'Supprimer ton compte \?'
+    timeout: 5000
+- tapOn: 'Continuer'
+- extendedWaitUntil:
+    visible: 'Dernière confirmation'
+    timeout: 5000
+- tapOn: 'Supprimer définitivement'
+- extendedWaitUntil:
+    visible: 'Ton compte sera supprimé le .*'
+    timeout: 15000
+- assertVisible: 'Exporter mes données'
+- takeScreenshot: e2e-l6-05-deletion
+- tapOn: 'Annuler la suppression'
+- extendedWaitUntil:
+    visible: 'Jour 1 sur 28.*'
+    timeout: 20000
+
+# The deactivated habit is no longer on Today
+- scrollUntilVisible:
+    element: 'Faire mon check-in'
+    direction: DOWN
+- assertNotVisible: 'Une prise de contact.*'

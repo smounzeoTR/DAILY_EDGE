@@ -1,9 +1,7 @@
 # Lot 4: reminders explanation screen -> system permission accepted -> Today.
 # Run: maestro test app/e2e/lot4-reminders-allow.yaml -e APP_URL=exp://127.0.0.1:8081
 appId: host.exp.Exponent
-env:
-  APP_URL: exp://127.0.0.1:8081
-  MAILPIT_URL: http://127.0.0.1:54324
+# APP_URL is required on the command line (-e): an env block here would override it
 ---
 - runFlow: subflows/sign-in-onboarding.yaml
 - takeScreenshot: e2e-l4-05-reminders-primer

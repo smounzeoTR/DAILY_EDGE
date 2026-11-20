@@ -238,12 +238,15 @@
     "morningTitle": "Daily Edge",
     "morningBody": "Your exercise of the day is ready.",
     "eveningTitle": "Daily Edge",
-    "eveningBody": "60 seconds for your check-in."
+    "eveningBody": "60 seconds for your check-in.",
+    "reviewTitle": "Daily Edge",
+    "reviewBody": "Your weekly review is ready."
   },
   "tabs": {
     "today": "Today",
     "progress": "Progress",
-    "library": "Library"
+    "library": "Library",
+    "settings": "Settings"
   },
   "progress": {
     "title": "Your progress",
@@ -274,7 +277,9 @@
     "energyA11y": "Your energy over 14 days",
     "reflections": "Your reflections",
     "noReflections": "Your evening reflections will appear here.",
-    "more": "See more"
+    "more": "See more",
+    "reviews": "Your weekly reviews",
+    "reviewOf": "Week of {{date}}"
   },
   "library": {
     "title": "Library",
@@ -316,5 +321,92 @@
       "dailyLimit": "You already added 3 exercises today: that's plenty!",
       "invalid": "This exercise is no longer available."
     }
+  },
+  "review": {
+    "title": "Weekly review",
+    "ready": "Your weekly review is ready.",
+    "open": "See my review",
+    "week": "From {{start}} to {{end}}",
+    "summary": "Your week",
+    "exercises": "Exercises done: {{done}} of {{planned}}",
+    "energy": "Average energy: {{value}} / 5",
+    "bestDay": "Your best day: {{day}}",
+    "kind": "Every week counts, even the lighter ones: what matters is to keep going.",
+    "proposalsTitle": "Suggested adjustments",
+    "noProposal": "Nothing to adjust this week: keep it up!",
+    "accept": "Accept",
+    "refuse": "Decline",
+    "acceptFor": "Accept: {{text}}",
+    "refuseFor": "Decline: {{text}}",
+    "accepted": "Accepted",
+    "refused": "Declined",
+    "closed": "This review is over: a new one arrives on Sunday evening.",
+    "none": "No review yet: the first one arrives on Sunday evening.",
+    "proposals": {
+      "habit_simplify": "Simplify \"{{habit}}\": switch to its minimal version ({{minimal}}).",
+      "habit_replace": "Replace \"{{habit}}\" with \"{{template}}\".",
+      "goal_deadline": "Move your goal deadline to {{date}}, at the pace you are really going.",
+      "update_goal_progress": "Update your progress: we can then adjust your goal more accurately.",
+      "level_up": "Move up to {{level}}: you have been above 85% for 2 weeks.",
+      "daily_minutes": "Plan {{minutes}} min a day (you spend about {{average}} min)."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "theme": "Theme",
+    "themes": {
+      "auto": "Automatic",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "reminders": "Reminder times",
+    "goal": "Goal",
+    "noGoal": "No current goal.",
+    "manageGoal": "Edit my goal",
+    "habits": "Habits",
+    "manageHabits": "Manage my habits",
+    "program": "Program",
+    "noProgram": "No program",
+    "changeProgram": "Change program",
+    "consents": "Consents",
+    "data": "My data",
+    "exportBody": "A JSON file with all your data, to save or share.",
+    "export": "Export my data",
+    "exportError": "The export failed. Please try again in a moment.",
+    "delete": "Delete my account",
+    "deleteTitle": "Delete your account?",
+    "deleteBody": "You will have 30 days to change your mind. After that, all your data will be erased.",
+    "deleteKeep": "Cancel",
+    "deleteContinue": "Continue",
+    "deleteConfirmTitle": "Last confirmation",
+    "deleteConfirmBody": "Your account will be deleted in 30 days unless you cancel before then.",
+    "deleteConfirm": "Delete for good",
+    "eraseTitle": "Also erase your moods and energy?",
+    "eraseBody": "Those already recorded can be erased. The rest of your history is kept.",
+    "eraseKeep": "Keep them",
+    "eraseConfirm": "Erase them",
+    "erased": "Moods and energy erased.",
+    "save": "Save",
+    "goalEdit": "Your goal",
+    "goalNew": "New goal",
+    "goalAchieved": "Goal achieved, well done!",
+    "habitsTitle": "Your habits",
+    "habitsCount": "{{count}} active out of {{max}} at most",
+    "habitActive": "Active: {{title}}",
+    "habitSimplified": "Minimal version",
+    "addHabit": "Add a habit",
+    "addHabitTitle": "Pick a habit",
+    "addHabitFor": "Add: {{title}}",
+    "tooManyHabits": "6 active habits at most: deactivate one first.",
+    "programTitle": "Change program",
+    "programConfirmTitle": "Switch to \"{{name}}\"?",
+    "programConfirmBody": "You will restart at day 1. Your history is kept.",
+    "programConfirm": "Restart at day 1"
+  },
+  "deletion": {
+    "title": "Your account will be deleted on {{date}}",
+    "body": "Until then, you can cancel the deletion or export your data. After that, everything will be erased for good.",
+    "cancel": "Cancel the deletion"
   }
 }

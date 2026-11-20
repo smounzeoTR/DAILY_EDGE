@@ -1,7 +1,7 @@
 // Progress: streak and record, completion rates, habits, goal, energy (with consent), reflections.
 // Computed in the app from raw data with pure functions (features/progress).
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
-import { useFocusEffect } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -9,7 +9,7 @@ import { StyleSheet, View } from 'react-native';
 import { DayBars, EnergyLine, GoalBar } from '@/components/charts';
 import { SplashView } from '@/components/SplashView';
 import { AppText, Button, Card, Screen, TextField } from '@/components/ui';
-import { addDays } from '@/features/habits/schedule';
+import { addDays } from '@shared/habits/schedule.ts';
 import { parseTargetValue } from '@/features/onboarding/rules';
 import {
   completionRate,
@@ -18,6 +18,7 @@ import {
   habitRates,
   streak,
 } from '@/features/progress/progress';
+import { formatDate } from '@/features/review/texts';
 import { localToday } from '@/features/today/day';
 import { resolveLanguage } from '@/i18n/language';
 import { habitText } from '@/i18n/localize';
@@ -31,6 +32,7 @@ import {
   useHabitLogs,
   usePlansSince,
   useProfile,
+  useReviews,
   useUserHabits,
 } from '@/lib/queries';
 import { supabase } from '@/lib/supabase';
@@ -65,6 +67,7 @@ export default function Progress() {
   const goal = useActiveGoal(userId);
   const energy = useCheckinsSince(userId, addDays(today, -13));
   const reflections = useReflections(userId);
+  const reviews = useReviews(userId);
   const reflectionItems = reflections.data?.pages.flat() ?? [];
   const [goalInput, setGoalInput] = useState<string | null>(null);
 
@@ -294,6 +297,20 @@ export default function Progress() {
         <Card>
           <AppText variant="bodyStrong">{t('progress.energy')}</AppText>
           <EnergyLine values={energyValues} label={t('progress.energyA11y')} />
+        </Card>
+      ) : null}
+
+      {reviews.data && reviews.data.length > 0 ? (
+        <Card>
+          <AppText variant="bodyStrong">{t('progress.reviews')}</AppText>
+          {reviews.data.map((r) => (
+            <Button
+              key={r.id}
+              label={t('progress.reviewOf', { date: formatDate(r.week_start, language) })}
+              variant="ghost"
+              onPress={() => router.push({ pathname: '/review/[id]', params: { id: r.id } })}
+            />
+          ))}
         </Card>
       ) : null}
 

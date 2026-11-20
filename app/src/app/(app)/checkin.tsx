@@ -8,7 +8,7 @@ import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 
 import { SplashView } from '@/components/SplashView';
 import { AppText, Button, Card, Chip, Screen, TextField } from '@/components/ui';
-import { addDays } from '@/features/habits/schedule';
+import { addDays } from '@shared/habits/schedule.ts';
 import { localToday } from '@/features/today/day';
 import { resolveLanguage } from '@/i18n/language';
 import { localized } from '@/i18n/localize';

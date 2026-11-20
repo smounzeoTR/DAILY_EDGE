@@ -1,9 +1,8 @@
 # Fresh user: intro -> sign-in with 6-digit code (Mailpit) -> onboarding interrupted and
 # resumed -> program change -> 3 habits. Ends on the reminders explanation screen.
 appId: host.exp.Exponent
-env:
-  APP_URL: exp://127.0.0.1:8081
-  MAILPIT_URL: http://127.0.0.1:54324
+# APP_URL, MAILPIT_URL (and EMAIL) come from the calling flow / CLI: no defaults here,
+# they would override the values passed with -e
 ---
 # Fresh device state: no session, no draft, intro not seen
 - clearState
