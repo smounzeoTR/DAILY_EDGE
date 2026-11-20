@@ -1,9 +1,9 @@
 // Loads everything the engine needs for one user and date (server-side client).
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import type { Database } from '../_shared/database.types.ts';
-import { addDays } from '../_shared/engine/dates.ts';
-import type { Catalog, EngineInput, ISODate, Language, PastPlan } from '../_shared/engine/index.ts';
+import type { Database } from '../database.types.ts';
+import { addDays } from '../engine/dates.ts';
+import type { Catalog, EngineInput, ISODate, Language, PastPlan } from '../engine/index.ts';
 
 type Client = SupabaseClient<Database>;
 
