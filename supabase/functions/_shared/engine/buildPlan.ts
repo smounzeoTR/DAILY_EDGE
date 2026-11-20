@@ -31,6 +31,7 @@ const TWO_EXERCISES_MIN_MINUTES = 30;
 type Selection = {
   mode: PlanMode;
   exerciseIds: string[];
+  adoptedId?: string;
   candidates: ScoredCandidate[];
 };
 
@@ -70,8 +71,10 @@ function selectFromCatalog(
 export function buildPlan(input: EngineInput): PlanDecision {
   const rules: RuleId[] = [];
   const signals = computeSignals(input);
-  const exercises = input.catalog.exercises;
-  const byId = new Map(exercises.map((e) => [e.id, e]));
+  const byId = new Map(input.catalog.exercises.map((e) => [e.id, e]));
+  // Exercises already added by the user are never proposed again
+  const added = new Set(input.userAddedExerciseIds);
+  const exercises = input.catalog.exercises.filter((e) => !added.has(e.id));
 
   if (!signals.hasCheckin) rules.push('no_checkin_defaults');
 
@@ -130,7 +133,10 @@ export function buildPlan(input: EngineInput): PlanDecision {
     }
     // Program exercises ignore energy; time is checked above
     const programCtx = { ...filterCtx, maxMinutes: signals.availableMinutes };
-    const problem = programExerciseProblem(byId.get(chosenId), programCtx);
+    // The user already added the step exercise: adopted as the engine item
+    const adopted = added.has(chosenId);
+    if (adopted) rules.push('adopted_user_item');
+    const problem = adopted ? null : programExerciseProblem(byId.get(chosenId), programCtx);
     let candidates: ScoredCandidate[] = [];
     if (problem) {
       rules.push(problem);
@@ -144,6 +150,7 @@ export function buildPlan(input: EngineInput): PlanDecision {
       );
       const minimalOk =
         chosenId !== step.minimalExerciseId &&
+        !added.has(step.minimalExerciseId) &&
         programExerciseProblem(byId.get(step.minimalExerciseId), programCtx) === null &&
         (byId.get(step.minimalExerciseId)?.durationMin ?? Infinity) <= filterCtx.maxMinutes;
       if (shorter) {
@@ -158,7 +165,12 @@ export function buildPlan(input: EngineInput): PlanDecision {
         candidates = fallback.candidates;
       }
     }
-    selection = { mode, exerciseIds: chosenId ? [chosenId] : [], candidates };
+    selection = {
+      mode,
+      exerciseIds: chosenId ? [chosenId] : [],
+      candidates,
+      adoptedId: adopted ? chosenId : undefined,
+    };
     if (!chosenId && !rules.includes('no_candidate')) rules.push('no_candidate');
     if (step.introducedHabitId && !input.ownedHabitTemplateIds.includes(step.introducedHabitId)) {
       introducedHabitId = step.introducedHabitId;
@@ -198,7 +210,11 @@ export function buildPlan(input: EngineInput): PlanDecision {
     programDay,
     nextProfileProgramDay: day,
     principleId,
-    items: selection.exerciseIds.map((exerciseId, i) => ({ exerciseId, position: i + 1 })),
+    items: selection.exerciseIds.map((exerciseId, i) => ({
+      exerciseId,
+      position: i + 1,
+      adopted: exerciseId === selection.adoptedId,
+    })),
     introducedHabitId,
     whyToday: renderWhy(whyKey, input.language, usedParams),
     whyKey,

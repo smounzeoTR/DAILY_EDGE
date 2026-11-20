@@ -67,6 +67,7 @@ function inputArbitrary(): fc.Arbitrary<EngineInput> {
     rating: fc.option(fc.integer({ min: 1, max: 5 }), { nil: null }),
     mode: fc.constantFrom('normal', 'minimal', 'recovery' as const),
     programDay: fc.option(fc.integer({ min: 1, max: 28 }), { nil: null }),
+    origin: fc.constantFrom('engine', 'user' as const),
   });
   return fc
     .record({
@@ -107,6 +108,8 @@ function inputArbitrary(): fc.Arbitrary<EngineInput> {
       extraDone: fc.subarray(exerciseIds(), { maxLength: 80 }),
       extraRated1: fc.subarray(exerciseIds(), { maxLength: 40 }),
       habitDays: fc.uniqueArray(fc.integer({ min: 1, max: 7 }), { maxLength: 7 }),
+      // Library additions already in today's plan
+      userAdded: fc.subarray(exerciseIds(), { maxLength: 3 }),
     })
     .map((r) => {
       // One plan per date
@@ -122,6 +125,7 @@ function inputArbitrary(): fc.Arbitrary<EngineInput> {
               exerciseId: p.exerciseId,
               status: p.status,
               rating: p.status === 'done' ? p.rating : null,
+              origin: p.origin,
             },
           ],
         });
@@ -156,6 +160,7 @@ function inputArbitrary(): fc.Arbitrary<EngineInput> {
         exerciseHistory: historyFrom(plans, r.extraDone, r.extraRated1),
         habitLogDates: r.habitDays.map((d) => addDays(TODAY, -d)),
         ownedHabitTemplateIds: [],
+        userAddedExerciseIds: r.userAdded,
         goal: null,
         catalog,
       } satisfies EngineInput;
@@ -175,7 +180,14 @@ function checkInvariants(input: EngineInput): void {
 
   expect(result.items.length).toBeGreaterThanOrEqual(1);
   expect(result.items.length).toBeLessThanOrEqual(2);
-  for (const e of exercises) {
+  const added = new Set(input.userAddedExerciseIds);
+  for (const item of result.items) {
+    // A user addition is only ever adopted, never proposed again
+    expect(added.has(item.exerciseId)).toBe(item.adopted);
+  }
+  // Adopted items were chosen by the user: the engine filters apply to its own proposals
+  const proposed = result.items.filter((i) => !i.adopted).map((i) => byId.get(i.exerciseId));
+  for (const e of proposed) {
     expect(e?.status).toBe('published');
     const rated1 = history.get(e?.id ?? '')?.lastRating1On;
     if (rated1) expect(diffDays(rated1, input.today)).toBeGreaterThanOrEqual(60);
@@ -204,6 +216,13 @@ describe('properties on varied profiles (real catalogue)', () => {
         const base = previous?.programDay ?? input.profile.programDay;
         expect(a.nextProfileProgramDay - base).toBeGreaterThanOrEqual(0);
         expect(a.nextProfileProgramDay - base).toBeLessThanOrEqual(1);
+        // Only a done engine item (outside recovery) moves the program
+        const engineDone = previous?.items.some(
+          (i) => i.status === 'done' && i.origin === 'engine',
+        );
+        if (previous?.programDay != null && !(engineDone && previous.mode !== 'recovery')) {
+          expect(a.nextProfileProgramDay).toBe(base);
+        }
       }),
       { seed: SEED + 1, numRuns: 200 },
     );

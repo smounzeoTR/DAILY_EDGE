@@ -19,6 +19,7 @@ export type EnergyLevel = 'low' | 'medium' | 'high';
 export type UserLevel = 'beginner' | 'intermediate' | 'advanced';
 export type PlanMode = 'normal' | 'minimal' | 'recovery';
 export type ItemStatus = 'todo' | 'done' | 'skipped' | 'too_hard';
+export type ItemOrigin = 'engine' | 'user';
 export type ContentStatus = 'draft' | 'review' | 'published' | 'retired';
 
 export type CatalogExercise = {
@@ -60,7 +61,13 @@ export type PastPlan = {
   mode: PlanMode;
   // Program day covered; null in catalogue mode
   programDay: number | null;
-  items: { exerciseId: string; status: ItemStatus; rating: number | null }[];
+  items: {
+    exerciseId: string;
+    status: ItemStatus;
+    rating: number | null;
+    // engine = proposed by the engine; user = added from the library
+    origin: ItemOrigin;
+  }[];
 };
 
 export type ExerciseHistory = {
@@ -97,6 +104,8 @@ export type EngineInput = {
   exerciseHistory: ExerciseHistory[];
   // Days with at least one habit checked (recent)
   habitLogDates: ISODate[];
+  // Exercises the user already added to the plan of `today` (never proposed twice)
+  userAddedExerciseIds: string[];
   ownedHabitTemplateIds: string[];
   goal: {
     targetValue: number | null;
@@ -134,7 +143,8 @@ export type RuleId =
   | 'relaxed_persona'
   | 'relaxed_short_fallback'
   | 'no_candidate'
-  | 'habit_introduced';
+  | 'habit_introduced'
+  | 'adopted_user_item';
 
 export type WhyKey =
   | 'recovery'
@@ -165,7 +175,8 @@ export type PlanDecision = {
   programDay: number | null;
   nextProfileProgramDay: number;
   principleId: string | null;
-  items: { exerciseId: string; position: number }[];
+  // adopted: the user's addition of the program step exercise, now an engine item
+  items: { exerciseId: string; position: number; adopted: boolean }[];
   introducedHabitId: string | null;
   whyToday: string;
   whyKey: WhyKey;

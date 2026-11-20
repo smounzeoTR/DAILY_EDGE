@@ -90,6 +90,7 @@ export function makeInput(patch: Partial<EngineInput> = {}): EngineInput {
     exerciseHistory: [],
     habitLogDates: [],
     ownedHabitTemplateIds: [],
+    userAddedExerciseIds: [],
     goal: null,
     catalog: smallCatalog(),
   };
@@ -100,13 +101,18 @@ export function plan(
   date: string,
   exerciseId: string,
   status: ItemStatus,
-  extra: { mode?: PlanMode; programDay?: number | null; rating?: number | null } = {},
+  extra: {
+    mode?: PlanMode;
+    programDay?: number | null;
+    rating?: number | null;
+    origin?: 'engine' | 'user';
+  } = {},
 ): PastPlan {
   return {
     date,
     mode: extra.mode ?? 'normal',
     programDay: extra.programDay === undefined ? null : extra.programDay,
-    items: [{ exerciseId, status, rating: extra.rating ?? null }],
+    items: [{ exerciseId, status, rating: extra.rating ?? null, origin: extra.origin ?? 'engine' }],
   };
 }
 

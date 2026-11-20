@@ -30,7 +30,8 @@ export function currentProgramDay(input: EngineInput): ProgramDay {
   if (!previous || previous.programDay === null) {
     return { day: input.profile.programDay, advanced: false };
   }
-  const done = previous.items.some((i) => i.status === 'done');
+  // Only engine items move the program (user additions do not)
+  const done = previous.items.some((i) => i.status === 'done' && i.origin === 'engine');
   const advanced = done && previous.mode !== 'recovery';
   return { day: previous.programDay + (advanced ? 1 : 0), advanced };
 }

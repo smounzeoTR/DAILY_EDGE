@@ -26,7 +26,7 @@ export async function savedPlan(db: Client, planId: string) {
   const { data, error } = await db
     .from('daily_plans')
     .select(
-      'id, date, mode, program_day, principle_id, why_today, introduced_habit_id, plan_items(id, exercise_id, position, status, rating, proof_value)',
+      'id, date, mode, program_day, principle_id, why_today, introduced_habit_id, generated_at, plan_items(id, exercise_id, position, status, rating, proof_value, origin)',
     )
     .eq('id', planId)
     .single();
@@ -48,12 +48,13 @@ export async function generatePlanForUser(
   // Touched plan: returned as is, nothing recomputed
   const { data: existing, error: existingError } = await db
     .from('daily_plans')
-    .select('id, plan_items(status)')
+    .select('id, plan_items(status, origin)')
     .eq('user_id', profile.user_id)
     .eq('date', date)
     .maybeSingle();
   if (existingError) throw existingError;
-  if (existing && existing.plan_items.some((i) => i.status !== 'todo')) {
+  // Only engine items decide: a plan with user additions only stays untouched
+  if (existing && existing.plan_items.some((i) => i.origin === 'engine' && i.status !== 'todo')) {
     return { status: 'unchanged', plan: await savedPlan(db, existing.id) };
   }
 
@@ -72,7 +73,11 @@ export async function generatePlanForUser(
       principle_id: decision.principleId,
       introduced_habit_id: decision.introducedHabitId,
       why_today: decision.whyToday,
-      items: decision.items.map((i) => ({ exercise_id: i.exerciseId, position: i.position })),
+      items: decision.items.map((i) => ({
+        exercise_id: i.exerciseId,
+        position: i.position,
+        adopted: i.adopted,
+      })),
     },
     p_decision: {
       rules_fired: decision.rulesFired,

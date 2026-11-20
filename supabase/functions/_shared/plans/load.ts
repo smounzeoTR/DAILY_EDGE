@@ -94,7 +94,7 @@ export async function loadEngineInput(
   const userId = profile.user_id;
   const from60 = addDays(date, -HISTORY_DAYS);
   const from7 = addDays(date, -RECENT_DAYS);
-  const [catalog, checkins, plans, history, habitLogs, habits, goals] = await Promise.all([
+  const [catalog, checkins, plans, history, habitLogs, habits, goals, added] = await Promise.all([
     loadCatalog(db),
     db
       .from('checkins')
@@ -104,7 +104,7 @@ export async function loadEngineInput(
       .lt('date', date),
     db
       .from('daily_plans')
-      .select('date, mode, program_day, plan_items(exercise_id, status, rating, position)')
+      .select('date, mode, program_day, plan_items(exercise_id, status, rating, position, origin)')
       .eq('user_id', userId)
       .gte('date', from60)
       .lt('date', date)
@@ -125,6 +125,13 @@ export async function loadEngineInput(
       .eq('status', 'active')
       .order('created_at', { ascending: false })
       .limit(1),
+    // Library additions already in the plan of `date`
+    db
+      .from('plan_items')
+      .select('exercise_id, daily_plans!inner(date)')
+      .eq('user_id', userId)
+      .eq('origin', 'user')
+      .eq('daily_plans.date', date),
   ]);
 
   const timezone = profile.timezone;
@@ -135,7 +142,12 @@ export async function loadEngineInput(
     programDay: p.program_day,
     items: [...p.plan_items]
       .sort((a, b) => a.position - b.position)
-      .map((i) => ({ exerciseId: i.exercise_id, status: i.status, rating: i.rating })),
+      .map((i) => ({
+        exerciseId: i.exercise_id,
+        status: i.status,
+        rating: i.rating,
+        origin: i.origin,
+      })),
   }));
 
   return {
@@ -165,6 +177,7 @@ export async function loadEngineInput(
       lastRating1On: h.last_rating1_on,
     })),
     habitLogDates: [...new Set(must(habitLogs, 'habit_logs').map((l) => l.date))],
+    userAddedExerciseIds: must(added, 'plan_items').map((i) => i.exercise_id),
     ownedHabitTemplateIds: must(habits, 'user_habits')
       .map((h) => h.template_id)
       .filter((id): id is string => id !== null),

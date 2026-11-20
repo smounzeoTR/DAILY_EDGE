@@ -520,3 +520,79 @@ describe('why today', () => {
     expect(result.whyParams).toEqual({ week: 1, theme: 'Clarify the goal' });
   });
 });
+
+describe('user additions (library)', () => {
+  const active = {
+    profile: { onboardedOn: day(-30), programDay: 1 } as EngineInput['profile'],
+  };
+
+  it('a done addition does not move the program, a done engine item does', () => {
+    const withItems = (engineStatus: 'done' | 'skipped') =>
+      makeInput({
+        ...active,
+        plans: [
+          {
+            date: day(-1),
+            mode: 'normal',
+            programDay: 1,
+            items: [
+              { exerciseId: 'E01', status: engineStatus, rating: null, origin: 'engine' },
+              { exerciseId: 'C01', status: 'done', rating: null, origin: 'user' },
+            ],
+          },
+        ],
+      });
+    expect(buildPlan(withItems('skipped')).programDay).toBe(1);
+    expect(buildPlan(withItems('done')).programDay).toBe(2);
+  });
+
+  it('a done addition counts as activity (no recovery)', () => {
+    const input = makeInput({
+      ...active,
+      plans: [plan(day(-2), 'C01', 'done', { programDay: 1, origin: 'user' })],
+    });
+    expect(buildPlan(input).mode).not.toBe('recovery');
+  });
+
+  it('never proposes an exercise the user already added', () => {
+    const noProgram = {
+      programId: null,
+      onboardedOn: day(-30),
+    } as unknown as EngineInput['profile'];
+    const checkins = [checkin(day(-1), { energy: 4 })];
+    expect(ids(makeInput({ profile: noProgram, checkins }))[0]).toBe('C01');
+    const result = buildPlan(
+      makeInput({ profile: noProgram, checkins, userAddedExerciseIds: ['C01'] }),
+    );
+    expect(result.items.map((i) => i.exerciseId)).not.toContain('C01');
+    expect(result.items.every((i) => !i.adopted)).toBe(true);
+  });
+
+  it('adopts the step exercise when the user already added it', () => {
+    const result = buildPlan(makeInput({ userAddedExerciseIds: ['E01', 'C02'] }));
+    expect(result.items).toEqual([{ exerciseId: 'E01', position: 1, adopted: true }]);
+    expect(result.rulesFired).toContain('adopted_user_item');
+    expect(result.principleId).toBe('P001');
+  });
+
+  it('adopts the minimal exercise in minimal mode', () => {
+    const result = buildPlan(
+      makeInput({ checkins: [checkin(day(-1), { energy: 2 })], userAddedExerciseIds: ['M01'] }),
+    );
+    expect(result.mode).toBe('minimal');
+    expect(result.items).toEqual([{ exerciseId: 'M01', position: 1, adopted: true }]);
+  });
+
+  it('an adopted exercise is not replaced (the user chose it)', () => {
+    const result = buildPlan(
+      makeInput({
+        profile: { onboardedOn: day(-30), programDay: 2 } as EngineInput['profile'],
+        checkins: [checkin(day(-1), { energy: 4 })],
+        // E02 needs E01, never done: normally replaced
+        userAddedExerciseIds: ['E02'],
+      }),
+    );
+    expect(result.items).toEqual([{ exerciseId: 'E02', position: 1, adopted: true }]);
+    expect(result.rulesFired).not.toContain('replaced_missing_prerequisite');
+  });
+});
