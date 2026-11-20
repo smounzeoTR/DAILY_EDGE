@@ -153,17 +153,20 @@ describe('generate-plan', () => {
     const early = await generate(a.token, { date: tomorrow });
     expect(early.body.plan.program_day).toBe(1);
 
-    // A marks today's exercise done (allowed column update under RLS)
+    // A marks today's exercise done
     const { data: today } = await a.client
       .from('daily_plans')
       .select('id, plan_items(id)')
       .eq('date', localDate())
       .single();
     const itemId = (today?.plan_items as { id: string }[])[0]?.id;
-    const { error } = await a.client
-      .from('plan_items')
-      .update({ status: 'done', rating: 4 })
-      .eq('id', itemId);
+    // Results go through set_plan_item_result (today's plan only); E001 needs a text proof
+    const { error } = await a.client.rpc('set_plan_item_result', {
+      p_item_id: itemId ?? '',
+      p_status: 'done',
+      p_proof_value: 'Signer 5 clients avant mars',
+      p_rating: 4,
+    });
     expect(error).toBeNull();
 
     const after = await generate(a.token, { date: tomorrow });

@@ -1,0 +1,147 @@
+# Fresh user: intro -> sign-in with 6-digit code (Mailpit) -> onboarding interrupted and
+# resumed -> program change -> 3 habits. Ends on the reminders explanation screen.
+appId: host.exp.Exponent
+env:
+  APP_URL: exp://127.0.0.1:8081
+  MAILPIT_URL: http://127.0.0.1:54324
+---
+# Fresh device state: no session, no draft, intro not seen
+- clearState
+- evalScript: ${output.email = 'e2e-' + Date.now() + '@example.test'}
+- openLink: ${APP_URL}
+- extendedWaitUntil:
+    visible: 'Un principe par jour, tiré des meilleurs livres\.|Connecte-toi'
+    timeout: 60000
+
+- runFlow: close-expo-dev-menu.yaml
+
+# Intro (shown once per device)
+- extendedWaitUntil:
+    visible: 'Un principe par jour, tiré des meilleurs livres\.|Connecte-toi'
+    timeout: 60000
+- runFlow:
+    when:
+      visible: 'Un principe par jour, tiré des meilleurs livres\.'
+    commands:
+      - assertVisible: 'La règle des deux minutes'
+      - assertVisible: '.*115 principes reformulés.*'
+      - takeScreenshot: e2e-01-intro
+      - tapOn: 'Suivant'
+      - assertVisible: 'Un exercice court, adapté à ta journée\.'
+      - tapOn: 'Suivant'
+      - assertVisible: 'Trois habitudes minuscules, toujours tenables\.'
+      - tapOn: 'Commencer'
+
+# Sign-in with the code read from Mailpit
+- assertVisible: 'Connecte-toi'
+- tapOn: 'toi@exemple.com'
+- inputText: ${output.email}
+- takeScreenshot: e2e-02-sign-in
+- tapOn: 'Recevoir mon code'
+- assertVisible: 'Entre ton code'
+- runScript: ../scripts/get-otp.js
+- inputText: ${output.code}
+
+# Onboarding Q1-Q6
+- extendedWaitUntil:
+    visible: 'Quel est ton objectif principal \?'
+    timeout: 20000
+- takeScreenshot: e2e-03-q1
+- inputText: 'Signer 5 clients'
+- tapOn: 'Continuer'
+- assertVisible: "Comment sauras-tu qu'il est atteint \\?"
+- tapOn: 'Valeur'
+- inputText: '5'
+- tapOn: 'Unité \(€, clients…\)'
+- inputText: 'clients'
+- tapOn: 'Continuer'
+- assertVisible: 'Pour quand \?'
+- tapOn: 'Passer'
+- assertVisible: 'Pourquoi est-ce important pour toi \?'
+- tapOn: 'Passer'
+- assertVisible: 'Ta situation'
+- tapOn: 'Salarié'
+- tapOn: 'Continuer'
+- assertVisible: 'Tes domaines prioritaires \(3 au maximum\)'
+- tapOn: 'Entreprise & carrière'
+- tapOn: 'Énergie & santé'
+- assertVisible: '2 sur 3'
+- tapOn: 'Continuer'
+- assertVisible: 'Ce qui te freine le plus'
+
+# Close the app mid-onboarding, reopen: the draft resumes at Q7 with Q6 answers
+- stopApp
+- openLink: ${APP_URL}
+- extendedWaitUntil:
+    visible: 'Ce qui te freine le plus'
+    timeout: 60000
+- runFlow: close-expo-dev-menu.yaml
+- tapOn: 'Retour'
+- assertVisible: '2 sur 3'
+- takeScreenshot: e2e-04-draft-restored
+- tapOn: 'Continuer'
+
+# Q7-Q12
+- tapOn: 'Peur'
+- tapOn: 'Continuer'
+- assertVisible: 'Temps disponible un jour normal'
+- tapOn: '30 min'
+- tapOn: 'Continuer'
+- assertVisible: 'Ton meilleur moment de la journée'
+- tapOn: 'Matin'
+- tapOn: 'Continuer'
+- assertVisible: 'Ce qui te motive'
+- tapOn: 'Le défi'
+- tapOn: 'Continuer'
+- assertVisible: 'Ton niveau en développement personnel'
+- tapOn: 'Débutant'
+- tapOn: 'Continuer'
+- assertVisible: 'Heures des rappels'
+- tapOn: 'Continuer'
+
+# Consent, program (employee -> PR2, then changed to PR1), habits
+- assertVisible: 'Tes données, ton choix'
+- tapOn: 'Check-in du soir'
+- assertVisible:
+    text: 'Check-in du soir'
+    checked: true
+- tapOn: 'Continuer'
+- assertVisible: 'Ton programme'
+- assertVisible: 'Lancer son projet'
+- takeScreenshot: e2e-05-program
+- tapOn: 'Changer de programme'
+# Cards are a single accessibility element (code, name, description)
+- scrollUntilVisible:
+    element: '.*Focus & exécution.*'
+    direction: DOWN
+- tapOn: '.*Focus & exécution.*'
+- scrollUntilVisible:
+    element: 'PR1 · 28 jours'
+    direction: UP
+- tapOn: 'Continuer'
+- assertVisible: 'Choisis 3 habitudes'
+- tapOn: '.*Dix idées.*'
+- scrollUntilVisible:
+    element: '.*Une prise de contact.*'
+    direction: DOWN
+- tapOn: '.*Une prise de contact.*'
+- scrollUntilVisible:
+    element: '.*Apprendre une compétence.*'
+    direction: DOWN
+- tapOn: '.*Apprendre une compétence.*'
+- scrollUntilVisible:
+    element: '3 sur 3 choisies'
+    direction: UP
+- scrollUntilVisible:
+    element: 'Avec le café du matin'
+    direction: DOWN
+- tapOn: 'Avec le café du matin'
+- eraseText
+- inputText: 'Après mon café'
+- takeScreenshot: e2e-06-habits
+- tapOn: 'Commencer'
+
+# First open of Today: reminders explanation screen
+- extendedWaitUntil:
+    visible: 'Un petit rappel, matin et soir \?'
+    timeout: 30000

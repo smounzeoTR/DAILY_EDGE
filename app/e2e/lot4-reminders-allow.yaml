@@ -1,0 +1,26 @@
+# Lot 4: reminders explanation screen -> system permission accepted -> Today.
+# Run: maestro test app/e2e/lot4-reminders-allow.yaml -e APP_URL=exp://127.0.0.1:8081
+appId: host.exp.Exponent
+env:
+  APP_URL: exp://127.0.0.1:8081
+  MAILPIT_URL: http://127.0.0.1:54324
+---
+- runFlow: subflows/sign-in-onboarding.yaml
+- takeScreenshot: e2e-l4-05-reminders-primer
+- tapOn: 'Activer les rappels'
+# System dialog (simulator in French or English)
+- extendedWaitUntil:
+    visible: 'Autoriser|Allow'
+    timeout: 10000
+- tapOn: 'Autoriser|Allow'
+- extendedWaitUntil:
+    visible: 'Jour 1 sur 28.*'
+    timeout: 30000
+# Never asked again: reopen the app, Today shows directly
+- stopApp
+- openLink: ${APP_URL}
+- runFlow: subflows/close-expo-dev-menu.yaml
+- extendedWaitUntil:
+    visible: 'Jour 1 sur 28.*'
+    timeout: 60000
+- assertNotVisible: 'Un petit rappel, matin et soir \?'

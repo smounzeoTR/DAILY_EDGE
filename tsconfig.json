@@ -21,6 +21,8 @@
     "tests/**/*.ts"
   ],
   "exclude": [
-    "supabase/functions/generate-plan"
+    "supabase/functions/generate-plan",
+    "supabase/functions/generate-plans-batch",
+    "supabase/functions/_shared/plans"
   ]
 }

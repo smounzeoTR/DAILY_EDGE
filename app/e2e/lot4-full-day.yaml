@@ -1,0 +1,92 @@
+# Lot 4 end-to-end: a full day after onboarding.
+# Exercise done (text proof) and rated, proposed habit added, habits checked (one in minimal
+# version), evening check-in -> tomorrow's plan normal, then check-in edited with energy 2 ->
+# tomorrow's plan in short (minimal) version.
+# Run: maestro test app/e2e/lot4-full-day.yaml -e APP_URL=exp://127.0.0.1:8081
+appId: host.exp.Exponent
+env:
+  APP_URL: exp://127.0.0.1:8081
+  MAILPIT_URL: http://127.0.0.1:54324
+---
+- runFlow: subflows/sign-in-onboarding.yaml
+- tapOn: 'Plus tard'
+- extendedWaitUntil:
+    visible: 'Jour 1 sur 28.*'
+    timeout: 30000
+
+# Exercise of the day (E001, text proof), then rating
+- assertVisible: 'Écrire son objectif principal'
+- tapOn: 'Quelques mots suffisent'
+- inputText: "Signer 5 clients d'ici mars"
+- tapOn: 'Fait'
+- extendedWaitUntil:
+    visible: 'Fait, bravo !'
+    timeout: 15000
+- tapOn: 'Note 4 sur 5'
+- assertVisible:
+    text: 'Note 4 sur 5'
+    selected: true
+- takeScreenshot: e2e-l4-01-exercise-done
+
+# Habit proposed by the step of day 1
+- scrollUntilVisible:
+    element: 'Nouvelle habitude proposée'
+    direction: DOWN
+- tapOn: 'Ajouter'
+- extendedWaitUntil:
+    notVisible: 'Nouvelle habitude proposée'
+    timeout: 10000
+
+# Habits: one checked, one in minimal version
+# Habit rows read "title, cue"
+- scrollUntilVisible:
+    element: 'Dix idées, .*'
+    direction: DOWN
+- tapOn: 'Dix idées, .*'
+- assertVisible:
+    text: 'Dix idées, .*'
+    checked: true
+- scrollUntilVisible:
+    element: 'Version minimale : Apprendre une compétence'
+    direction: DOWN
+- tapOn: 'Version minimale : Apprendre une compétence'
+- extendedWaitUntil:
+    visible:
+      text: 'Apprendre une compétence, .*'
+      checked: true
+    timeout: 10000
+- assertVisible: 'Lire son objectif, .*'
+- takeScreenshot: e2e-l4-02-habits
+
+# Evening check-in, energy 4 -> tomorrow normal
+- scrollUntilVisible:
+    element: 'Faire mon check-in'
+    direction: DOWN
+- tapOn: 'Faire mon check-in'
+- assertVisible: 'Check-in du soir'
+- tapOn: 'Énergie 4 sur 5'
+- tapOn: 'Humeur 4 sur 5'
+- tapOn: '15 min'
+- tapOn: 'Une phrase suffit'
+- inputText: 'Deux appels clients'
+- tapOn: 'Valider'
+- extendedWaitUntil:
+    visible: "C'est noté !"
+    timeout: 20000
+- assertVisible: 'Demain'
+- assertNotVisible: 'Version courte.*'
+- takeScreenshot: e2e-l4-03-tomorrow-normal
+
+# Check-in edited the same evening, energy 2 -> tomorrow minimal
+- tapOn: 'Modifier mon check-in'
+- tapOn: 'Énergie 2 sur 5'
+- tapOn: 'Valider'
+- extendedWaitUntil:
+    visible: 'Version courte.*'
+    timeout: 20000
+- takeScreenshot: e2e-l4-04-tomorrow-minimal
+- tapOn: "Retour à aujourd'hui"
+- assertVisible: 'Modifier mon check-in'
+- scrollUntilVisible:
+    element: 'Jour 1 sur 28.*'
+    direction: UP
