@@ -77,8 +77,10 @@ Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le tél�
 | Rebuild du development build (nouveau module natif) | `cd app && npx expo prebuild --platform ios && cd ios && pod install`, puis ⌘R dans Xcode |
 | Se connecter en local | e-mail quelconque dans l'app, puis le code à 6 chiffres dans Mailpit (http://127.0.0.1:54324) |
 | Config Supabase modifiée (`config.toml`, modèles d'e-mail) | `supabase stop && supabase start` (un `db reset` ne recharge pas la config) |
-| Tests de bout en bout (simulateur iOS, Maestro) | Metro lancé (`cd app && npx expo start --go`), puis `export PATH="/opt/homebrew/opt/openjdk/bin:$PATH" && maestro test app/e2e/<scénario>.yaml -e APP_URL=exp://127.0.0.1:8081` (scénarios : `lot2-sign-in-onboarding`, `lot4-full-day`, `lot4-reminders-allow`, `lot5-library-progress` ; sous-scénarios dans `app/e2e/subflows/`). Simulateur démarré au préalable (`xcrun simctl boot <id>`). Installation : `brew install openjdk mobile-dev-inc/tap/maestro` (pas le cask `maestro`, qui est un autre logiciel) |
+| Tests de bout en bout (simulateur iOS, Maestro) | Metro lancé (`cd app && npx expo start --go`), simulateur démarré, puis `export PATH="/opt/homebrew/opt/openjdk/bin:$PATH" && maestro test app/e2e/<scénario>.yaml -e APP_URL=exp://127.0.0.1:8081`. `APP_URL` est obligatoire : aucun scénario ne le définit dans un bloc `env` (il écraserait la valeur passée par `-e`). Scénarios : `lot2-sign-in-onboarding`, `lot4-full-day`, `lot4-reminders-allow`, `lot5-library-progress`, `lot6-settings`, `lot6-review-demo` (après `npm run seed:demo`) ; sous-scénarios dans `app/e2e/subflows/`. Installation : `brew install openjdk mobile-dev-inc/tap/maestro` (pas le cask `maestro`) |
 | Tests (moteur, i18n, scripts) | `npm test` (= `vitest run`), `npm run test:watch` |
+| Données de démonstration (local uniquement) | `npm run seed:demo` (recrée `demo@daily-edge.local`, code de connexion dans Mailpit ; refuse une URL Supabase non locale) |
+| Export de mes données (Edge Function) | `POST /functions/v1/export-my-data` avec le JWT de l'utilisateur |
 | Typecheck (racine + app) | `npm run typecheck` |
 | Lint | `npm run lint` |
 | Formatage | `npm run format` / `npm run format:check` |
@@ -99,6 +101,8 @@ Notes :
 - Exercices ajoutés depuis la bibliothèque : `plan_items.origin = 'user'`, via `add_exercise_to_today` (crée au besoin un plan vide, `generated_at` NULL, complété par `generate-plan`). Seuls les items `engine` font avancer le programme et décident si un plan est « touché ».
 - Maestro : un champ de texte se lit « étiquette texte indicatif » ; cibler par expression régulière (`'Étiquette.*'`). Fermer la bulle d'aide du clavier iOS avec `subflows/dismiss-keyboard-tip.yaml`.
 - Écritures serveur contrôlées : résultat d'exercice via `set_plan_item_result`, check-in via `upsert_checkin`, habitude proposée via `add_habit_from_template` (plus d'écriture directe sur `plan_items` ni `checkins`). Coches d'habitude : jour même et veille seulement (RLS).
+- Code partagé app / Edge Functions : `supabase/functions/_shared/habits/` (périodes, taux d'habitude) importé dans l'app via l'alias `@shared/*` (tsconfig + `app/metro.config.js` `watchFolders`). Après un changement d'alias ou de `metro.config.js` : `npx expo start -c` (cache Metro).
+- Bilan de la semaine : `supabase/functions/_shared/review/` (fonction pure + génération partagée par `generate-review`, la génération de secours et `seed:demo`).
 - Accessibilité : pour un élément à cocher, utiliser `accessibilityRole="switch"` (le rôle `checkbox` n'expose pas son état sur iOS) ; les textes enfants d'un `Pressable` étiqueté ne sont pas annoncés, les inclure dans l'étiquette ou `accessibilityValue`.
 
 ## Règles de travail

@@ -109,8 +109,30 @@ Précisions du 24 novembre 2026 (lot 5) :
 ### 3.6 Bilan de la semaine (dimanche soir)
 Résumé (exercices faits, habitudes tenues, énergie moyenne, meilleur jour), puis 1 à 3 propositions d'ajustement (simplifier une habitude, changer d'habitude, ajuster l'échéance). Chaque proposition s'accepte ou se refuse ; rien n'est appliqué sans accord.
 
+Précisions du 25 novembre 2026 (lot 6) :
+- Semaine du lundi au dimanche. Le bilan est généré le dimanche à partir de 18 h locale, par la génération de secours horaire (rattrapage jusqu'à minuit) ou à l'ouverture de l'app (Edge Function `generate-review`, qui génère aussi le bilan de la semaine écoulée s'il manque). Il reste consultable jusqu'au dimanche suivant (bilan en cours = le dernier, généré il y a moins de 8 jours) ; l'historique est accessible depuis Progression.
+- Résumé : exercices faits sur ceux prévus, taux par habitude sur la semaine, énergie moyenne (seulement avec consentement), meilleur jour (le plus d'exercices et d'habitudes réalisés, le plus récent en cas d'égalité). Ton bienveillant, sans reproche.
+- 1 à 3 propositions, construites par des règles et classées par priorité :
+  1. habitude sous 30 % sur 14 jours (au moins 2 périodes attendues) : la simplifier (`user_habits.simplified` : sa version minimale devient l'action principale, cochée en version minimale) ; si elle l'est déjà, la remplacer par un modèle non possédé du même domaine ;
+  2. objectif : si la valeur actuelle est nulle ou n'a pas été mise à jour depuis plus de 14 jours (`goals.current_value_updated_at`), proposer « Mets à jour ton avancement » (type `update_goal_progress`, sans effet en base : accepter ouvre la saisie). Sinon, s'il a plus de 20 % de retard, nouvelle échéance calculée sur le rythme réel (valeur actuelle / jours écoulés jusqu'à sa saisie) ; rien si le rythme est nul ;
+  3. passer au niveau supérieur si les 2 dernières semaines dépassent 85 % de réalisation (au moins 4 jours avec plan par semaine) ;
+  4. ajuster le temps quotidien quand le temps réel (somme des durées des exercices faits) des jours en mode normal (au moins 3 dans la semaine) est au plus la moitié ou au moins 1,5 fois le temps déclaré : la plus petite tranche (5, 15, 30, 45 min) couvrant le temps réel. Les versions courtes (minimal, reprise) ne poussent jamais le temps déclaré vers le bas.
+- Chaque proposition est enregistrée avec son type et ses paramètres (`weekly_reviews.proposals`). `answer_review_proposal(p_review_id, p_index, p_accept)` applique côté serveur la proposition enregistrée (jamais un contenu envoyé par l'app), une seule réponse par proposition, sur le bilan en cours uniquement.
+- Rappel local le dimanche à l'heure du rappel du soir, jamais avant 18 h : « Ton bilan de la semaine est prêt ».
+- Résumé et propositions calculés par une fonction pure testée (`supabase/functions/_shared/review/`), qui partage avec l'app le calcul des périodes et des taux d'habitude (`_shared/habits/`).
+
 ### 3.7 Réglages
 Langue, heures des rappels, objectif, habitudes (ajouter, modifier, désactiver), thème (auto / clair / sombre), consentements, offre gratuit / premium (interrupteur en V1), export JSON des données, suppression du compte (effective sous 30 jours).
+
+Précisions du 25 novembre 2026 (lot 6) — nouvel onglet Réglages :
+- Langue (met aussi à jour `profiles.locale`), thème (auto, clair, sombre, enregistré sur l'appareil), heures des rappels (replanifiés).
+- Objectif : modifier, marquer comme atteint, en définir un nouveau (`replace_active_goal` : l'ancien passe à « abandonné » s'il n'est pas atteint ; échéance future).
+- Habitudes : ajouter depuis les modèles (une habitude désactivée du même modèle est réactivée), modifier le signal, désactiver ou réactiver ; au plus 6 habitudes actives (imposé par la base).
+- Programme : en changer via `change_program(p_program_id)`, qui recommence au jour 1 après confirmation (le plan du jour est recalculé s'il n'a pas été touché).
+- Consentements : les retirer ou les donner ; retirer le consentement au check-in propose d'effacer l'humeur et l'énergie déjà enregistrées (`erase_mood_energy`).
+- Export : Edge Function `export-my-data` qui renvoie un fichier JSON de toutes les données de l'utilisateur (décisions du moteur comprises), partagé depuis le téléphone ; accessible aussi pendant une suppression en cours.
+- Suppression du compte : double confirmation, puis `deletion_requested_at`. Pendant 30 jours, une connexion n'affiche que « Ton compte sera supprimé le … » avec « Annuler la suppression », « Exporter mes données » et « Se déconnecter » ; aucun plan ni bilan n'est généré. Au-delà, la génération de secours supprime le compte (`purge_deleted_accounts` : `auth.users`, données en cascade).
+- L'interrupteur gratuit / premium reste prévu au lot 7.
 
 ### 3.8 Administration (rôle admin)
 Consultation et modification des contenus, changement de statut (Brouillon / En relecture / Validé / Rejeté), statistiques par exercice : nombre de propositions, taux de réalisation, note moyenne, taux de « trop dur ». Journal des décisions du moteur par utilisateur. En début de V1, Supabase Studio peut suffire ; l'écran admin intégré vient au lot 7.
@@ -152,6 +174,8 @@ Ordre : reprise, sinon minimal, sinon normal.
 
 **Exercices ajoutés par l'utilisateur** (`plan_items.origin = 'user'`, depuis la bibliothèque) : l'avancement du programme et la règle « sauté 2 fois » ne tiennent compte que des exercices `engine` ; un ajout fait compte quand même comme activité et dans les taux (dont le taux de réalisation du mode minimal et la montée de niveau). Le moteur ne propose jamais un exercice déjà ajouté au plan du jour. Si l'exercice prévu par l'étape du programme fait partie des ajouts (ajouté avant le calcul du plan), le moteur l'adopte : il passe en `engine` à la position 1, sa réalisation fait avancer le programme, il ne compte plus dans la limite des 3 ajouts, et le plan est « touché » si l'item l'est déjà (règle `adopted_user_item`). Un plan qui n'a reçu que des ajouts reste « non touché » : le recalcul remplace les seuls exercices `engine` et conserve les ajouts, placés après.
 
+**Changement de programme** : chaque plan enregistre son programme (`daily_plans.program_id`) ; si le programme du plan précédent diffère de celui du profil, le moteur repart du jour du profil (jour 1 après `change_program`).
+
 **Avancement du programme** : seul le serveur le fait avancer. Le jour couvert par un plan est déduit du plan précédent : jour du plan précédent + 1 si son exercice (normal ou minimal) est « fait » et si ce n'était pas un plan de reprise, sinon le même jour. Recalculer un plan ne fait donc jamais avancer deux fois. `profiles.program_day` suit le plan le plus récent ; `program_day` et `program_start_date` ne sont écrits que par le serveur (et par `complete_onboarding`). Après le dernier jour du programme : mode catalogue.
 
 ### 5.2 Mode catalogue (après le jour 28 ou sans programme)
@@ -183,7 +207,7 @@ Nombre d'exercices : 1, ou 2 si le mode est normal et le temps disponible d'au m
 | Habitude < 30 % sur 14 jours | Le bilan propose de la simplifier ou de la remplacer (lot 6) |
 | Exercice sauté 2 fois (« Trop dur » compris) | Remplacé par un exercice plus court du même principe |
 | 3 jours complets sans activité | Plan de reprise doux |
-| Objectif en retard de plus de 20 % (valeur actuelle < 80 % de la trajectoire linéaire de 0 à la cible entre la création et l'échéance) | Détecté et journalisé dès le lot 3 ; le bilan propose de réviser l'échéance (lot 6) |
+| Objectif en retard de plus de 20 % (valeur actuelle < 80 % de la trajectoire linéaire de 0 à la cible entre la création et l'échéance), avec une valeur saisie il y a 14 jours au plus | Détecté et journalisé dès le lot 3 ; jamais sur une valeur nulle ou périmée ; le bilan propose de réviser l'échéance ou de mettre à jour l'avancement (lot 6) |
 
 Principe du jour (décision du 20 novembre 2026) :
 - **Pendant un programme**, le principe de l'étape fait foi (`program_steps.principle_id`), même s'il ne fait pas partie des principes de l'exercice principal. L'import signale ces cas par un avertissement (actuellement PR2 J5, PR2 J14 et PR3 J16).
@@ -226,21 +250,21 @@ Contenu (lecture seule côté app, `published` uniquement ; sources et tables de
 Les textes FR/EN sont stockés en colonnes `*_fr` / `*_en` en V1 (une table `content_translations` reste possible en V2 pour d'autres langues).
 
 Utilisateur (RLS sur `user_id = auth.uid()`, aucun accès anonyme) :
-- `profiles` : user_id, display_name, locale, timezone, situation, priority_domains[] (3 max), blockers[], daily_minutes, chronotype, motivation_style, level, persona, program_id, program_start_date, program_day, notify_morning, notify_evening, consent_checkin, consent_ai, consent_at, role (user / admin, non modifiable par l'utilisateur), onboarded_at. Créé automatiquement à l'inscription (trigger sur `auth.users`), avec un abonnement `free`.
+- `profiles` : user_id, display_name, locale, timezone, situation, priority_domains[] (3 max), blockers[], daily_minutes, chronotype, motivation_style, level, persona, program_id, program_start_date, program_day, notify_morning, notify_evening, consent_checkin, consent_ai, consent_at, role (user / admin, non modifiable par l'utilisateur), onboarded_at, deletion_requested_at (via `request_account_deletion` / `cancel_account_deletion`). Créé automatiquement à l'inscription (trigger sur `auth.users`), avec un abonnement `free`.
 - `subscriptions` : user_id, plan (free / premium), provider, status, current_period_end
-- `goals` : id, user_id, title, why, target_value, unit, deadline, current_value, status
-- `user_habits` : id, user_id, template_id (nullable), title, cue, minimal_version, frequency, active. Décision du 21 novembre 2026 : pour une habitude issue d'un modèle, title, cue et minimal_version restent NULL tant que l'utilisateur ne les modifie pas, et l'app affiche le texte du modèle dans la langue courante ; seul ce qui a été personnalisé est enregistré (par exemple un signal). Une habitude sans modèle doit avoir son propre titre (contrainte `template_id is not null or title is not null`). La fréquence est copiée du modèle à la création.
+- `goals` : id, user_id, title, why, target_value, unit, deadline, current_value, current_value_updated_at (rempli par trigger à chaque saisie de la valeur), status
+- `user_habits` : id, user_id, template_id (nullable), title, cue, minimal_version, frequency, active. Décision du 21 novembre 2026 : pour une habitude issue d'un modèle, title, cue et minimal_version restent NULL tant que l'utilisateur ne les modifie pas, et l'app affiche le texte du modèle dans la langue courante ; seul ce qui a été personnalisé est enregistré (par exemple un signal). Une habitude sans modèle doit avoir son propre titre (contrainte `template_id is not null or title is not null`). La fréquence est copiée du modèle à la création. `simplified` : version minimale devenue l'action principale (bilan hebdo). Au plus 6 habitudes actives.
 - `habit_logs` : user_habit_id, user_id, date, done, minimal (coche en version minimale). Écriture limitée au jour même et à la veille dans le fuseau du profil (RLS).
 - `checkins` : user_id, date, energy, mood, minutes_tomorrow, reflection, note. Écriture uniquement via `upsert_checkin` (date du jour, énergie et humeur vidées sans consentement).
-- `daily_plans` : id, user_id, date (unique par utilisateur), principle_id, mode (normal / minimal / recovery, affiché « Reprise »), program_day (NULL en mode catalogue), why_today, introduced_habit_id (habitude proposée par l'étape du jour), generated_at (NULL tant que le moteur n'a pas calculé le plan : plan vide créé par un ajout ; la génération de secours le reprend)
-- `plan_items` : id, plan_id, user_id, exercise_id, position, origin (engine / user), personalized_instructions, status (todo / done / skipped / too_hard), proof_value, rating, completed_at. « Touché » ne considère que les items `engine`.
+- `daily_plans` : id, user_id, date (unique par utilisateur), principle_id, mode (normal / minimal / recovery, affiché « Reprise »), program_day (NULL en mode catalogue), why_today, introduced_habit_id (habitude proposée par l'étape du jour), program_id (programme du plan), generated_at (NULL tant que le moteur n'a pas calculé le plan : plan vide créé par un ajout ; la génération de secours le reprend)
+- `plan_items` : id, plan_id, user_id, exercise_id, position, origin (engine / user), adopted (exercice de l'étape adopté parmi les ajouts : redevient un ajout `user` si un recalcul ne le retient plus, et compte alors de nouveau dans la limite des 3 ajouts), personalized_instructions, status (todo / done / skipped / too_hard), proof_value, rating, completed_at. « Touché » ne considère que les items `engine`.
 
 Cohérence du `user_id` recopié dans `habit_logs` et `plan_items` (pour des politiques RLS simples) : clés étrangères composites `habit_logs (user_habit_id, user_id) → user_habits (id, user_id)` et `plan_items (plan_id, user_id) → daily_plans (id, user_id)`. Un utilisateur ne peut donc pas écrire de log sur l'habitude d'un autre.
 
 Fin de l'onboarding : fonction `complete_onboarding` (security invoker), qui écrit en une transaction l'objectif, le profil (réponses, persona déduit du programme choisi, programme, `program_start_date` = date du jour dans le fuseau de l'utilisateur, `program_day = 1`, consentements, `onboarded_at`) et les 3 habitudes. Elle refuse une échéance qui n'est pas dans le futur, un programme non publié, autre chose que 3 modèles d'habitude distincts et publiés, et un second appel.
 
 Droits par table : CRUD complet sur ses lignes pour `goals`, `user_habits`, `habit_logs` (jour même et veille seulement), `favorites` ; lecture seule pour `checkins` (écriture via `upsert_checkin`) ; lecture seule pour `subscriptions`, `daily_plans`, `profile_stats` (écrites côté serveur) ; modification limitée à certaines colonnes pour `profiles` (jamais `role`, `program_day` ni `program_start_date`) et `weekly_reviews` (accepted). Depuis le lot 4, `plan_items` et `checkins` ne sont plus modifiables directement : résultats via `set_plan_item_result` (plan du jour seulement), check-in via `upsert_checkin`.
-- `weekly_reviews` : id, user_id, week_start, summary, proposals (jsonb), accepted (jsonb)
+- `weekly_reviews` : id, user_id, week_start (lundi, unique par utilisateur), stats (jsonb), summary (texte rédigé par l'IA au lot 7), proposals (jsonb : type, priorité, paramètres), accepted (jsonb : réponse par index), generated_at
 - `favorites` : user_id, entity_type (principle / exercise), entity_id
 - `profile_stats` : user_id, completion_7d, completion_by_domain (jsonb), energy_trend, avg_minutes, level, updated_at (recalculée chaque nuit)
 
@@ -261,6 +285,8 @@ Dates utilisateur stockées en date locale, calculées avec `profiles.timezone`.
 ## 8. Données de démonstration
 
 Un utilisateur de démo (Entrepreneur, PR1, jour 10) avec 10 jours d'historique réaliste : check-ins, exercices faits ou sautés, habitudes cochées, pour que Progression et Bilan soient remplis dès le départ. Script séparé du seed de contenu, jamais exécuté en production.
+
+Mise en œuvre (lot 6) : `npm run seed:demo` (`scripts/seed-demo/`), qui refuse de s'exécuter si l'URL Supabase n'est pas locale. Il recrée `demo@daily-edge.local` (connexion par code via Mailpit) : jour 10 de PR1 aujourd'hui, 11 jours d'historique (deux sauts, un jour à énergie 2 suivi d'une version courte), habitudes dont une rarement tenue, check-ins avec réflexions, objectif, temps déclaré optimiste, et le bilan de la semaine écoulée (généré par le code partagé), avec au moins deux propositions.
 
 ## 9. Indicateurs (cibles bêta)
 
