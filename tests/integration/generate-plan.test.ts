@@ -185,4 +185,59 @@ describe('generate-plan', () => {
     expect(again.body.status).toBe('unchanged');
     expect(again.body.plan.plan_items[0].status).toBe('done');
   });
+
+  it('adopts the step exercise added before the plan was computed', async () => {
+    const c = await createUser('c');
+    await onboard(c);
+    const { error } = await c.client.rpc('add_exercise_to_today', { p_exercise_id: 'E001' });
+    expect(error).toBeNull();
+    const generated = await generate(c.token);
+    expect(generated.body.status).toBe('created');
+    expect(
+      generated.body.plan.plan_items.map(
+        (i: { exercise_id: string; origin: string; position: number }) => [
+          i.exercise_id,
+          i.origin,
+          i.position,
+        ],
+      ),
+    ).toEqual([['E001', 'engine', 1]]);
+    const { data: decision } = await admin
+      .from('engine_decisions')
+      .select('rules_fired')
+      .eq('user_id', c.id)
+      .single();
+    expect(decision?.rules_fired).toContain('adopted_user_item');
+  });
+
+  it('a done addition keeps the plan recomputable and does not move the program', async () => {
+    const d = await createUser('d');
+    await onboard(d);
+    await generate(d.token);
+    const { data: added, error } = await d.client.rpc('add_exercise_to_today', {
+      p_exercise_id: 'E041',
+    });
+    expect(error).toBeNull();
+    const { error: doneError } = await d.client.rpc('set_plan_item_result', {
+      p_item_id: (added as { id: string }).id,
+      p_status: 'done',
+    });
+    expect(doneError).toBeNull();
+
+    const again = await generate(d.token);
+    expect(again.body.status).toBe('recomputed');
+    const items = again.body.plan.plan_items as {
+      exercise_id: string;
+      origin: string;
+      status: string;
+    }[];
+    expect(items.find((i) => i.exercise_id === 'E041')).toMatchObject({
+      origin: 'user',
+      status: 'done',
+    });
+    expect(items.filter((i) => i.origin === 'engine')).toHaveLength(1);
+
+    const tomorrow = await generate(d.token, { date: localDate(1) });
+    expect(tomorrow.body.plan.program_day).toBe(1);
+  });
 });

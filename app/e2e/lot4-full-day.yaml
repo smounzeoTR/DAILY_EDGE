@@ -16,9 +16,9 @@ env:
 
 # Exercise of the day (E001, text proof), then rating
 - assertVisible: 'Écrire son objectif principal'
-- tapOn: 'Quelques mots suffisent'
+- tapOn: 'Ce que tu as fait : Écrire son objectif principal.*'
 - inputText: "Signer 5 clients d'ici mars"
-- tapOn: 'Fait'
+- tapOn: 'Fait : Écrire son objectif principal'
 - extendedWaitUntil:
     visible: 'Fait, bravo !'
     timeout: 15000

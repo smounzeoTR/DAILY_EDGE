@@ -1,0 +1,8 @@
+# iOS shows a one-time "slide to type" keyboard tip that covers the tab bar; close it if present.
+appId: host.exp.Exponent
+---
+- runFlow:
+    when:
+      visible: '.*(Speed up your typing|Tapez plus rapidement|glissant).*'
+    commands:
+      - tapOn: 'Continue|Continuer'

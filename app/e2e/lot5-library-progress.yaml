@@ -1,0 +1,70 @@
+# Lot 5 end-to-end: library search without accents, favorite, "Add to my day",
+# added exercise done on Today, Progress updated (streak 1 day, 7-day rate 100 %).
+# Run: maestro test app/e2e/lot5-library-progress.yaml -e APP_URL=exp://127.0.0.1:8081
+appId: host.exp.Exponent
+env:
+  APP_URL: exp://127.0.0.1:8081
+  MAILPIT_URL: http://127.0.0.1:54324
+---
+- runFlow: subflows/sign-in-onboarding.yaml
+- tapOn: 'Plus tard'
+- extendedWaitUntil:
+    visible: 'Jour 1 sur 28.*'
+    timeout: 30000
+
+# Library: search without accents, favorite, "My favorites" filter
+- tapOn: 'Bibliothèque.*'
+- assertVisible: 'Bibliothèque'
+- tapOn: 'Rechercher'
+- inputText: 'echange'
+- runFlow: subflows/dismiss-keyboard-tip.yaml
+- extendedWaitUntil:
+    visible: 'Ce que je donne en échange'
+    timeout: 10000
+- tapOn: 'Favori : Ce que je donne en échange'
+- assertVisible:
+    text: 'Favori : Ce que je donne en échange'
+    checked: true
+- eraseText
+- tapOn: 'Mes favoris'
+- assertVisible: '1 résultat'
+- assertVisible: 'Ce que je donne en échange'
+- takeScreenshot: e2e-l5-01-favorites
+
+# Exercise sheet, add to today
+- tapOn: 'Ce que je donne en échange'
+- assertVisible: 'Principes liés'
+- tapOn: 'Ajouter à ma journée'
+- extendedWaitUntil:
+    visible: 'Ajouté à ta journée\.'
+    timeout: 20000
+- takeScreenshot: e2e-l5-02-added
+- tapOn: 'Ajouter à ma journée'
+- extendedWaitUntil:
+    visible: 'Cet exercice est déjà dans ta journée\.'
+    timeout: 10000
+- tapOn: 'Retour'
+- runFlow: subflows/dismiss-keyboard-tip.yaml
+- hideKeyboard
+
+# Today: the added exercise is there; mark it done (text proof)
+- tapOn: "Aujourd'hui.*"
+# A text input reads "label placeholder"
+- scrollUntilVisible:
+    element: 'Fait : Ce que je donne en échange'
+    direction: DOWN
+- tapOn: 'Ce que tu as fait : Ce que je donne en échange.*'
+- inputText: 'Je donne 5 heures par semaine'
+- tapOn: 'Fait : Ce que je donne en échange'
+- extendedWaitUntil:
+    visible: 'Fait, bravo !'
+    timeout: 15000
+- takeScreenshot: e2e-l5-03-done
+
+# Progress updated
+- tapOn: 'Progression.*'
+- extendedWaitUntil:
+    visible: '1 jour'
+    timeout: 15000
+- assertVisible: '100 %'
+- takeScreenshot: e2e-l5-04-progress
