@@ -30,6 +30,7 @@ export function AppText({
   style?: TextStyle | TextStyle[];
   children: ReactNode;
   accessibilityRole?: 'header' | 'text' | 'link';
+  accessibilityLabel?: string;
   numberOfLines?: number;
 }) {
   const { colors } = useTheme();
@@ -87,8 +88,11 @@ export function Button({
   disabled = false,
   loading = false,
   style,
+  accessibilityLabel,
 }: {
   label: string;
+  // Spoken label when the visible one is ambiguous (e.g. several "Done" buttons)
+  accessibilityLabel?: string;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'ghost';
   disabled?: boolean;
@@ -100,7 +104,7 @@ export function Button({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel ?? label}
       accessibilityState={{ disabled: inactive, busy: loading }}
       disabled={inactive}
       onPress={onPress}

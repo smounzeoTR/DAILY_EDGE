@@ -1,8 +1,8 @@
 // Today: plan of the day (generated on first open if missing), principle, exercise,
 // why today, proposed habit, habits and evening check-in.
 import { useQueryClient } from '@tanstack/react-query';
-import { router } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -74,7 +74,9 @@ export default function Today() {
 
   // No plan yet for today: generate it (once per day)
   useEffect(() => {
-    if (!plan.isSuccess || plan.data !== null || generatedFor.current === today) return;
+    // Missing plan, or empty plan created by a library addition (not computed yet)
+    const needsPlan = plan.isSuccess && (plan.data === null || plan.data.generated_at === null);
+    if (!needsPlan || generatedFor.current === today) return;
     generatedFor.current = today;
     setGenerating(true);
     setGenerateError(false);
@@ -83,6 +85,14 @@ export default function Today() {
       .catch(() => setGenerateError(true))
       .finally(() => setGenerating(false));
   }, [plan.isSuccess, plan.data, today, userId, queryClient]);
+
+  // Refresh on every visit (an exercise may have been added from the library)
+  useFocusEffect(
+    useCallback(() => {
+      void queryClient.invalidateQueries({ queryKey: ['plan', userId] });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.userHabits(userId) });
+    }, [queryClient, userId]),
+  );
 
   // Reminders: explanation screen once, then keep them in sync with hours and language
   useEffect(() => {
@@ -106,7 +116,9 @@ export default function Today() {
       />
     );
   }
-  if (!profile || plan.isPending || generating || !plan.data) return <SplashView />;
+  if (!profile || plan.isPending || generating || !plan.data || !plan.data.generated_at) {
+    return <SplashView />;
+  }
 
   const data = plan.data;
   const editable = canEditResult(data.date, today);

@@ -200,7 +200,12 @@
     "signOut": "Sign out",
     "errors": {
       "dayClosed": "This day is over: the result can no longer be changed."
-    }
+    },
+    "addedByYou": "Added by you",
+    "proofFor": "What you did: {{title}}",
+    "doneFor": "Done: {{title}}",
+    "noTimeFor": "No time: {{title}}",
+    "tooHardFor": "Too hard: {{title}}"
   },
   "checkin": {
     "title": "Evening check-in",
@@ -234,5 +239,82 @@
     "morningBody": "Your exercise of the day is ready.",
     "eveningTitle": "Daily Edge",
     "eveningBody": "60 seconds for your check-in."
+  },
+  "tabs": {
+    "today": "Today",
+    "progress": "Progress",
+    "library": "Library"
+  },
+  "progress": {
+    "title": "Your progress",
+    "streak": "Current streak",
+    "days_one": "{{count}} day",
+    "days_other": "{{count}} days",
+    "record_one": "Best: {{count}} day",
+    "record_other": "Best: {{count}} days",
+    "streakStart": "Your streak starts with your next exercise.",
+    "streakRule": "One missed day doesn't break your streak: never miss twice.",
+    "completion": "Exercises done",
+    "last7": "Last 7 days",
+    "last30": "Last 30 days",
+    "chart30": "Exercises over the last 30 days",
+    "noData": "Rates will appear after your first days.",
+    "habits": "Your habits (30 days)",
+    "habitRate": "{{done}} periods done out of {{expected}}",
+    "habitsNote": "\"Occasional\" habits are not counted.",
+    "goal": "Your goal",
+    "goalValue": "{{current}} / {{target}} {{unit}}",
+    "goalA11y": "Goal {{percent}}% reached",
+    "goalExpected": "Orange mark: {{expected}} {{unit}} expected today on a steady path.",
+    "goalCurrent": "Current value",
+    "goalSave": "Update",
+    "goalInvalid": "Enter a number, for example 3 or 1500.",
+    "goalNoTarget": "Add a target value to your goal to track your progress.",
+    "energy": "Your energy (14 days)",
+    "energyA11y": "Your energy over 14 days",
+    "reflections": "Your reflections",
+    "noReflections": "Your evening reflections will appear here.",
+    "more": "See more"
+  },
+  "library": {
+    "title": "Library",
+    "exercises": "Exercises",
+    "principles": "Principles",
+    "search": "Search",
+    "favoritesOnly": "My favorites",
+    "filters": "Filters",
+    "domain": "Domain",
+    "duration": "Duration",
+    "source": "Source",
+    "reset": "Clear filters",
+    "durations": {
+      "short": "5 min or less",
+      "medium": "10 to 15 min",
+      "long": "30 min"
+    },
+    "count_one": "{{count}} result",
+    "count_other": "{{count}} results",
+    "empty": "No results: try other words or remove a filter.",
+    "favoriteFor": "Favorite: {{title}}",
+    "notFound": "Content not found.",
+    "durationLabel": "Duration",
+    "energyLabel": "Energy",
+    "difficultyLabel": "Difficulty",
+    "difficulty": "Difficulty {{n}} out of 5",
+    "energy": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "linkedPrinciples": "Linked principles",
+    "linkedExercises": "Linked exercises",
+    "sources": "Sources",
+    "addToDay": "Add to my day",
+    "added": "Added to your day.",
+    "errors": {
+      "alreadyInPlan": "This exercise is already in your day.",
+      "dailyLimit": "You already added 3 exercises today: that's plenty!",
+      "invalid": "This exercise is no longer available."
+    }
   }
 }

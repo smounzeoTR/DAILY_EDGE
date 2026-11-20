@@ -144,10 +144,10 @@ export function usePlan(userId: string, date: string) {
         supabase
           .from('daily_plans')
           .select(
-            `id, date, mode, program_day, why_today, introduced_habit_id,
+            `id, date, mode, program_day, why_today, introduced_habit_id, generated_at,
              principle:principles(id, title_fr, title_en, summary_fr, summary_en),
              introduced:habit_templates(id, title_fr, title_en, description_fr, description_en, default_cue_fr, default_cue_en),
-             plan_items(id, position, status, proof_value, rating,
+             plan_items(id, position, status, proof_value, rating, origin,
                exercise:exercises(id, title_fr, title_en, instructions_fr, instructions_en, duration_min, proof_type))`,
           )
           .eq('date', date)
@@ -206,4 +206,144 @@ export async function generatePlan(date?: string): Promise<GeneratedPlan> {
 
 export async function exerciseTitles(ids: string[]) {
   return unwrap(supabase.from('exercises').select('id, title_fr, title_en').in('id', ids));
+}
+
+// ---------------------------------------------------------------------------
+// Library: published catalogue, loaded once per session
+// ---------------------------------------------------------------------------
+export function useLibrary() {
+  return useQuery({
+    queryKey: ['catalog', 'library'],
+    staleTime: Infinity,
+    gcTime: Infinity,
+    queryFn: async () => {
+      const [exerciseRows, principleRows, sourceRows, principleSourceRows, exercisePrincipleRows] =
+        await Promise.all([
+          unwrap(
+            supabase
+              .from('exercises')
+              .select(
+                'id, domain, duration_min, difficulty, energy, proof_type, title_fr, title_en, instructions_fr, instructions_en',
+              )
+              .order('id'),
+          ),
+          unwrap(
+            supabase
+              .from('principles')
+              .select('id, domain, title_fr, title_en, summary_fr, summary_en')
+              .order('id'),
+          ),
+          unwrap(
+            supabase.from('sources').select('id, author, title_fr, title_original').order('id'),
+          ),
+          unwrap(supabase.from('principle_sources').select('principle_id, source_id, position')),
+          unwrap(
+            supabase.from('exercise_principles').select('exercise_id, principle_id, position'),
+          ),
+        ]);
+      const exercises = exerciseRows ?? [];
+      const principles = principleRows ?? [];
+      const sources = sourceRows ?? [];
+      const principleSources = principleSourceRows ?? [];
+      const exercisePrinciples = exercisePrincipleRows ?? [];
+      const principleIds = new Set(principles.map((p) => p.id));
+      const sourcesOf = (principleId: string) =>
+        principleSources
+          .filter((ps) => ps.principle_id === principleId)
+          .sort((a, b) => a.position - b.position)
+          .map((ps) => ps.source_id);
+      const principlesOf = (exerciseId: string) =>
+        exercisePrinciples
+          .filter((ep) => ep.exercise_id === exerciseId && principleIds.has(ep.principle_id))
+          .sort((a, b) => a.position - b.position)
+          .map((ep) => ep.principle_id);
+      return {
+        exercises: exercises.map((e) => {
+          const linked = principlesOf(e.id);
+          return { ...e, principleIds: linked, sourceIds: [...new Set(linked.flatMap(sourcesOf))] };
+        }),
+        principles: principles.map((p) => ({
+          ...p,
+          sourceIds: sourcesOf(p.id),
+          exerciseIds: exercisePrinciples
+            .filter((ep) => ep.principle_id === p.id)
+            .map((ep) => ep.exercise_id),
+        })),
+        sources,
+      };
+    },
+  });
+}
+
+export type Library = NonNullable<ReturnType<typeof useLibrary>['data']>;
+
+export function useFavorites(userId: string) {
+  return useQuery({
+    queryKey: ['favorites', userId],
+    queryFn: () => unwrap(supabase.from('favorites').select('entity_type, entity_id')),
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Progress: raw data (30 days of plans, 62 days of habit logs, 14 days of energy)
+// ---------------------------------------------------------------------------
+export function usePlansSince(userId: string, from: string) {
+  return useQuery({
+    queryKey: ['plansSince', userId, from],
+    staleTime: 0,
+    queryFn: () =>
+      unwrap(
+        supabase
+          .from('daily_plans')
+          .select('date, plan_items(status, origin)')
+          .gte('date', from)
+          .order('date'),
+      ),
+  });
+}
+
+export function useDoneDays(userId: string) {
+  return useQuery({
+    queryKey: ['doneDays', userId],
+    staleTime: 0,
+    queryFn: async () => (await unwrap(supabase.rpc('my_done_days'))) ?? [],
+  });
+}
+
+export function useActiveGoal(userId: string) {
+  return useQuery({
+    queryKey: ['goal', userId],
+    queryFn: () =>
+      unwrap(
+        supabase
+          .from('goals')
+          .select('id, title, target_value, unit, current_value, deadline, created_at')
+          .eq('status', 'active')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ),
+  });
+}
+
+export function useCheckinsSince(userId: string, from: string) {
+  return useQuery({
+    queryKey: ['checkinsSince', userId, from],
+    staleTime: 0,
+    queryFn: () =>
+      unwrap(supabase.from('checkins').select('date, energy').gte('date', from).order('date')),
+  });
+}
+
+export const REFLECTIONS_PAGE = 20;
+
+export async function fetchReflections(page: number) {
+  return unwrap(
+    supabase
+      .from('checkins')
+      .select('date, reflection, note')
+      .or('reflection.not.is.null,note.not.is.null')
+      .order('date', { ascending: false })
+      .range(page * REFLECTIONS_PAGE, (page + 1) * REFLECTIONS_PAGE - 1),
+  );
 }

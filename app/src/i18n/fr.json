@@ -200,7 +200,12 @@
     "signOut": "Se déconnecter",
     "errors": {
       "dayClosed": "Cette journée est terminée : le résultat ne peut plus être modifié."
-    }
+    },
+    "addedByYou": "Ajouté par toi",
+    "proofFor": "Ce que tu as fait : {{title}}",
+    "doneFor": "Fait : {{title}}",
+    "noTimeFor": "Pas le temps : {{title}}",
+    "tooHardFor": "Trop dur : {{title}}"
   },
   "checkin": {
     "title": "Check-in du soir",
@@ -234,5 +239,82 @@
     "morningBody": "Ton exercice du jour est prêt.",
     "eveningTitle": "Daily Edge",
     "eveningBody": "60 secondes pour ton check-in."
+  },
+  "tabs": {
+    "today": "Aujourd'hui",
+    "progress": "Progression",
+    "library": "Bibliothèque"
+  },
+  "progress": {
+    "title": "Ta progression",
+    "streak": "Série en cours",
+    "days_one": "{{count}} jour",
+    "days_other": "{{count}} jours",
+    "record_one": "Record : {{count}} jour",
+    "record_other": "Record : {{count}} jours",
+    "streakStart": "Ta série démarre dès ton prochain exercice.",
+    "streakRule": "Un jour manqué ne casse pas ta série : ne jamais manquer deux fois.",
+    "completion": "Exercices réalisés",
+    "last7": "7 derniers jours",
+    "last30": "30 derniers jours",
+    "chart30": "Exercices des 30 derniers jours",
+    "noData": "Les taux apparaîtront après tes premiers jours.",
+    "habits": "Tes habitudes (30 jours)",
+    "habitRate": "{{done}} périodes réalisées sur {{expected}}",
+    "habitsNote": "Les habitudes « à l'occasion » ne sont pas comptées.",
+    "goal": "Ton objectif",
+    "goalValue": "{{current}} / {{target}} {{unit}}",
+    "goalA11y": "Objectif atteint à {{percent}} %",
+    "goalExpected": "Repère orange : {{expected}} {{unit}} attendus aujourd'hui sur une progression régulière.",
+    "goalCurrent": "Valeur actuelle",
+    "goalSave": "Mettre à jour",
+    "goalInvalid": "Indique un nombre, par exemple 3 ou 1500.",
+    "goalNoTarget": "Ajoute une valeur cible à ton objectif pour suivre ta progression.",
+    "energy": "Ton énergie (14 jours)",
+    "energyA11y": "Courbe de ton énergie sur 14 jours",
+    "reflections": "Tes réflexions",
+    "noReflections": "Tes réflexions du soir apparaîtront ici.",
+    "more": "Voir plus"
+  },
+  "library": {
+    "title": "Bibliothèque",
+    "exercises": "Exercices",
+    "principles": "Principes",
+    "search": "Rechercher",
+    "favoritesOnly": "Mes favoris",
+    "filters": "Filtres",
+    "domain": "Domaine",
+    "duration": "Durée",
+    "source": "Source",
+    "reset": "Effacer les filtres",
+    "durations": {
+      "short": "5 min ou moins",
+      "medium": "10 à 15 min",
+      "long": "30 min"
+    },
+    "count_one": "{{count}} résultat",
+    "count_other": "{{count}} résultats",
+    "empty": "Aucun résultat : essaie d'autres mots ou retire un filtre.",
+    "favoriteFor": "Favori : {{title}}",
+    "notFound": "Contenu introuvable.",
+    "durationLabel": "Durée",
+    "energyLabel": "Énergie",
+    "difficultyLabel": "Difficulté",
+    "difficulty": "Difficulté {{n}} sur 5",
+    "energy": {
+      "low": "Basse",
+      "medium": "Moyenne",
+      "high": "Haute"
+    },
+    "linkedPrinciples": "Principes liés",
+    "linkedExercises": "Exercices liés",
+    "sources": "Sources",
+    "addToDay": "Ajouter à ma journée",
+    "added": "Ajouté à ta journée.",
+    "errors": {
+      "alreadyInPlan": "Cet exercice est déjà dans ta journée.",
+      "dailyLimit": "Tu as déjà ajouté 3 exercices aujourd'hui : c'est largement suffisant !",
+      "invalid": "Cet exercice n'est plus disponible."
+    }
   }
 }

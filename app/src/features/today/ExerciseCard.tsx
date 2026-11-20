@@ -73,6 +73,7 @@ export function ExerciseCard({
   const [editing, setEditing] = useState(item.status === 'todo');
   const [proof, setProof] = useState(item.proof_value ?? '');
   if (!exercise) return null;
+  const title = localized(exercise, 'title', language);
 
   const save = (status: ResultInput['status'], rating: number | null = null) => {
     onSave({
@@ -90,13 +91,13 @@ export function ExerciseCard({
     <Card>
       <View style={styles.row}>
         <AppText variant="caption" tone="link">
-          {t('today.exerciseOfDay')}
+          {item.origin === 'user' ? t('today.addedByYou') : t('today.exerciseOfDay')}
         </AppText>
         <View style={[styles.pill, { backgroundColor: colors.primarySoft }]}>
           <AppText variant="caption">{t('today.duration', { min: exercise.duration_min })}</AppText>
         </View>
       </View>
-      <AppText variant="subtitle">{localized(exercise, 'title', language)}</AppText>
+      <AppText variant="subtitle">{title}</AppText>
       <AppText tone="body">{localized(exercise, 'instructions', language)}</AppText>
 
       {showForm ? (
@@ -107,6 +108,7 @@ export function ExerciseCard({
               value={proof}
               onChangeText={setProof}
               placeholder={t('today.proofTextPlaceholder')}
+              accessibilityLabel={t('today.proofFor', { title })}
               multiline
               maxLength={1000}
             />
@@ -117,11 +119,13 @@ export function ExerciseCard({
               value={proof}
               onChangeText={setProof}
               placeholder="0"
+              accessibilityLabel={t('today.proofFor', { title })}
               keyboardType="decimal-pad"
             />
           ) : null}
           <Button
             label={t('today.done')}
+            accessibilityLabel={t('today.doneFor', { title })}
             onPress={() => save('done')}
             disabled={!isProofValid(proofType, proof)}
             loading={saving}
@@ -129,12 +133,14 @@ export function ExerciseCard({
           <View style={styles.secondary}>
             <Button
               label={t('today.noTime')}
+              accessibilityLabel={t('today.noTimeFor', { title })}
               variant="secondary"
               onPress={() => save('skipped')}
               style={styles.flex}
             />
             <Button
               label={t('today.tooHard')}
+              accessibilityLabel={t('today.tooHardFor', { title })}
               variant="secondary"
               onPress={() => save('too_hard')}
               style={styles.flex}

@@ -20,7 +20,9 @@ export default function AppLayout() {
     <Stack
       screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}
     >
-      <Stack.Screen name="today" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="exercise/[id]" />
+      <Stack.Screen name="principle/[id]" />
       <Stack.Screen name="checkin" options={{ presentation: 'modal' }} />
       <Stack.Screen name="reminders" options={{ presentation: 'modal' }} />
     </Stack>
