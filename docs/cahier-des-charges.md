@@ -71,8 +71,19 @@ Toutes les questions sauf la 1 peuvent être passées (Q8 passée → 15 minutes
 - Accès au check-in du soir, mis en avant après l'heure du rappel du soir.
 - Le plan est déjà calculé : l'écran s'affiche instantanément.
 
+Précisions du 23 novembre 2026 (lot 4) :
+- L'écran charge le plan de la date du jour dans le fuseau du profil ; s'il n'existe pas, il appelle `generate-plan` puis l'affiche.
+- Saisie selon `proof_type` : « Fait » exige une preuve (texte non vide pour un texte libre, nombre pour une valeur chiffrée, rien pour une case à cocher), puis propose une note de 1 à 5, facultative. « Pas le temps » = `skipped`, « Trop dur » = `too_hard`. Un résultat peut être corrigé (entre fait, pas le temps et trop dur, jamais retour à « à faire ») tant que la journée n'est pas finie, via `set_plan_item_result`, qui refuse tout autre jour.
+- À chaque changement de résultat, l'app appelle `generate-plan` pour demain ; la fonction ne recalcule que si ce plan existe et n'a pas été touché.
+- Habitude introduite par l'étape : carte « Nouvelle habitude proposée » avec « Ajouter » (`add_habit_from_template`, textes vides affichés depuis le modèle, fréquence copiée) ou « Plus tard » (masquée pour la journée ; proposée à nouveau si l'étape se répète).
+- Habitudes affichées selon leur fréquence (fonction pure `habitStatusOn`, réutilisée pour les taux) : quotidienne tous les jours ; jours ouvrés du lundi au vendredi ; hebdomadaire (semaine du lundi au dimanche), toutes les 2 semaines (périodes de 14 jours à partir de la date d'ajout) et mensuelle (mois civil) affichées chaque jour de la période jusqu'à ce qu'elles soient cochées, puis « Faite cette semaine / sur ces 2 semaines / ce mois-ci » ; « À l'occasion » toujours accessible, sans attente de réalisation, jamais comptée dans les taux.
+- Cocher : un toucher (retoucher le même jour décoche). « Version minimale » coche en un geste et l'enregistre comme telle (`habit_logs.minimal`). Une coche n'est possible que pour le jour même ou la veille (RLS).
+- Le bouton du check-in est mis en avant à partir de l'heure du rappel du soir (21 h par défaut).
+
 ### 3.3 Check-in du soir (60 secondes)
 Énergie 1–5, humeur 1–5, temps disponible demain (5 / 15 / 30 min), question de réflexion (« Qu'est-ce qui m'a rapproché de mon objectif aujourd'hui ? »), note libre facultative. La validation déclenche la génération du plan du lendemain.
+
+Précisions du 23 novembre 2026 (lot 4) : le check-in porte sur la date du jour dans le fuseau de l'utilisateur ; il est modifiable le soir même et chaque enregistrement (`upsert_checkin`) relance `generate-plan` pour demain, dont le résultat est affiché (« Demain : … », avec « Version courte » si le plan est minimal). Si `consent_checkin` est faux, l'énergie et l'humeur ne sont ni demandées ni enregistrées (le serveur les ignore) : seulement le temps disponible demain, la réflexion et la note ; le moteur utilise alors ses valeurs par défaut.
 
 ### 3.4 Progression
 Série en cours, taux de réalisation des exercices sur 7 et 30 jours, taux par habitude, avancement de l'objectif (barre vers target_value, saisie de la valeur actuelle), courbe d'énergie sur 14 jours, historique des réflexions. Aucun classement entre utilisateurs.
@@ -177,6 +188,13 @@ Chaque calcul écrit une ligne dans `engine_decisions` (règles déclenchées, 1
 ### 5.5 Rappels
 Matin à `notify_morning` (« Ton exercice du jour est prêt »), soir à `notify_evening` (« 60 secondes pour ton check-in »).
 
+Notifications locales (`expo-notifications`). L'autorisation est demandée une seule fois, à la première ouverture d'Aujourd'hui, après un écran d'explication ; « Plus tard » ou un refus ne déclenchent jamais de nouvelle demande et l'app fonctionne normalement. Les rappels sont replanifiés à chaque ouverture et à chaque changement d'heure ou de langue. Toucher le rappel du soir ouvre le check-in.
+
+### 5.6 Génération de secours (pg_cron)
+- Toutes les heures, pg_cron appelle (pg_net) l'Edge Function `generate-plans-batch`, protégée par un secret serveur (en-tête `x-batch-secret`, valeur dans Vault et dans le secret de fonction `PLANS_BATCH_SECRET`) ; elle n'accepte pas de JWT utilisateur. `generate-plan` reste réservée à l'utilisateur.
+- Elle retient les utilisateurs onboardés pour qui il est entre 2 h et 5 h (5 h exclue) dans leur fuseau et qui n'ont pas de plan pour leur date locale (`users_due_for_plan`) : une exécution manquée est rattrapée l'heure suivante, sans doublon grâce à l'idempotence. Au plus 200 utilisateurs par exécution, le reste passe à l'heure suivante.
+- Chaque plan est généré avec le même code que `generate-plan` (`_shared/plans/generatePlan.ts`).
+
 ## 6. Schéma de données (PostgreSQL)
 
 Le schéma de référence est dans `supabase/migrations/` ; cette section en donne la vue d'ensemble. Les libellés français du catalogue sont convertis en codes anglais (types énumérés) par `scripts/import-catalog`.
@@ -195,8 +213,8 @@ Utilisateur (RLS sur `user_id = auth.uid()`, aucun accès anonyme) :
 - `subscriptions` : user_id, plan (free / premium), provider, status, current_period_end
 - `goals` : id, user_id, title, why, target_value, unit, deadline, current_value, status
 - `user_habits` : id, user_id, template_id (nullable), title, cue, minimal_version, frequency, active. Décision du 21 novembre 2026 : pour une habitude issue d'un modèle, title, cue et minimal_version restent NULL tant que l'utilisateur ne les modifie pas, et l'app affiche le texte du modèle dans la langue courante ; seul ce qui a été personnalisé est enregistré (par exemple un signal). Une habitude sans modèle doit avoir son propre titre (contrainte `template_id is not null or title is not null`). La fréquence est copiée du modèle à la création.
-- `habit_logs` : user_habit_id, user_id, date, done
-- `checkins` : user_id, date, energy, mood, minutes_tomorrow, reflection, note
+- `habit_logs` : user_habit_id, user_id, date, done, minimal (coche en version minimale). Écriture limitée au jour même et à la veille dans le fuseau du profil (RLS).
+- `checkins` : user_id, date, energy, mood, minutes_tomorrow, reflection, note. Écriture uniquement via `upsert_checkin` (date du jour, énergie et humeur vidées sans consentement).
 - `daily_plans` : id, user_id, date (unique par utilisateur), principle_id, mode (normal / minimal / recovery, affiché « Reprise »), program_day (NULL en mode catalogue), why_today, introduced_habit_id (habitude proposée par l'étape du jour)
 - `plan_items` : id, plan_id, user_id, exercise_id, position, personalized_instructions, status (todo / done / skipped / too_hard), proof_value, rating, completed_at
 
@@ -204,7 +222,7 @@ Cohérence du `user_id` recopié dans `habit_logs` et `plan_items` (pour des pol
 
 Fin de l'onboarding : fonction `complete_onboarding` (security invoker), qui écrit en une transaction l'objectif, le profil (réponses, persona déduit du programme choisi, programme, `program_start_date` = date du jour dans le fuseau de l'utilisateur, `program_day = 1`, consentements, `onboarded_at`) et les 3 habitudes. Elle refuse une échéance qui n'est pas dans le futur, un programme non publié, autre chose que 3 modèles d'habitude distincts et publiés, et un second appel.
 
-Droits par table : CRUD complet sur ses lignes pour `goals`, `user_habits`, `habit_logs`, `checkins`, `favorites` ; lecture seule pour `subscriptions`, `daily_plans`, `profile_stats` (écrites côté serveur) ; modification limitée à certaines colonnes pour `profiles` (jamais `role`), `plan_items` (status, proof_value, rating, completed_at) et `weekly_reviews` (accepted).
+Droits par table : CRUD complet sur ses lignes pour `goals`, `user_habits`, `habit_logs` (jour même et veille seulement), `favorites` ; lecture seule pour `checkins` (écriture via `upsert_checkin`) ; lecture seule pour `subscriptions`, `daily_plans`, `profile_stats` (écrites côté serveur) ; modification limitée à certaines colonnes pour `profiles` (jamais `role`, `program_day` ni `program_start_date`) et `weekly_reviews` (accepted). Depuis le lot 4, `plan_items` et `checkins` ne sont plus modifiables directement : résultats via `set_plan_item_result` (plan du jour seulement), check-in via `upsert_checkin`.
 - `weekly_reviews` : id, user_id, week_start, summary, proposals (jsonb), accepted (jsonb)
 - `favorites` : user_id, entity_type, entity_id
 - `profile_stats` : user_id, completion_7d, completion_by_domain (jsonb), energy_trend, avg_minutes, level, updated_at (recalculée chaque nuit)

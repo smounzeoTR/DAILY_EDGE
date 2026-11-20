@@ -40,13 +40,13 @@ Acceptation : un nouvel utilisateur termine l'onboarding en moins de 5 minutes e
 Acceptation : tous les tests passent ; appeler la fonction deux fois pour la même date ne crée pas de doublon.
 
 ## Lot 4 — Aujourd'hui et check-in du soir
-- [ ] Écran Aujourd'hui complet (§ 3.2), saisie selon `proof_type`, « Fait » + étoiles, « Pas le temps », « Trop dur ».
-- [ ] Coche des habitudes et version minimale en un geste.
-- [ ] Génération du plan à la première ouverture s'il n'existe pas.
-- [ ] Check-in du soir (§ 3.3) → appel de `generate-plan` pour le lendemain.
-- [ ] Quand l'exercice du jour J passe à « fait », rappeler `generate-plan` pour J+1 (recalcul du plan de demain s'il existe et n'a pas été touché : c'est ce qui fait avancer le programme si l'exercice est fait après le check-in).
-- [ ] Notifications locales matin et soir, replanifiées quand les heures changent.
-- [ ] pg_cron : génération de secours à 2 h locale pour les utilisateurs sans plan.
+- [x] Écran Aujourd'hui complet (§ 3.2), saisie selon `proof_type`, « Fait » + étoiles, « Pas le temps », « Trop dur ».
+- [x] Coche des habitudes et version minimale en un geste.
+- [x] Génération du plan à la première ouverture s'il n'existe pas.
+- [x] Check-in du soir (§ 3.3) → appel de `generate-plan` pour le lendemain.
+- [x] Quand l'exercice du jour J passe à « fait », rappeler `generate-plan` pour J+1 (recalcul du plan de demain s'il existe et n'a pas été touché : c'est ce qui fait avancer le programme si l'exercice est fait après le check-in).
+- [x] Notifications locales matin et soir, replanifiées quand les heures changent.
+- [x] pg_cron : génération de secours à 2 h locale pour les utilisateurs sans plan.
 
 Acceptation : sur le téléphone, une journée complète (exercice, habitudes, check-in) produit le plan du lendemain dans le bon mode.
 

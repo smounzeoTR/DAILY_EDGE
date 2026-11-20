@@ -67,6 +67,8 @@ Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le tél�
 | Tests d'intégration (Edge Functions) | `npm run test:integration` (Supabase local lancé ; après une nouvelle fonction ou un changement de `config.toml` : `supabase stop && supabase start`) |
 | Vérifier les Edge Functions (Deno) | `npm run check:functions` (`deno check` + `deno lint`, inclus dans `npm run typecheck`) |
 | Appeler `generate-plan` en local | `POST http://127.0.0.1:54321/functions/v1/generate-plan` avec `Authorization: Bearer <JWT utilisateur>` et `{ "date"?: "YYYY-MM-DD" }` |
+| Génération de secours (pg_cron) en local | tâche horaire `generate-plans-batch` ; déclencher à la main : `docker exec supabase_db_daily-edge psql -U postgres -c "select public.trigger_plans_batch()"`, réponse dans `net._http_response`. Valeurs locales : `supabase/seeds/local_dev.sql` (Vault) et `[edge_runtime.secrets]` de `config.toml` |
+| Génération de secours en production | créer dans Vault `plans_batch_url` (URL de la fonction) et `plans_batch_secret` (secret aléatoire), et `supabase secrets set PLANS_BATCH_SECRET=<même secret>` ; ne jamais exécuter `seeds/local_dev.sql` en production |
 | Types TypeScript de la base | `npm run gen:types` (après chaque migration ; écrit `app/src/lib/database.types.ts` et `supabase/functions/_shared/database.types.ts`) |
 | SQL dans la base locale | `docker exec -it supabase_db_daily-edge psql -U postgres` (psql n'est pas installé sur le Mac) |
 | Démarrer l'app | `cd app && npx expo start` (QR code pour Expo Go ; `--tunnel` si réseau filtrant ; `-c` pour vider le cache) |
@@ -75,7 +77,7 @@ Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le tél�
 | Rebuild du development build (nouveau module natif) | `cd app && npx expo prebuild --platform ios && cd ios && pod install`, puis ⌘R dans Xcode |
 | Se connecter en local | e-mail quelconque dans l'app, puis le code à 6 chiffres dans Mailpit (http://127.0.0.1:54324) |
 | Config Supabase modifiée (`config.toml`, modèles d'e-mail) | `supabase stop && supabase start` (un `db reset` ne recharge pas la config) |
-| Tests de bout en bout (simulateur iOS, Maestro) | Metro lancé (`cd app && npx expo start --go`), puis `export PATH="/opt/homebrew/opt/openjdk/bin:$PATH" && maestro test app/e2e/lot2-sign-in-onboarding.yaml -e APP_URL=exp://127.0.0.1:8081`. Installation : `brew install openjdk mobile-dev-inc/tap/maestro` (pas le cask `maestro`, qui est un autre logiciel) |
+| Tests de bout en bout (simulateur iOS, Maestro) | Metro lancé (`cd app && npx expo start --go`), puis `export PATH="/opt/homebrew/opt/openjdk/bin:$PATH" && maestro test app/e2e/<scénario>.yaml -e APP_URL=exp://127.0.0.1:8081` (scénarios : `lot2-sign-in-onboarding`, `lot4-full-day`, `lot4-reminders-allow` ; sous-scénarios dans `app/e2e/subflows/`). Simulateur démarré au préalable (`xcrun simctl boot <id>`). Installation : `brew install openjdk mobile-dev-inc/tap/maestro` (pas le cask `maestro`, qui est un autre logiciel) |
 | Tests (moteur, i18n, scripts) | `npm test` (= `vitest run`), `npm run test:watch` |
 | Typecheck (racine + app) | `npm run typecheck` |
 | Lint | `npm run lint` |
@@ -93,6 +95,8 @@ Notes :
 - `app/.env` : `EXPO_PUBLIC_SUPABASE_URL` et `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (clé `sb_publishable_…` de `supabase status`).
 - Routage (Expo Router, `Stack.Protected`) : non connecté → `(public)` (présentation, une fois par appareil, puis connexion) ; connecté sans `onboarded_at` → `(onboarding)` ; sinon → `(app)`.
 - Stockage local (session, brouillon d'onboarding, préférences) : `app/src/lib/storage.ts` (expo-sqlite, non chiffré en V1).
+- Écritures serveur contrôlées : résultat d'exercice via `set_plan_item_result`, check-in via `upsert_checkin`, habitude proposée via `add_habit_from_template` (plus d'écriture directe sur `plan_items` ni `checkins`). Coches d'habitude : jour même et veille seulement (RLS).
+- Accessibilité : pour un élément à cocher, utiliser `accessibilityRole="switch"` (le rôle `checkbox` n'expose pas son état sur iOS) ; les textes enfants d'un `Pressable` étiqueté ne sont pas annoncés, les inclure dans l'étiquette ou `accessibilityValue`.
 
 ## Règles de travail
 
