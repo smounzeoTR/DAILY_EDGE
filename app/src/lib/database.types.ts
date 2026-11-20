@@ -70,6 +70,7 @@ export type Database = {
           mode: Database['public']['Enums']['plan_mode'];
           principle_id: string | null;
           program_day: number | null;
+          program_id: string | null;
           user_id: string;
           why_today: string | null;
         };
@@ -83,6 +84,7 @@ export type Database = {
           mode: Database['public']['Enums']['plan_mode'];
           principle_id?: string | null;
           program_day?: number | null;
+          program_id?: string | null;
           user_id: string;
           why_today?: string | null;
         };
@@ -95,6 +97,7 @@ export type Database = {
           mode?: Database['public']['Enums']['plan_mode'];
           principle_id?: string | null;
           program_day?: number | null;
+          program_id?: string | null;
           user_id?: string;
           why_today?: string | null;
         };
@@ -111,6 +114,13 @@ export type Database = {
             columns: ['principle_id'];
             isOneToOne: false;
             referencedRelation: 'principles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'daily_plans_program_id_fkey';
+            columns: ['program_id'];
+            isOneToOne: false;
+            referencedRelation: 'programs';
             referencedColumns: ['id'];
           },
         ];
@@ -324,6 +334,7 @@ export type Database = {
         Row: {
           created_at: string;
           current_value: number | null;
+          current_value_updated_at: string | null;
           deadline: string | null;
           id: string;
           status: Database['public']['Enums']['goal_status'];
@@ -338,6 +349,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           current_value?: number | null;
+          current_value_updated_at?: string | null;
           deadline?: string | null;
           id?: string;
           status?: Database['public']['Enums']['goal_status'];
@@ -351,6 +363,7 @@ export type Database = {
         Update: {
           created_at?: string;
           current_value?: number | null;
+          current_value_updated_at?: string | null;
           deadline?: string | null;
           id?: string;
           status?: Database['public']['Enums']['goal_status'];
@@ -493,6 +506,7 @@ export type Database = {
       };
       plan_items: {
         Row: {
+          adopted: boolean;
           completed_at: string | null;
           created_at: string;
           exercise_id: string;
@@ -509,6 +523,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          adopted?: boolean;
           completed_at?: string | null;
           created_at?: string;
           exercise_id: string;
@@ -524,6 +539,7 @@ export type Database = {
           user_id: string;
         };
         Update: {
+          adopted?: boolean;
           completed_at?: string | null;
           created_at?: string;
           exercise_id?: string;
@@ -666,6 +682,7 @@ export type Database = {
           consent_checkin: boolean;
           created_at: string;
           daily_minutes: number | null;
+          deletion_requested_at: string | null;
           display_name: string | null;
           level: Database['public']['Enums']['user_level'];
           locale: string;
@@ -693,6 +710,7 @@ export type Database = {
           consent_checkin?: boolean;
           created_at?: string;
           daily_minutes?: number | null;
+          deletion_requested_at?: string | null;
           display_name?: string | null;
           level?: Database['public']['Enums']['user_level'];
           locale?: string;
@@ -719,6 +737,7 @@ export type Database = {
           consent_checkin?: boolean;
           created_at?: string;
           daily_minutes?: number | null;
+          deletion_requested_at?: string | null;
           display_name?: string | null;
           level?: Database['public']['Enums']['user_level'];
           locale?: string;
@@ -927,6 +946,7 @@ export type Database = {
           frequency: Database['public']['Enums']['habit_frequency'];
           id: string;
           minimal_version: string | null;
+          simplified: boolean;
           template_id: string | null;
           title: string | null;
           updated_at: string;
@@ -940,6 +960,7 @@ export type Database = {
           frequency?: Database['public']['Enums']['habit_frequency'];
           id?: string;
           minimal_version?: string | null;
+          simplified?: boolean;
           template_id?: string | null;
           title?: string | null;
           updated_at?: string;
@@ -952,6 +973,7 @@ export type Database = {
           frequency?: Database['public']['Enums']['habit_frequency'];
           id?: string;
           minimal_version?: string | null;
+          simplified?: boolean;
           template_id?: string | null;
           title?: string | null;
           updated_at?: string;
@@ -971,8 +993,10 @@ export type Database = {
         Row: {
           accepted: NonNullable<Json>;
           created_at: string;
+          generated_at: string;
           id: string;
           proposals: NonNullable<Json>;
+          stats: NonNullable<Json>;
           summary: string | null;
           updated_at: string;
           user_id: string;
@@ -982,8 +1006,10 @@ export type Database = {
         Insert: {
           accepted?: NonNullable<Json>;
           created_at?: string;
+          generated_at?: string;
           id?: string;
           proposals?: NonNullable<Json>;
+          stats?: NonNullable<Json>;
           summary?: string | null;
           updated_at?: string;
           user_id: string;
@@ -992,8 +1018,10 @@ export type Database = {
         Update: {
           accepted?: NonNullable<Json>;
           created_at?: string;
+          generated_at?: string;
           id?: string;
           proposals?: NonNullable<Json>;
+          stats?: NonNullable<Json>;
           summary?: string | null;
           updated_at?: string;
           user_id?: string;
@@ -1008,6 +1036,12 @@ export type Database = {
     Functions: {
       add_exercise_to_today: { Args: { p_exercise_id: string }; Returns: Json };
       add_habit_from_template: { Args: { p_template_id: string }; Returns: string };
+      answer_review_proposal: {
+        Args: { p_accept: boolean; p_index: number; p_review_id: string };
+        Returns: Json;
+      };
+      cancel_account_deletion: { Args: Record<PropertyKey, never>; Returns: undefined };
+      change_program: { Args: { p_program_id: string }; Returns: undefined };
       complete_onboarding: {
         Args: {
           p_blockers?: Database['public']['Enums']['blocker'][];
@@ -1043,10 +1077,27 @@ export type Database = {
           skips: number;
         }[];
       };
+      erase_mood_energy: { Args: Record<PropertyKey, never>; Returns: number };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       my_done_days: { Args: Record<PropertyKey, never>; Returns: string[] };
+      purge_deleted_accounts: { Args: { p_now: string }; Returns: number };
+      replace_active_goal: {
+        Args: {
+          p_deadline?: string;
+          p_target_value?: number;
+          p_title: string;
+          p_unit?: string;
+          p_why?: string;
+        };
+        Returns: string;
+      };
+      request_account_deletion: { Args: Record<PropertyKey, never>; Returns: string };
       save_daily_plan: {
         Args: { p_date: string; p_decision: Json; p_plan: Json; p_user_id: string };
+        Returns: Json;
+      };
+      save_weekly_review: {
+        Args: { p_proposals: Json; p_stats: Json; p_user_id: string; p_week_start: string };
         Returns: Json;
       };
       set_plan_item_result: {
@@ -1074,6 +1125,13 @@ export type Database = {
         Returns: {
           local_date: string;
           user_id: string;
+        }[];
+      };
+      users_due_for_review: {
+        Args: { p_limit?: number; p_now: string };
+        Returns: {
+          user_id: string;
+          week_start: string;
         }[];
       };
     };

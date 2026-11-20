@@ -94,8 +94,8 @@ insert into r select 'recompute', public.save_daily_plan(
 select is((select result ->> 'status' from r where step = 'recompute'), 'recomputed', 'done addition does not touch the plan');
 select is(
   pg_temp.items('00000000-0000-0000-0000-0000000000c5'),
-  'E041:engine:1:todo,E003:user:2:done,E004:user:3:todo,E006:user:4:todo',
-  'engine items replaced, additions kept with their status'
+  'E041:engine:1:todo,E002:user:2:todo,E003:user:3:done,E004:user:4:todo,E006:user:5:todo',
+  'engine items replaced, additions kept with their status, adopted item back to an addition'
 );
 reset role;
 
