@@ -27,7 +27,12 @@ export function currentProgramDay(input: EngineInput): ProgramDay {
   const previous = [...input.plans]
     .filter((p) => p.date < input.today)
     .sort((a, b) => (a.date < b.date ? 1 : -1))[0];
-  if (!previous || previous.programDay === null) {
+  // No previous program plan, or the program changed since: the profile's day applies
+  if (
+    !previous ||
+    previous.programDay === null ||
+    (previous.programId !== null && previous.programId !== input.profile.programId)
+  ) {
     return { day: input.profile.programDay, advanced: false };
   }
   // Only engine items move the program (user additions do not)

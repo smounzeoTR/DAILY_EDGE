@@ -54,7 +54,13 @@ describe('signals', () => {
   });
 
   it('goal behind: no deadline or no target -> false', () => {
-    const goal = { targetValue: null, currentValue: 0, createdOn: day(-10), deadline: day(10) };
+    const goal = {
+      targetValue: null,
+      currentValue: 0,
+      currentValueUpdatedOn: day(-1),
+      createdOn: day(-10),
+      deadline: day(10),
+    };
     expect(isGoalBehind(makeInput({ goal }))).toBe(false);
     expect(isGoalBehind(makeInput({ goal: { ...goal, targetValue: 10, deadline: null } }))).toBe(
       false,

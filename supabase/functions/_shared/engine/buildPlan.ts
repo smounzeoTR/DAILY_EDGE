@@ -208,6 +208,7 @@ export function buildPlan(input: EngineInput): PlanDecision {
     date: input.today,
     mode: selection.mode,
     programDay,
+    programId: programDay !== null ? input.profile.programId : null,
     nextProfileProgramDay: day,
     principleId,
     items: selection.exerciseIds.map((exerciseId, i) => ({

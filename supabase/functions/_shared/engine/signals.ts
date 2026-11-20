@@ -7,6 +7,7 @@ export const DEFAULT_DAILY_MINUTES = 15;
 export const MAX_DAILY_MINUTES = 45;
 export const MINIMAL_MAX_MINUTES = 5;
 export const RATED_LOW_EXCLUSION_DAYS = 60;
+export const GOAL_VALUE_MAX_AGE_DAYS = 14;
 
 export type Signals = {
   hasCheckin: boolean;
@@ -69,11 +70,14 @@ export function maxDifficulty(level: UserLevel): number {
 export function isGoalBehind(input: EngineInput): boolean {
   const goal = input.goal;
   if (!goal || goal.targetValue === null || goal.targetValue <= 0 || !goal.deadline) return false;
+  // A missing or stale value (not entered for more than 14 days) is not trusted
+  if (goal.currentValue === null || !goal.currentValueUpdatedOn) return false;
+  if (diffDays(goal.currentValueUpdatedOn, input.today) > GOAL_VALUE_MAX_AGE_DAYS) return false;
   const total = diffDays(goal.createdOn, goal.deadline);
   const elapsed = diffDays(goal.createdOn, input.today);
   if (total <= 0 || elapsed <= 0) return false;
   const expected = goal.targetValue * Math.min(1, elapsed / total);
-  return (goal.currentValue ?? 0) < 0.8 * expected;
+  return goal.currentValue < 0.8 * expected;
 }
 
 export function computeSignals(input: EngineInput): Signals {

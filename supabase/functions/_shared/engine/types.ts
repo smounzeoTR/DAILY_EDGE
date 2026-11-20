@@ -61,6 +61,8 @@ export type PastPlan = {
   mode: PlanMode;
   // Program day covered; null in catalogue mode
   programDay: number | null;
+  // Program of the plan (a program change restarts at the profile's day)
+  programId: string | null;
   items: {
     exerciseId: string;
     status: ItemStatus;
@@ -110,6 +112,8 @@ export type EngineInput = {
   goal: {
     targetValue: number | null;
     currentValue: number | null;
+    // Last time the user entered the current value
+    currentValueUpdatedOn: ISODate | null;
     createdOn: ISODate;
     deadline: ISODate | null;
   } | null;
@@ -173,6 +177,7 @@ export type PlanDecision = {
   date: ISODate;
   mode: PlanMode;
   programDay: number | null;
+  programId: string | null;
   nextProfileProgramDay: number;
   principleId: string | null;
   // adopted: the user's addition of the program step exercise, now an engine item

@@ -505,11 +505,28 @@ describe('relaxation when nothing passes the filters', () => {
 
 describe('detected rules', () => {
   it('goal behind schedule by more than 20 %', () => {
-    const goal = { targetValue: 100, currentValue: 30, createdOn: day(-50), deadline: day(50) };
+    const goal = {
+      targetValue: 100,
+      currentValue: 30,
+      currentValueUpdatedOn: day(-3),
+      createdOn: day(-50),
+      deadline: day(50),
+    };
     expect(buildPlan(makeInput({ goal })).rulesFired).toContain('goal_behind_schedule');
     expect(buildPlan(makeInput({ goal: { ...goal, currentValue: 45 } })).rulesFired).not.toContain(
       'goal_behind_schedule',
     );
+    // A stale (> 14 days) or missing value never triggers the rule
+    expect(
+      buildPlan(makeInput({ goal: { ...goal, currentValueUpdatedOn: day(-15) } })).rulesFired,
+    ).not.toContain('goal_behind_schedule');
+    expect(
+      buildPlan(makeInput({ goal: { ...goal, currentValueUpdatedOn: day(-14) } })).rulesFired,
+    ).toContain('goal_behind_schedule');
+    expect(
+      buildPlan(makeInput({ goal: { ...goal, currentValue: null, currentValueUpdatedOn: null } }))
+        .rulesFired,
+    ).not.toContain('goal_behind_schedule');
   });
 });
 
@@ -535,6 +552,7 @@ describe('user additions (library)', () => {
             date: day(-1),
             mode: 'normal',
             programDay: 1,
+            programId: 'PR1',
             items: [
               { exerciseId: 'E01', status: engineStatus, rating: null, origin: 'engine' },
               { exerciseId: 'C01', status: 'done', rating: null, origin: 'user' },
@@ -594,5 +612,38 @@ describe('user additions (library)', () => {
     );
     expect(result.items).toEqual([{ exerciseId: 'E02', position: 1, adopted: true }]);
     expect(result.rulesFired).not.toContain('replaced_missing_prerequisite');
+  });
+});
+
+describe('lot 6: program change and adoption trace', () => {
+  it('a program change restarts at the profile day (day 1)', () => {
+    const input = makeInput({
+      profile: { onboardedOn: day(-30), programDay: 1 } as EngineInput['profile'],
+      checkins: [checkin(day(-1), { energy: 4 })],
+      // Yesterday: day 2 of another program, done
+      plans: [plan(day(-1), 'X99', 'done', { programDay: 2, programId: 'PR9' })],
+    });
+    const result = buildPlan(input);
+    expect(result.programDay).toBe(1);
+    expect(result.programId).toBe('PR1');
+    expect(result.rulesFired).not.toContain('program_advanced');
+  });
+
+  it('catalogue plans carry no program', () => {
+    const noProgram = {
+      programId: null,
+      onboardedOn: day(-30),
+    } as unknown as EngineInput['profile'];
+    expect(buildPlan(makeInput({ profile: noProgram })).programId).toBeNull();
+  });
+
+  it('an adopted step exercise is not kept in minimal mode (it goes back to the additions)', () => {
+    // E01 (main of day 1) was adopted; low energy now asks for the minimal M01
+    const result = buildPlan(
+      makeInput({ checkins: [checkin(day(-1), { energy: 2 })], userAddedExerciseIds: ['E01'] }),
+    );
+    expect(result.mode).toBe('minimal');
+    expect(result.items).toEqual([{ exerciseId: 'M01', position: 1, adopted: false }]);
+    expect(result.rulesFired).not.toContain('adopted_user_item');
   });
 });

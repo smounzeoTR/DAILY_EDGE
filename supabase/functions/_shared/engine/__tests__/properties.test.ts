@@ -68,6 +68,7 @@ function inputArbitrary(): fc.Arbitrary<EngineInput> {
     mode: fc.constantFrom('normal', 'minimal', 'recovery' as const),
     programDay: fc.option(fc.integer({ min: 1, max: 28 }), { nil: null }),
     origin: fc.constantFrom('engine', 'user' as const),
+    programId: fc.constantFrom('PR1', 'PR2', 'PR3', 'PR4', null),
   });
   return fc
     .record({
@@ -120,6 +121,7 @@ function inputArbitrary(): fc.Arbitrary<EngineInput> {
           date,
           mode: p.mode,
           programDay: p.programDay,
+          programId: p.programDay === null ? null : p.programId,
           items: [
             {
               exerciseId: p.exerciseId,
@@ -213,14 +215,25 @@ describe('properties on varied profiles (real catalogue)', () => {
         const a = buildPlan(input);
         expect(buildPlan(structuredClone(input))).toEqual(a);
         const previous = [...input.plans].sort((x, y) => (x.date < y.date ? 1 : -1))[0];
-        const base = previous?.programDay ?? input.profile.programDay;
+        const base =
+          previous?.programDay != null &&
+          (previous.programId === null || previous.programId === input.profile.programId)
+            ? previous.programDay
+            : input.profile.programDay;
         expect(a.nextProfileProgramDay - base).toBeGreaterThanOrEqual(0);
         expect(a.nextProfileProgramDay - base).toBeLessThanOrEqual(1);
         // Only a done engine item (outside recovery) moves the program
         const engineDone = previous?.items.some(
           (i) => i.status === 'done' && i.origin === 'engine',
         );
-        if (previous?.programDay != null && !(engineDone && previous.mode !== 'recovery')) {
+        const changed =
+          previous?.programId != null && previous.programId !== input.profile.programId;
+        if (changed) expect(a.nextProfileProgramDay).toBe(input.profile.programDay);
+        if (
+          !changed &&
+          previous?.programDay != null &&
+          !(engineDone && previous.mode !== 'recovery')
+        ) {
           expect(a.nextProfileProgramDay).toBe(base);
         }
       }),

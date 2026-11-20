@@ -106,12 +106,20 @@ export function plan(
     programDay?: number | null;
     rating?: number | null;
     origin?: 'engine' | 'user';
+    programId?: string | null;
   } = {},
 ): PastPlan {
   return {
     date,
     mode: extra.mode ?? 'normal',
     programDay: extra.programDay === undefined ? null : extra.programDay,
+    // Plans covering a program day belong to PR1 unless stated otherwise
+    programId:
+      extra.programId !== undefined
+        ? extra.programId
+        : extra.programDay !== undefined && extra.programDay !== null
+          ? 'PR1'
+          : null,
     items: [{ exerciseId, status, rating: extra.rating ?? null, origin: extra.origin ?? 'engine' }],
   };
 }
