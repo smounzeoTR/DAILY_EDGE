@@ -64,6 +64,7 @@ export type Database = {
         Row: {
           created_at: string;
           date: string;
+          generated_at: string | null;
           id: string;
           introduced_habit_id: string | null;
           mode: Database['public']['Enums']['plan_mode'];
@@ -76,6 +77,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           date: string;
+          generated_at?: string | null;
           id?: string;
           introduced_habit_id?: string | null;
           mode: Database['public']['Enums']['plan_mode'];
@@ -87,6 +89,7 @@ export type Database = {
         Update: {
           created_at?: string;
           date?: string;
+          generated_at?: string | null;
           id?: string;
           introduced_habit_id?: string | null;
           mode?: Database['public']['Enums']['plan_mode'];
@@ -494,6 +497,7 @@ export type Database = {
           created_at: string;
           exercise_id: string;
           id: string;
+          origin: Database['public']['Enums']['plan_item_origin'];
           personalized_instructions: string | null;
           plan_id: string;
           position: number;
@@ -509,6 +513,7 @@ export type Database = {
           created_at?: string;
           exercise_id: string;
           id?: string;
+          origin?: Database['public']['Enums']['plan_item_origin'];
           personalized_instructions?: string | null;
           plan_id: string;
           position?: number;
@@ -523,6 +528,7 @@ export type Database = {
           created_at?: string;
           exercise_id?: string;
           id?: string;
+          origin?: Database['public']['Enums']['plan_item_origin'];
           personalized_instructions?: string | null;
           plan_id?: string;
           position?: number;
@@ -1000,6 +1006,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      add_exercise_to_today: { Args: { p_exercise_id: string }; Returns: Json };
       add_habit_from_template: { Args: { p_template_id: string }; Returns: string };
       complete_onboarding: {
         Args: {
@@ -1037,6 +1044,7 @@ export type Database = {
         }[];
       };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
+      my_done_days: { Args: Record<PropertyKey, never>; Returns: string[] };
       save_daily_plan: {
         Args: { p_date: string; p_decision: Json; p_plan: Json; p_user_id: string };
         Returns: Json;
@@ -1089,6 +1097,7 @@ export type Database = {
       habit_frequency: 'daily' | 'weekdays' | 'weekly' | 'biweekly' | 'monthly' | 'occasional';
       motivation_style: 'challenge' | 'consistency' | 'meaning' | 'recognition';
       persona: 'entrepreneur' | 'employee' | 'career_changer' | 'financial_beginner';
+      plan_item_origin: 'engine' | 'user';
       plan_item_status: 'todo' | 'done' | 'skipped' | 'too_hard';
       plan_mode: 'normal' | 'minimal' | 'recovery';
       proof_type: 'checkbox' | 'free_text' | 'numeric';
@@ -1230,6 +1239,7 @@ export const Constants = {
       habit_frequency: ['daily', 'weekdays', 'weekly', 'biweekly', 'monthly', 'occasional'],
       motivation_style: ['challenge', 'consistency', 'meaning', 'recognition'],
       persona: ['entrepreneur', 'employee', 'career_changer', 'financial_beginner'],
+      plan_item_origin: ['engine', 'user'],
       plan_item_status: ['todo', 'done', 'skipped', 'too_hard'],
       plan_mode: ['normal', 'minimal', 'recovery'],
       proof_type: ['checkbox', 'free_text', 'numeric'],

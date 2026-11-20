@@ -191,7 +191,7 @@ insert into auth.users (id, email, raw_user_meta_data) values
 update public.profiles set onboarded_at = '2026-11-01'
 where user_id in ('00000000-0000-0000-0000-0000000000f5', '00000000-0000-0000-0000-0000000000f6', '00000000-0000-0000-0000-0000000000f8');
 -- paris2 already has its plan for 2026-12-15; paris3 is not onboarded
-insert into public.daily_plans (user_id, date, mode) values ('00000000-0000-0000-0000-0000000000f6', '2026-12-15', 'normal');
+insert into public.daily_plans (user_id, date, mode, generated_at) values ('00000000-0000-0000-0000-0000000000f6', '2026-12-15', 'normal', now());
 
 create temp table t (user_id uuid);
 insert into t values
