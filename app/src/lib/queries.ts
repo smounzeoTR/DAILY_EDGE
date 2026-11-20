@@ -17,6 +17,9 @@ export const queryKeys = {
   programSteps: ['catalog', 'programSteps'] as const,
   habitTemplates: ['catalog', 'habitTemplates'] as const,
   userHabits: (userId: string) => ['userHabits', userId] as const,
+  plan: (userId: string, date: string) => ['plan', userId, date] as const,
+  habitLogs: (userId: string, from: string) => ['habitLogs', userId, from] as const,
+  checkin: (userId: string, date: string) => ['checkin', userId, date] as const,
 };
 
 // Intro screen 1 shows P026 (two-minute rule), see docs/corrections-maquette.md
@@ -37,7 +40,9 @@ export function useProfile(userId: string | undefined) {
       unwrap(
         supabase
           .from('profiles')
-          .select('user_id, display_name, locale, onboarded_at, program_id, program_day')
+          .select(
+            'user_id, display_name, locale, timezone, onboarded_at, program_id, program_day, notify_morning, notify_evening, consent_checkin',
+          )
           .eq('user_id', userId ?? '')
           .single(),
       ),
@@ -121,10 +126,84 @@ export function useUserHabits(userId: string) {
         supabase
           .from('user_habits')
           .select(
-            'id, title, cue, minimal_version, active, template:habit_templates(title_fr, title_en, default_cue_fr, default_cue_en, minimal_version_fr, minimal_version_en)',
+            'id, title, cue, minimal_version, active, frequency, template_id, created_at, template:habit_templates(title_fr, title_en, default_cue_fr, default_cue_en, minimal_version_fr, minimal_version_en)',
           )
           .eq('active', true)
           .order('created_at'),
       ),
   });
+}
+
+// Plan of a day with its principle, exercises and proposed habit
+export function usePlan(userId: string, date: string) {
+  return useQuery({
+    queryKey: queryKeys.plan(userId, date),
+    staleTime: 0,
+    queryFn: () =>
+      unwrap(
+        supabase
+          .from('daily_plans')
+          .select(
+            `id, date, mode, program_day, why_today, introduced_habit_id,
+             principle:principles(id, title_fr, title_en, summary_fr, summary_en),
+             introduced:habit_templates(id, title_fr, title_en, description_fr, description_en, default_cue_fr, default_cue_en),
+             plan_items(id, position, status, proof_value, rating,
+               exercise:exercises(id, title_fr, title_en, instructions_fr, instructions_en, duration_min, proof_type))`,
+          )
+          .eq('date', date)
+          .maybeSingle(),
+      ),
+  });
+}
+
+export type PlanData = NonNullable<ReturnType<typeof usePlan>['data']>;
+
+// Habit logs since `from` (covers the longest period: a calendar month)
+export function useHabitLogs(userId: string, from: string) {
+  return useQuery({
+    queryKey: queryKeys.habitLogs(userId, from),
+    staleTime: 0,
+    queryFn: () =>
+      unwrap(
+        supabase.from('habit_logs').select('user_habit_id, date, done, minimal').gte('date', from),
+      ),
+  });
+}
+
+export function useCheckin(userId: string, date: string) {
+  return useQuery({
+    queryKey: queryKeys.checkin(userId, date),
+    staleTime: 0,
+    queryFn: () =>
+      unwrap(
+        supabase
+          .from('checkins')
+          .select('date, energy, mood, minutes_tomorrow, reflection, note')
+          .eq('date', date)
+          .maybeSingle(),
+      ),
+  });
+}
+
+export type GeneratedPlan = {
+  status: 'created' | 'recomputed' | 'unchanged';
+  plan: {
+    id: string;
+    date: string;
+    mode: 'normal' | 'minimal' | 'recovery';
+    plan_items: { exercise_id: string }[];
+  };
+};
+
+// Server-side plan generation (today by default, or tomorrow)
+export async function generatePlan(date?: string): Promise<GeneratedPlan> {
+  const { data, error } = await supabase.functions.invoke<GeneratedPlan>('generate-plan', {
+    body: date ? { date } : {},
+  });
+  if (error || !data) throw error ?? new Error('generate-plan failed');
+  return data;
+}
+
+export async function exerciseTitles(ids: string[]) {
+  return unwrap(supabase.from('exercises').select('id, title_fr, title_en').in('id', ids));
 }
