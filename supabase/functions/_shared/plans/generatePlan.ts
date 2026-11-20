@@ -26,7 +26,7 @@ export async function savedPlan(db: Client, planId: string) {
   const { data, error } = await db
     .from('daily_plans')
     .select(
-      'id, date, mode, program_day, principle_id, why_today, introduced_habit_id, generated_at, plan_items(id, exercise_id, position, status, rating, proof_value, origin)',
+      'id, date, mode, program_day, principle_id, why_today, introduced_habit_id, generated_at, plan_items(id, exercise_id, position, status, rating, proof_value, origin, adopted)',
     )
     .eq('id', planId)
     .single();
@@ -70,6 +70,7 @@ export async function generatePlanForUser(
       mode: decision.mode,
       program_day: decision.programDay,
       next_program_day: decision.nextProfileProgramDay,
+      program_id: decision.programId,
       principle_id: decision.principleId,
       introduced_habit_id: decision.introducedHabitId,
       why_today: decision.whyToday,

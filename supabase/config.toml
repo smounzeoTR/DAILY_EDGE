@@ -420,6 +420,13 @@ verify_jwt = true
 [functions.generate-plans-batch]
 verify_jwt = false
 
+[functions.generate-review]
+verify_jwt = true
+
+# Also available to accounts pending deletion
+[functions.export-my-data]
+verify_jwt = true
+
 [analytics]
 enabled = true
 port = 54327

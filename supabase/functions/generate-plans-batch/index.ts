@@ -2,6 +2,7 @@
 // Protected by the PLANS_BATCH_SECRET server secret (header x-batch-secret), never by a user JWT.
 // For each onboarded user between 2:00 and 5:00 local time without a plan for the local date,
 // generates the plan with the same code as generate-plan. At most BATCH_LIMIT users per run.
+// Also generates the weekly reviews due and purges accounts deleted more than 30 days ago.
 // Body: {} or { "now": ISO timestamp } (tests only; requires the secret like any call).
 import {
   env,
@@ -10,6 +11,7 @@ import {
   loadProfile,
   serviceClient,
 } from '../_shared/plans/generatePlan.ts';
+import { generateReviewForUser } from '../_shared/review/generateReview.ts';
 
 const BATCH_LIMIT = 200;
 
@@ -74,5 +76,31 @@ Deno.serve(async (req) => {
       console.error('batch generation failed', userId, err);
     }
   }
-  return json(200, summary);
+  // Weekly reviews due (Sunday from 18:00 local time, catch-up until midnight)
+  const reviews = { due: 0, created: 0, failed: 0 };
+  const { data: dueReviews, error: reviewError } = await db.rpc('users_due_for_review', {
+    p_now: now.toISOString(),
+    p_limit: BATCH_LIMIT,
+  });
+  if (reviewError) console.error('users_due_for_review failed', reviewError);
+  for (const { user_id: userId, week_start: weekStart } of dueReviews ?? []) {
+    reviews.due += 1;
+    try {
+      const profile = await loadProfile(db, userId);
+      if (!profile) continue;
+      const result = await generateReviewForUser(db, profile, weekStart);
+      if (result.status === 'created') reviews.created += 1;
+    } catch (err) {
+      reviews.failed += 1;
+      console.error('batch review failed', userId, err);
+    }
+  }
+
+  // Accounts whose deletion was requested more than 30 days ago
+  const { data: purged, error: purgeError } = await db.rpc('purge_deleted_accounts', {
+    p_now: now.toISOString(),
+  });
+  if (purgeError) console.error('purge_deleted_accounts failed', purgeError);
+
+  return json(200, { ...summary, reviews, purged: purged ?? 0 });
 });

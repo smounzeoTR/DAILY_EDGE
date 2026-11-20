@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { habitStatusOn, isoWeekday, periodOf, type HabitLog } from './schedule';
+import { habitStatusOn, isoWeekday, periodOf, type HabitLog } from '../schedule.ts';
 
 const log = (date: string, minimal = false): HabitLog => ({ date, done: true, minimal });
 // 2026-11-16 is a Monday

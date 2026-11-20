@@ -104,7 +104,9 @@ export async function loadEngineInput(
       .lt('date', date),
     db
       .from('daily_plans')
-      .select('date, mode, program_day, plan_items(exercise_id, status, rating, position, origin)')
+      .select(
+        'date, mode, program_day, program_id, plan_items(exercise_id, status, rating, position, origin)',
+      )
       .eq('user_id', userId)
       .gte('date', from60)
       .lt('date', date)
@@ -120,7 +122,7 @@ export async function loadEngineInput(
     db.from('user_habits').select('template_id').eq('user_id', userId),
     db
       .from('goals')
-      .select('target_value, current_value, created_at, deadline')
+      .select('target_value, current_value, current_value_updated_at, created_at, deadline')
       .eq('user_id', userId)
       .eq('status', 'active')
       .order('created_at', { ascending: false })
@@ -130,7 +132,8 @@ export async function loadEngineInput(
       .from('plan_items')
       .select('exercise_id, daily_plans!inner(date)')
       .eq('user_id', userId)
-      .eq('origin', 'user')
+      // Additions, and adopted step exercises (the user's choice too: may be adopted again)
+      .or('origin.eq.user,adopted.eq.true')
       .eq('daily_plans.date', date),
   ]);
 
@@ -140,6 +143,7 @@ export async function loadEngineInput(
     date: p.date,
     mode: p.mode,
     programDay: p.program_day,
+    programId: p.program_id,
     items: [...p.plan_items]
       .sort((a, b) => a.position - b.position)
       .map((i) => ({
@@ -185,6 +189,9 @@ export async function loadEngineInput(
       ? {
           targetValue: goal.target_value,
           currentValue: goal.current_value,
+          currentValueUpdatedOn: goal.current_value_updated_at
+            ? localDate(new Date(goal.current_value_updated_at), timezone)
+            : null,
           createdOn: localDate(new Date(goal.created_at), timezone),
           deadline: goal.deadline,
         }
