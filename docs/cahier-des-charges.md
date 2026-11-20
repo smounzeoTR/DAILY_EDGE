@@ -88,8 +88,23 @@ Précisions du 23 novembre 2026 (lot 4) : le check-in porte sur la date du jour 
 ### 3.4 Progression
 Série en cours, taux de réalisation des exercices sur 7 et 30 jours, taux par habitude, avancement de l'objectif (barre vers target_value, saisie de la valeur actuelle), courbe d'énergie sur 14 jours, historique des réflexions. Aucun classement entre utilisateurs.
 
+Précisions du 24 novembre 2026 (lot 5) — calcul côté app à partir des données brutes, dans des fonctions pures testées (`app/src/features/progress/`), sans `profile_stats` pour l'instant :
+- **Série** : un jour compte s'il a au moins un exercice fait (version minimale et ajouts de la bibliothèque compris). Principe « Ne jamais manquer deux fois » (P027) : un jour manqué isolé ne casse pas la série, deux jours manqués de suite la remettent à zéro ; le jour en cours ne casse jamais la série (il compte une fois fait). La valeur est le nombre de jours faits ; les jours avant l'onboarding sont ignorés. Affichage : série en cours (en orange) et record sur tout l'historique (`my_done_days`), sans aucun message négatif quand elle repart à zéro.
+- **Taux de réalisation** sur 7 et 30 jours : jours avec un exercice fait / jours qui avaient un plan ; le jour en cours n'est compté que si son exercice est fait ; sans aucun jour avec plan, pas de taux affiché. Graphique des 30 jours (fait, plan non fait, pas de plan, aujourd'hui).
+- **Taux par habitude** (30 jours) : périodes réalisées / périodes attendues, calculées avec `periodOf` et `habitStatusOn` (version minimale comprise ; jours ouvrés : week-ends exclus ; la période en cours ne compte qu'une fois faite) ; « À l'occasion » exclue.
+- **Objectif** : barre vers target_value, saisie de la valeur actuelle (`goals.current_value`) et repère orange de la trajectoire attendue (progression linéaire de 0 à la cible entre la création et l'échéance).
+- **Énergie sur 14 jours** : affichée seulement si consent_checkin est vrai.
+- **Réflexions** : historique des check-ins (réflexion et note), paginé par 20.
+- Graphiques simples dessinés avec react-native-svg, couleurs de l'identité visuelle (orange pour la série).
+
 ### 3.5 Bibliothèque
 Principes et exercices filtrables par domaine, source et durée, avec recherche. Favoris. « Ajouter à ma journée » sur un exercice.
+
+Précisions du 24 novembre 2026 (lot 5) :
+- Catalogue publié chargé une fois par session et mis en cache. Filtres par domaine, source (déduite des principes pour un exercice) et durée (5 min ou moins, 10 à 15 min, 30 min) ; recherche insensible aux accents et à la casse, dans la langue courante (titre et consigne ou résumé) ; filtre « Mes favoris ».
+- Fiche d'exercice : consigne, durée, énergie, difficulté, principes liés et leurs sources, favori, « Ajouter à ma journée ». Fiche de principe : résumé, sources et exercices liés, favori.
+- « Ajouter à ma journée » : RPC `add_exercise_to_today(p_exercise_id)` sur la date du jour (fuseau du profil). Si le plan du jour n'existe pas, elle crée un plan vide (`generated_at` NULL) que `generate-plan` complète ensuite en conservant l'ajout. Elle refuse un exercice déjà présent dans le plan ou non publié et limite à 3 les ajouts du jour. Sur Aujourd'hui, l'exercice porte l'étiquette « Ajouté par toi ».
+- Navigation par onglets : Aujourd'hui, Progression, Bibliothèque (Réglages au lot 6).
 
 ### 3.6 Bilan de la semaine (dimanche soir)
 Résumé (exercices faits, habitudes tenues, énergie moyenne, meilleur jour), puis 1 à 3 propositions d'ajustement (simplifier une habitude, changer d'habitude, ajuster l'échéance). Chaque proposition s'accepte ou se refuse ; rien n'est appliqué sans accord.
@@ -134,6 +149,8 @@ Ordre : reprise, sinon minimal, sinon normal.
 **Remplacement d'un exercice du programme** s'il a été sauté 2 fois ou plus (« Trop dur » compte comme un saut), noté 1/5 il y a moins de 60 jours, s'il lui manque un prérequis (par exemple si seule la version minimale d'un jour précédent a été faite) ou s'il n'est pas publié. Ordre : exercice plus court partageant le principe de l'étape et passant tous les filtres du § 5.2 ; sinon l'exercice minimal de l'étape ; sinon le meilleur candidat du catalogue. Le principe du jour reste celui de l'étape.
 
 **Habitude introduite** : le jour où une étape introduit une habitude, le plan la propose (`daily_plans.introduced_habit_id`), sauf si l'utilisateur l'a déjà.
+
+**Exercices ajoutés par l'utilisateur** (`plan_items.origin = 'user'`, depuis la bibliothèque) : l'avancement du programme et la règle « sauté 2 fois » ne tiennent compte que des exercices `engine` ; un ajout fait compte quand même comme activité et dans les taux (dont le taux de réalisation du mode minimal et la montée de niveau). Le moteur ne propose jamais un exercice déjà ajouté au plan du jour. Si l'exercice prévu par l'étape du programme fait partie des ajouts (ajouté avant le calcul du plan), le moteur l'adopte : il passe en `engine` à la position 1, sa réalisation fait avancer le programme, il ne compte plus dans la limite des 3 ajouts, et le plan est « touché » si l'item l'est déjà (règle `adopted_user_item`). Un plan qui n'a reçu que des ajouts reste « non touché » : le recalcul remplace les seuls exercices `engine` et conserve les ajouts, placés après.
 
 **Avancement du programme** : seul le serveur le fait avancer. Le jour couvert par un plan est déduit du plan précédent : jour du plan précédent + 1 si son exercice (normal ou minimal) est « fait » et si ce n'était pas un plan de reprise, sinon le même jour. Recalculer un plan ne fait donc jamais avancer deux fois. `profiles.program_day` suit le plan le plus récent ; `program_day` et `program_start_date` ne sont écrits que par le serveur (et par `complete_onboarding`). Après le dernier jour du programme : mode catalogue.
 
@@ -215,8 +232,8 @@ Utilisateur (RLS sur `user_id = auth.uid()`, aucun accès anonyme) :
 - `user_habits` : id, user_id, template_id (nullable), title, cue, minimal_version, frequency, active. Décision du 21 novembre 2026 : pour une habitude issue d'un modèle, title, cue et minimal_version restent NULL tant que l'utilisateur ne les modifie pas, et l'app affiche le texte du modèle dans la langue courante ; seul ce qui a été personnalisé est enregistré (par exemple un signal). Une habitude sans modèle doit avoir son propre titre (contrainte `template_id is not null or title is not null`). La fréquence est copiée du modèle à la création.
 - `habit_logs` : user_habit_id, user_id, date, done, minimal (coche en version minimale). Écriture limitée au jour même et à la veille dans le fuseau du profil (RLS).
 - `checkins` : user_id, date, energy, mood, minutes_tomorrow, reflection, note. Écriture uniquement via `upsert_checkin` (date du jour, énergie et humeur vidées sans consentement).
-- `daily_plans` : id, user_id, date (unique par utilisateur), principle_id, mode (normal / minimal / recovery, affiché « Reprise »), program_day (NULL en mode catalogue), why_today, introduced_habit_id (habitude proposée par l'étape du jour)
-- `plan_items` : id, plan_id, user_id, exercise_id, position, personalized_instructions, status (todo / done / skipped / too_hard), proof_value, rating, completed_at
+- `daily_plans` : id, user_id, date (unique par utilisateur), principle_id, mode (normal / minimal / recovery, affiché « Reprise »), program_day (NULL en mode catalogue), why_today, introduced_habit_id (habitude proposée par l'étape du jour), generated_at (NULL tant que le moteur n'a pas calculé le plan : plan vide créé par un ajout ; la génération de secours le reprend)
+- `plan_items` : id, plan_id, user_id, exercise_id, position, origin (engine / user), personalized_instructions, status (todo / done / skipped / too_hard), proof_value, rating, completed_at. « Touché » ne considère que les items `engine`.
 
 Cohérence du `user_id` recopié dans `habit_logs` et `plan_items` (pour des politiques RLS simples) : clés étrangères composites `habit_logs (user_habit_id, user_id) → user_habits (id, user_id)` et `plan_items (plan_id, user_id) → daily_plans (id, user_id)`. Un utilisateur ne peut donc pas écrire de log sur l'habitude d'un autre.
 
@@ -224,7 +241,7 @@ Fin de l'onboarding : fonction `complete_onboarding` (security invoker), qui éc
 
 Droits par table : CRUD complet sur ses lignes pour `goals`, `user_habits`, `habit_logs` (jour même et veille seulement), `favorites` ; lecture seule pour `checkins` (écriture via `upsert_checkin`) ; lecture seule pour `subscriptions`, `daily_plans`, `profile_stats` (écrites côté serveur) ; modification limitée à certaines colonnes pour `profiles` (jamais `role`, `program_day` ni `program_start_date`) et `weekly_reviews` (accepted). Depuis le lot 4, `plan_items` et `checkins` ne sont plus modifiables directement : résultats via `set_plan_item_result` (plan du jour seulement), check-in via `upsert_checkin`.
 - `weekly_reviews` : id, user_id, week_start, summary, proposals (jsonb), accepted (jsonb)
-- `favorites` : user_id, entity_type, entity_id
+- `favorites` : user_id, entity_type (principle / exercise), entity_id
 - `profile_stats` : user_id, completion_7d, completion_by_domain (jsonb), energy_trend, avg_minutes, level, updated_at (recalculée chaque nuit)
 
 Moteur : `engine_decisions` : id, user_id, plan_id, rules_fired[], candidates (jsonb), why (jsonb : clé, paramètres, texte), llm_model, llm_input_hash, llm_output (jsonb), fallback_used, latency_ms, created_at. Lecture réservée aux admins. Fonctions serveur (service_role uniquement) : `save_daily_plan` (enregistrement transactionnel et idempotent d'un plan) et `engine_exercise_history` (historique agrégé par exercice).

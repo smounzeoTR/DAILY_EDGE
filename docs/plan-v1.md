@@ -51,11 +51,12 @@ Acceptation : tous les tests passent ; appeler la fonction deux fois pour la mê
 Acceptation : sur le téléphone, une journée complète (exercice, habitudes, check-in) produit le plan du lendemain dans le bon mode.
 
 ## Lot 5 — Progression et bibliothèque
-- [ ] Progression (§ 3.4) : série, taux 7 j et 30 j, taux par habitude, objectif, énergie 14 j, réflexions.
-- [ ] Bibliothèque (§ 3.5) : filtres, recherche, favoris, « Ajouter à ma journée ».
+- [x] Progression (§ 3.4) : série, taux 7 j et 30 j, taux par habitude, objectif, énergie 14 j, réflexions.
+- [x] Bibliothèque (§ 3.5) : filtres, recherche, favoris, « Ajouter à ma journée ».
 
 ## Lot 6 — Bilan de la semaine et réglages
 - [ ] Bilan hebdo par règles (§ 3.6), propositions acceptées ou refusées et appliquées.
+- [ ] Montée de niveau durable : le bilan hebdo propose de passer au niveau supérieur (`profiles.level`) après 2 semaines au-dessus de 85 % de réalisation ; l'utilisateur accepte ou refuse.
 - [ ] Réglages complets (§ 3.7), export JSON, suppression du compte (marquage puis purge à 30 jours).
 - [ ] Script de données de démonstration (§ 8).
 

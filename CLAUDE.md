@@ -77,7 +77,7 @@ Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le tél�
 | Rebuild du development build (nouveau module natif) | `cd app && npx expo prebuild --platform ios && cd ios && pod install`, puis ⌘R dans Xcode |
 | Se connecter en local | e-mail quelconque dans l'app, puis le code à 6 chiffres dans Mailpit (http://127.0.0.1:54324) |
 | Config Supabase modifiée (`config.toml`, modèles d'e-mail) | `supabase stop && supabase start` (un `db reset` ne recharge pas la config) |
-| Tests de bout en bout (simulateur iOS, Maestro) | Metro lancé (`cd app && npx expo start --go`), puis `export PATH="/opt/homebrew/opt/openjdk/bin:$PATH" && maestro test app/e2e/<scénario>.yaml -e APP_URL=exp://127.0.0.1:8081` (scénarios : `lot2-sign-in-onboarding`, `lot4-full-day`, `lot4-reminders-allow` ; sous-scénarios dans `app/e2e/subflows/`). Simulateur démarré au préalable (`xcrun simctl boot <id>`). Installation : `brew install openjdk mobile-dev-inc/tap/maestro` (pas le cask `maestro`, qui est un autre logiciel) |
+| Tests de bout en bout (simulateur iOS, Maestro) | Metro lancé (`cd app && npx expo start --go`), puis `export PATH="/opt/homebrew/opt/openjdk/bin:$PATH" && maestro test app/e2e/<scénario>.yaml -e APP_URL=exp://127.0.0.1:8081` (scénarios : `lot2-sign-in-onboarding`, `lot4-full-day`, `lot4-reminders-allow`, `lot5-library-progress` ; sous-scénarios dans `app/e2e/subflows/`). Simulateur démarré au préalable (`xcrun simctl boot <id>`). Installation : `brew install openjdk mobile-dev-inc/tap/maestro` (pas le cask `maestro`, qui est un autre logiciel) |
 | Tests (moteur, i18n, scripts) | `npm test` (= `vitest run`), `npm run test:watch` |
 | Typecheck (racine + app) | `npm run typecheck` |
 | Lint | `npm run lint` |
@@ -95,6 +95,9 @@ Notes :
 - `app/.env` : `EXPO_PUBLIC_SUPABASE_URL` et `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (clé `sb_publishable_…` de `supabase status`).
 - Routage (Expo Router, `Stack.Protected`) : non connecté → `(public)` (présentation, une fois par appareil, puis connexion) ; connecté sans `onboarded_at` → `(onboarding)` ; sinon → `(app)`.
 - Stockage local (session, brouillon d'onboarding, préférences) : `app/src/lib/storage.ts` (expo-sqlite, non chiffré en V1).
+- Navigation : `(app)/(tabs)/` (today, progress, library) ; fiches `(app)/exercise/[id]` et `(app)/principle/[id]` ; check-in et rappels en modales. Les onglets rechargent leurs données à chaque visite (`useFocusEffect`).
+- Exercices ajoutés depuis la bibliothèque : `plan_items.origin = 'user'`, via `add_exercise_to_today` (crée au besoin un plan vide, `generated_at` NULL, complété par `generate-plan`). Seuls les items `engine` font avancer le programme et décident si un plan est « touché ».
+- Maestro : un champ de texte se lit « étiquette texte indicatif » ; cibler par expression régulière (`'Étiquette.*'`). Fermer la bulle d'aide du clavier iOS avec `subflows/dismiss-keyboard-tip.yaml`.
 - Écritures serveur contrôlées : résultat d'exercice via `set_plan_item_result`, check-in via `upsert_checkin`, habitude proposée via `add_habit_from_template` (plus d'écriture directe sur `plan_items` ni `checkins`). Coches d'habitude : jour même et veille seulement (RLS).
 - Accessibilité : pour un élément à cocher, utiliser `accessibilityRole="switch"` (le rôle `checkbox` n'expose pas son état sur iOS) ; les textes enfants d'un `Pressable` étiqueté ne sont pas annoncés, les inclure dans l'étiquette ou `accessibilityValue`.
 
