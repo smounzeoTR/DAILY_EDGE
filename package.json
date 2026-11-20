@@ -13,7 +13,8 @@
     "test:db": "supabase test db",
     "gen:types": "supabase gen types typescript --local > app/src/lib/database.types.ts && cp app/src/lib/database.types.ts supabase/functions/_shared/database.types.ts && prettier --write app/src/lib/database.types.ts supabase/functions/_shared/database.types.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "check:functions": "cd supabase/functions/generate-plan && deno check index.ts && cd ../generate-plans-batch && deno check index.ts && cd .. && deno lint generate-plan generate-plans-batch _shared/engine _shared/plans"
+    "check:functions": "cd supabase/functions && for f in generate-plan generate-plans-batch generate-review export-my-data; do (cd $f && deno check index.ts) || exit 1; done && deno lint generate-plan generate-plans-batch generate-review export-my-data _shared/engine _shared/plans _shared/habits _shared/review",
+    "seed:demo": "node scripts/seed-demo/index.ts"
   },
   "devDependencies": {
     "@supabase/supabase-js": "^2.119.2",
