@@ -2,7 +2,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(26);
+select plan(28);
 
 -- Users: A = ...a1, B = ...b1
 insert into auth.users (id, email) values
@@ -15,15 +15,15 @@ insert into public.goals (id, user_id, title)
 insert into public.user_habits (id, user_id, title)
   values ('20000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1', 'Habit A');
 insert into public.habit_logs (user_habit_id, user_id, date)
-  values ('20000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1', '2026-11-20');
+  values ('20000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1', (now() at time zone 'Europe/Paris')::date - 1);
 insert into public.checkins (user_id, date, energy, mood)
   values ('00000000-0000-0000-0000-0000000000a1', '2026-11-20', 3, 4);
 insert into public.favorites (user_id, entity_type, entity_id)
   values ('00000000-0000-0000-0000-0000000000a1', 'exercise', 'E001');
 insert into public.daily_plans (id, user_id, date, principle_id, mode)
   values ('30000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1', '2026-11-20', 'P001', 'normal');
-insert into public.plan_items (plan_id, user_id, exercise_id)
-  values ('30000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1', 'E001');
+insert into public.plan_items (id, plan_id, user_id, exercise_id)
+  values ('40000000-0000-0000-0000-0000000000a1', '30000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1', 'E001');
 insert into public.weekly_reviews (user_id, week_start)
   values ('00000000-0000-0000-0000-0000000000a1', '2026-11-16');
 insert into public.profile_stats (user_id) values ('00000000-0000-0000-0000-0000000000a1');
@@ -61,7 +61,14 @@ select is((select count(*)::int from public.engine_decisions), 0, 'engine log is
 -- Writes on A's rows silently affect nothing
 update public.goals set title = 'hacked' where user_id = '00000000-0000-0000-0000-0000000000a1';
 delete from public.user_habits where user_id = '00000000-0000-0000-0000-0000000000a1';
-update public.plan_items set status = 'done' where user_id = '00000000-0000-0000-0000-0000000000a1';
+select throws_ok(
+  $$ update public.plan_items set status = 'done' where user_id = '00000000-0000-0000-0000-0000000000a1' $$,
+  '42501', null, 'no direct write on plan items'
+);
+select throws_ok(
+  $$ select public.set_plan_item_result('40000000-0000-0000-0000-0000000000a1', 'done') $$,
+  'P0002', 'not_found', 'B cannot set the result of an A item'
+);
 
 select throws_ok(
   $$ insert into public.goals (user_id, title) values ('00000000-0000-0000-0000-0000000000a1', 'x') $$,
@@ -71,14 +78,14 @@ select throws_ok(
 );
 select throws_ok(
   $$ insert into public.habit_logs (user_habit_id, user_id, date)
-     values ('20000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', '2026-11-21') $$,
+     values ('20000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000b1', (now() at time zone 'Europe/Paris')::date) $$,
   '23503',
   null,
   'B cannot log on A habit with its own user_id (composite FK)'
 );
 select throws_ok(
   $$ insert into public.habit_logs (user_habit_id, user_id, date)
-     values ('20000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1', '2026-11-21') $$,
+     values ('20000000-0000-0000-0000-0000000000a1', '00000000-0000-0000-0000-0000000000a1', (now() at time zone 'Europe/Paris')::date) $$,
   '42501',
   null,
   'B cannot log on A habit with A user_id (RLS)'
@@ -107,7 +114,7 @@ select lives_ok(
        returning id, user_id
      )
      insert into public.habit_logs (user_habit_id, user_id, date)
-     select id, user_id, '2026-11-21' from h $$,
+     select id, user_id, (now() at time zone 'Europe/Paris')::date from h $$,
   'B can create its own habit and log'
 );
 

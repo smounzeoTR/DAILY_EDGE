@@ -365,6 +365,7 @@ export type Database = {
           created_at: string;
           date: string;
           done: boolean;
+          minimal: boolean;
           user_habit_id: string;
           user_id: string;
         };
@@ -373,6 +374,7 @@ export type Database = {
           created_at?: string;
           date: string;
           done?: boolean;
+          minimal?: boolean;
           user_habit_id: string;
           user_id: string;
         };
@@ -380,6 +382,7 @@ export type Database = {
           created_at?: string;
           date?: string;
           done?: boolean;
+          minimal?: boolean;
           user_habit_id?: string;
           user_id?: string;
         };
@@ -997,6 +1000,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      add_habit_from_template: { Args: { p_template_id: string }; Returns: string };
       complete_onboarding: {
         Args: {
           p_blockers?: Database['public']['Enums']['blocker'][];
@@ -1022,6 +1026,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      current_user_local_date: { Args: Record<PropertyKey, never>; Returns: string };
       engine_exercise_history: {
         Args: { p_user_id: string };
         Returns: {
@@ -1035,6 +1040,33 @@ export type Database = {
       save_daily_plan: {
         Args: { p_date: string; p_decision: Json; p_plan: Json; p_user_id: string };
         Returns: Json;
+      };
+      set_plan_item_result: {
+        Args: {
+          p_item_id: string;
+          p_proof_value?: string;
+          p_rating?: number;
+          p_status: Database['public']['Enums']['plan_item_status'];
+        };
+        Returns: Json;
+      };
+      trigger_plans_batch: { Args: Record<PropertyKey, never>; Returns: number };
+      upsert_checkin: {
+        Args: {
+          p_energy?: number;
+          p_minutes_tomorrow: number;
+          p_mood?: number;
+          p_note?: string;
+          p_reflection?: string;
+        };
+        Returns: string;
+      };
+      users_due_for_plan: {
+        Args: { p_limit?: number; p_now: string };
+        Returns: {
+          local_date: string;
+          user_id: string;
+        }[];
       };
     };
     Enums: {

@@ -73,7 +73,8 @@ schema_paths = []
 enabled = true
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
-sql_paths = ["./seed.sql"]
+# seeds/local_dev.sql: local-only Vault secrets for the hourly plans batch
+sql_paths = ["./seed.sql", "./seeds/local_dev.sql"]
 
 [db.network_restrictions]
 # Enable management of network restrictions.
@@ -407,12 +408,17 @@ inspector_port = 8083
 # The Deno major version to use.
 deno_version = 2
 
-# [edge_runtime.secrets]
-# secret_key = "env(SECRET_VALUE)"
+# Local-only value; production: `supabase secrets set PLANS_BATCH_SECRET=...` (same value as Vault plans_batch_secret)
+[edge_runtime.secrets]
+PLANS_BATCH_SECRET = "local-dev-plans-batch-secret"
 
 # Plan generation: the user comes from the JWT only
 [functions.generate-plan]
 verify_jwt = true
+
+# Hourly fallback generation (pg_cron): protected by a server secret, not a user JWT
+[functions.generate-plans-batch]
+verify_jwt = false
 
 [analytics]
 enabled = true
