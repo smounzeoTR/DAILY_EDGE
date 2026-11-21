@@ -14,6 +14,7 @@ appId: host.exp.Exponent
     visible: 'Un petit rappel, matin et soir \?'
     timeout: 30000
 - tapOn: 'Plus tard'
+- runFlow: subflows/dismiss-guide.yaml
 - extendedWaitUntil:
     visible: 'Jour 10 sur 28.*'
     timeout: 30000
@@ -55,6 +56,7 @@ appId: host.exp.Exponent
     visible: 'Un petit rappel, matin et soir \?'
     timeout: 30000
 - tapOn: 'Plus tard'
+- runFlow: subflows/dismiss-guide.yaml
 - extendedWaitUntil:
     visible: 'Jour 1 sur 28.*'
     timeout: 30000
@@ -98,7 +100,8 @@ appId: host.exp.Exponent
     id: 'admin-email'
 - inputText: 'demo@daily-edge.local'
 - runFlow: subflows/dismiss-keyboard-tip.yaml
-- hideKeyboard
+- hideKeyboard:
+    optional: true
 - tapOn: 'Afficher le journal'
 - extendedWaitUntil:
     visible: 'Règles : .*'

@@ -281,6 +281,20 @@ describe('plan payload (data minimization)', () => {
     }
   });
 
+  it('never sends a note from the notebook, wherever it is attached (lot 8)', async () => {
+    const NOTEBOOK = 'Ma note privée : je bloque le mardi soir avec mon associé.';
+    const input = planInput();
+    const withNotes: PlanTaskInput = {
+      ...input,
+      profile: { ...input.profile, notes: [{ entity_id: 'E002', body: NOTEBOOK }] },
+      goal: input.goal ? { ...input.goal, note: NOTEBOOK } : null,
+      checkins: input.checkins.map((c) => ({ ...c, note: NOTEBOOK })),
+      candidates: input.candidates.map((c) => ({ ...c, my_note: NOTEBOOK, note: NOTEBOOK })),
+    };
+    const { provider } = await runPlan({}, { input: withNotes });
+    expect(JSON.stringify(provider.calls[0])).not.toContain('Ma note privée');
+  });
+
   it('sends the goal, the last 3 check-in numbers and at most 10 candidates', () => {
     const many = Array.from({ length: 14 }, (_, i) => exercise(`E1${String(i).padStart(2, '0')}`));
     const payload = buildPlanPayload(planInput({ candidates: many }));

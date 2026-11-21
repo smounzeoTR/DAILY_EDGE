@@ -7,6 +7,7 @@ appId: host.exp.Exponent
 ---
 - runFlow: subflows/sign-in-onboarding.yaml
 - tapOn: 'Plus tard'
+- runFlow: subflows/dismiss-guide.yaml
 
 # Today
 - extendedWaitUntil:

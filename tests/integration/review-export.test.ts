@@ -116,11 +116,13 @@ describe('export-my-data', () => {
         'goals',
         'habit_logs',
         'llm_calls',
+        'notes',
         'plan_items',
         'profile_stats',
         'profiles',
         'subscriptions',
         'user_habits',
+        'user_guide_state',
         'weekly_reviews',
       ].sort(),
     );

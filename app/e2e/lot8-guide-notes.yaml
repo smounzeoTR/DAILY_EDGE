@@ -1,0 +1,196 @@
+# Lot 8: new account -> day-1 guided tour stopped halfway ("Passer") -> the 4 journey steps filled
+# through the day -> a note on an exercise found again in "Mes notes"; then the demo account
+# (npm run seed:demo): no tour (onboarded more than 7 days ago) and the Progress tab badge while
+# the weekly review waits.
+# Run: npm run seed:demo && maestro test app/e2e/lot8-guide-notes.yaml -e APP_URL=exp://127.0.0.1:8081
+appId: host.exp.Exponent
+# APP_URL is required on the command line (-e): it is not defined here on purpose
+---
+- runFlow: subflows/sign-in-onboarding.yaml
+- tapOn: 'Plus tard'
+
+# ---- Guided tour: two steps, then "Passer" -------------------------------------------
+- extendedWaitUntil:
+    visible: 'Étape 1 sur 5'
+    timeout: 30000
+- assertVisible: 'Un principe par jour'
+- assertVisible: 'Passer'
+- takeScreenshot: e2e-l8-01-tour-step1
+- tapOn: 'Suivant'
+- assertVisible: 'Étape 2 sur 5'
+- assertVisible: 'Ton exercice du jour'
+- tapOn: 'Suivant'
+- assertVisible: 'Étape 3 sur 5'
+- takeScreenshot: e2e-l8-02-tour-step3
+- tapOn: 'Passer'
+- extendedWaitUntil:
+    notVisible: 'Étape \d sur 5'
+    timeout: 5000
+- extendedWaitUntil:
+    visible: 'Jour 1 sur 28.*'
+    timeout: 10000
+
+# ---- Journey: principle -----------------------------------------------------------
+- assertVisible: 'Principe : prochaine étape'
+- assertVisible: 'Exercice : à faire'
+- takeScreenshot: e2e-l8-03-journey-start
+- scrollUntilVisible:
+    element: "J'ai lu"
+    direction: DOWN
+    centerElement: true
+- tapOn: "J'ai lu"
+- extendedWaitUntil:
+    visible: 'Lu ✓'
+    timeout: 10000
+
+# ---- Journey: exercise (text proof) -------------------------------------------------
+- tapOn: 'Ce que tu as fait : Écrire son objectif principal.*'
+- inputText: 'Signer 5 clients'
+- runFlow: subflows/dismiss-keyboard-tip.yaml
+- scrollUntilVisible:
+    element: 'Fait : Écrire son objectif principal'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Fait : Écrire son objectif principal'
+- extendedWaitUntil:
+    visible: 'Fait, bravo !'
+    timeout: 15000
+
+# ---- Journey: habits (every habit expected today) -----------------------------------
+- scrollUntilVisible:
+    element: 'Tes habitudes'
+    direction: DOWN
+# Dix idées: only if expected today (centered: the tab bar must not get the tap)
+- scrollUntilVisible:
+    element: 'Dix idées, .*'
+    direction: DOWN
+    centerElement: true
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: 'Dix idées, .*'
+    commands:
+      - tapOn: 'Dix idées, .*'
+# Une prise de contact: only if expected today (centered: the tab bar must not get the tap)
+- scrollUntilVisible:
+    element: 'Une prise de contact, .*'
+    direction: DOWN
+    centerElement: true
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: 'Une prise de contact, .*'
+    commands:
+      - tapOn: 'Une prise de contact, .*'
+# Apprendre une compétence: only if expected today (centered: the tab bar must not get the tap)
+- scrollUntilVisible:
+    element: 'Apprendre une compétence, .*'
+    direction: DOWN
+    centerElement: true
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: 'Apprendre une compétence, .*'
+    commands:
+      - tapOn: 'Apprendre une compétence, .*'
+# Lire son objectif: only if expected today (centered: the tab bar must not get the tap)
+- scrollUntilVisible:
+    element: 'Lire son objectif, .*'
+    direction: DOWN
+    centerElement: true
+    timeout: 5000
+    optional: true
+- runFlow:
+    when:
+      visible: 'Lire son objectif, .*'
+    commands:
+      - tapOn: 'Lire son objectif, .*'
+- scrollUntilVisible:
+    element: 'Principe : .*'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'Habitudes : fait'
+    timeout: 10000
+- assertVisible: 'Principe : fait'
+- assertVisible: 'Exercice : fait'
+- assertVisible: 'Check-in : prochaine étape'
+- takeScreenshot: e2e-l8-04-journey-three-done
+
+# ---- Journey: check-in ------------------------------------------------------------
+- tapOn: 'Check-in : prochaine étape'
+- scrollUntilVisible:
+    element: 'Faire mon check-in'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Faire mon check-in'
+- assertVisible: 'Check-in du soir'
+- tapOn: 'Énergie 4 sur 5'
+- tapOn: 'Humeur 4 sur 5'
+- tapOn: '15 min'
+- tapOn: 'Valider'
+- extendedWaitUntil:
+    visible: "C'est noté !"
+    timeout: 20000
+- tapOn: "Retour à aujourd'hui"
+- scrollUntilVisible:
+    element: 'Principe : .*'
+    direction: UP
+- extendedWaitUntil:
+    visible: 'Check-in : fait'
+    timeout: 10000
+- assertVisible: 'Principe : fait'
+- assertVisible: 'Exercice : fait'
+- assertVisible: 'Habitudes : fait'
+- takeScreenshot: e2e-l8-05-journey-complete
+
+# ---- Notebook: a note on an exercise, found again in "Mes notes" ----------------------
+- tapOn: 'Bibliothèque.*'
+- tapOn: 'Écrire son objectif principal'
+- scrollUntilVisible:
+    element: 'Mon carnet'
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: 'note-input'
+- inputText: 'Je le relis chaque lundi matin.'
+- runFlow: subflows/dismiss-keyboard-tip.yaml
+- scrollUntilVisible:
+    element: 'Enregistrer la note'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Enregistrer la note'
+- extendedWaitUntil:
+    visible: 'Note enregistrée\.'
+    timeout: 10000
+- takeScreenshot: e2e-l8-06-note-saved
+- scrollUntilVisible:
+    element: 'Retour'
+    direction: DOWN
+- tapOn: 'Retour'
+- tapOn: 'Mes notes'
+- extendedWaitUntil:
+    visible: 'Exercice : Écrire son objectif principal\. Je le relis chaque lundi matin\.'
+    timeout: 10000
+- takeScreenshot: e2e-l8-07-my-notes
+
+# ---- Demo account: no tour, Progress badge while the review waits ---------------------
+- runFlow:
+    file: subflows/sign-in-existing.yaml
+    env:
+      EMAIL: demo@daily-edge.local
+- extendedWaitUntil:
+    visible: 'Un petit rappel, matin et soir \?'
+    timeout: 30000
+- tapOn: 'Plus tard'
+- extendedWaitUntil:
+    visible: 'Jour 10 sur 28.*|Merci !|Compris'
+    timeout: 30000
+- assertNotVisible: 'Étape \d sur 5'
+- runFlow: subflows/dismiss-guide.yaml
+- extendedWaitUntil:
+    visible: 'Progression, bilan en attente'
+    timeout: 20000
+- takeScreenshot: e2e-l8-08-progress-badge

@@ -10,6 +10,7 @@ env:
     visible: 'Un petit rappel, matin et soir \?'
     timeout: 30000
 - tapOn: 'Plus tard'
+- runFlow: subflows/dismiss-guide.yaml
 - extendedWaitUntil:
     visible: 'Jour 10 sur 28.*'
     timeout: 30000
@@ -19,6 +20,7 @@ env:
 - scrollUntilVisible:
     element: 'Voir mon bilan'
     direction: DOWN
+    centerElement: true
 - assertVisible: 'Ton bilan de la semaine est prêt\.'
 - tapOn: 'Voir mon bilan'
 - extendedWaitUntil:

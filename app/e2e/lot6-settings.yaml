@@ -5,6 +5,7 @@ appId: host.exp.Exponent
 ---
 - runFlow: subflows/sign-in-onboarding.yaml
 - tapOn: 'Plus tard'
+- runFlow: subflows/dismiss-guide.yaml
 - extendedWaitUntil:
     visible: 'Jour 1 sur 28.*'
     timeout: 30000
@@ -40,6 +41,7 @@ appId: host.exp.Exponent
 - scrollUntilVisible:
     element: 'Supprimer mon compte'
     direction: DOWN
+    centerElement: true
 - tapOn: 'Supprimer mon compte'
 - extendedWaitUntil:
     visible: 'Supprimer ton compte \?'

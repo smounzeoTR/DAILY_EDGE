@@ -6,6 +6,7 @@ appId: host.exp.Exponent
 ---
 - runFlow: subflows/sign-in-onboarding.yaml
 - tapOn: 'Plus tard'
+- runFlow: subflows/dismiss-guide.yaml
 - extendedWaitUntil:
     visible: 'Jour 1 sur 28.*'
     timeout: 30000
@@ -43,7 +44,9 @@ appId: host.exp.Exponent
     timeout: 10000
 - tapOn: 'Retour'
 - runFlow: subflows/dismiss-keyboard-tip.yaml
-- hideKeyboard
+# The keyboard may already be closed (scrolling closes it)
+- hideKeyboard:
+    optional: true
 
 # Today: the added exercise is there; mark it done (text proof)
 - tapOn: "Aujourd'hui.*"

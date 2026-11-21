@@ -8,6 +8,7 @@ appId: host.exp.Exponent
 ---
 - runFlow: subflows/sign-in-onboarding.yaml
 - tapOn: 'Plus tard'
+- runFlow: subflows/dismiss-guide.yaml
 - extendedWaitUntil:
     visible: 'Jour 1 sur 28.*'
     timeout: 30000
@@ -16,6 +17,10 @@ appId: host.exp.Exponent
 - assertVisible: 'Écrire son objectif principal'
 - tapOn: 'Ce que tu as fait : Écrire son objectif principal.*'
 - inputText: "Signer 5 clients d'ici mars"
+- scrollUntilVisible:
+    element: 'Fait : Écrire son objectif principal'
+    direction: DOWN
+    centerElement: true
 - tapOn: 'Fait : Écrire son objectif principal'
 - extendedWaitUntil:
     visible: 'Fait, bravo !'

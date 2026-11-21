@@ -1,0 +1,23 @@
+# Lot 8: closes the single guide overlay of an opening (day-1 guided tour, celebration or tip)
+# if one appears, so that earlier scenarios keep testing their own feature.
+appId: host.exp.Exponent
+---
+- extendedWaitUntil:
+    visible: 'Étape 1 sur 5|Merci !|Compris'
+    timeout: 8000
+    optional: true
+- runFlow:
+    when:
+      visible: 'Étape \d sur 5'
+    commands:
+      - tapOn: 'Passer'
+- runFlow:
+    when:
+      visible: 'Merci !'
+    commands:
+      - tapOn: 'Merci !'
+- runFlow:
+    when:
+      visible: 'Compris'
+    commands:
+      - tapOn: 'Compris'
