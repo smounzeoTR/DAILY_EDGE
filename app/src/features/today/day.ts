@@ -60,3 +60,6 @@ export function isProofValid(proofType: ProofType, value: string): boolean {
 export function proofToSend(proofType: ProofType, value: string): string | null {
   return proofType === 'checkbox' ? null : value.trim() || null;
 }
+
+// Local "Later" on the habit introduced by a plan (per device)
+export const introducedDismissedKey = (planId: string) => `today.habitLater.${planId}`;

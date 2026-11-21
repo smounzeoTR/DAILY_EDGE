@@ -1,5 +1,5 @@
 // Shared UI building blocks (buttons, text, cards, chips, fields).
-import type { ReactNode } from 'react';
+import type { ComponentRef, ReactNode, Ref } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -54,17 +54,23 @@ export function Screen({
   scroll = false,
   footer,
   header,
+  scrollRef,
 }: {
   children: ReactNode;
   scroll?: boolean;
   footer?: ReactNode;
   header?: ReactNode;
+  // Lets a screen scroll to one of its sections (Today's journey and guided tour)
+  scrollRef?: Ref<ComponentRef<typeof ScrollView>>;
 }) {
   const { colors } = useTheme();
   const body = scroll ? (
     <ScrollView
+      ref={scrollRef}
       contentContainerStyle={styles.scrollContent}
       keyboardShouldPersistTaps="handled"
+      // Scrolling closes the keyboard (multi-line fields have no "done" key)
+      keyboardDismissMode="on-drag"
       showsVerticalScrollIndicator={false}
     >
       {children}

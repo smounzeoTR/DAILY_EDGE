@@ -157,6 +157,7 @@ export function usePlan(userId: string, date: string) {
           .from('daily_plans')
           .select(
             `id, date, mode, program_day, why_today, introduced_habit_id, generated_at, ai_status,
+             principle_read_at,
              principle:principles(id, title_fr, title_en, summary_fr, summary_en),
              introduced:habit_templates(id, title_fr, title_en, description_fr, description_en, default_cue_fr, default_cue_en),
              plan_items(id, position, status, proof_value, rating, origin, personalized_instructions,
@@ -496,4 +497,76 @@ export function useAppFlags() {
       return (data ?? {}) as { allow_plan_toggle?: boolean };
     },
   });
+}
+
+// ---------------------------------------------------------------------------
+// Daily guide (lot 8): state on the server, notes
+// ---------------------------------------------------------------------------
+export const guideKey = (userId: string) => ['guideState', userId] as const;
+
+export function useGuideState(userId: string) {
+  return useQuery({
+    queryKey: guideKey(userId),
+    staleTime: 0,
+    queryFn: () =>
+      unwrap(
+        supabase
+          .from('user_guide_state')
+          .select('tour_finished_at, tour_skipped, tips_seen, milestones')
+          .maybeSingle(),
+      ),
+  });
+}
+
+// Latest achieved goal (celebrated once, when recent)
+export function useLastAchievedGoal(userId: string) {
+  return useQuery({
+    queryKey: ['achievedGoal', userId],
+    staleTime: 0,
+    queryFn: () =>
+      unwrap(
+        supabase
+          .from('goals')
+          .select('id, achieved_at')
+          .eq('status', 'achieved')
+          .order('achieved_at', { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ),
+  });
+}
+
+export type NoteEntity = 'principle' | 'exercise';
+export const notesKey = (userId: string) => ['notes', userId] as const;
+
+export function useNotes(userId: string) {
+  return useQuery({
+    queryKey: notesKey(userId),
+    staleTime: 0,
+    queryFn: async () =>
+      (await unwrap(
+        supabase
+          .from('notes')
+          .select('id, entity_type, entity_id, body, updated_at')
+          .order('updated_at', { ascending: false }),
+      )) ?? [],
+  });
+}
+
+// One note per principle or exercise: update if it exists, insert otherwise
+export async function saveNote(
+  existingId: string | null,
+  entityType: NoteEntity,
+  entityId: string,
+  body: string,
+) {
+  const result = existingId
+    ? await supabase.from('notes').update({ body }).eq('id', existingId)
+    : await supabase.from('notes').insert({ entity_type: entityType, entity_id: entityId, body });
+  if (result.error) throw result.error;
+}
+
+export async function deleteNote(id: string) {
+  const { error } = await supabase.from('notes').delete().eq('id', id);
+  if (error) throw error;
 }

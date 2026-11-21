@@ -1,21 +1,35 @@
 // Principle sheet: summary, sources and linked exercises, favorite.
+import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { SplashView } from '@/components/SplashView';
 import { AppText, Button, Card, Screen } from '@/components/ui';
 import { FavoriteButton } from '@/features/library/favorites';
+import { NoteCard } from '@/features/notes/NoteCard';
 import { resolveLanguage } from '@/i18n/language';
 import { localized } from '@/i18n/localize';
+import { useUserId } from '@/lib/auth/AuthProvider';
 import { useLibrary } from '@/lib/queries';
+import { supabase } from '@/lib/supabase';
 import { spacing } from '@/theme';
 
 export default function PrincipleSheet() {
   const { t, i18n } = useTranslation();
   const language = resolveLanguage(i18n.language);
-  const { id } = useLocalSearchParams<{ id: string }>();
+  // planId: opened from Today's principle card (counts as read)
+  const { id, planId } = useLocalSearchParams<{ id: string; planId?: string }>();
   const library = useLibrary();
+  const userId = useUserId();
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (!planId) return;
+    void supabase
+      .rpc('mark_principle_read', { p_plan_id: planId })
+      .then(() => queryClient.invalidateQueries({ queryKey: ['plan', userId] }));
+  }, [planId, userId, queryClient]);
 
   if (!library.data) return <SplashView />;
   const principle = library.data.principles.find((p) => p.id === id);
@@ -83,6 +97,7 @@ export default function PrincipleSheet() {
           ))}
         </Card>
       ) : null}
+      <NoteCard entityType="principle" entityId={principle.id} />
     </Screen>
   );
 }

@@ -269,6 +269,13 @@ export default function Settings() {
       </Card>
 
       <Card>
+        <Row
+          label={t('guide.howItWorks.title')}
+          onPress={() => router.push('/settings/how-it-works')}
+        />
+      </Card>
+
+      <Card>
         <AppText variant="bodyStrong">{t('settings.consents')}</AppText>
         <ConsentSwitch
           title={t('onboarding.consent.checkinTitle')}

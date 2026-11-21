@@ -9,6 +9,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { SplashView } from '@/components/SplashView';
 import { AppText, Button, Card, Screen } from '@/components/ui';
 import { FavoriteButton } from '@/features/library/favorites';
+import { NoteCard } from '@/features/notes/NoteCard';
 import { resolveLanguage } from '@/i18n/language';
 import { localized } from '@/i18n/localize';
 import { useUserId } from '@/lib/auth/AuthProvider';
@@ -156,6 +157,7 @@ export default function ExerciseSheet() {
           ))}
         </Card>
       ) : null}
+      <NoteCard entityType="exercise" entityId={exercise.id} />
     </Screen>
   );
 }

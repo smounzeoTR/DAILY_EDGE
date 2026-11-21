@@ -253,7 +253,11 @@
     "today": "Today",
     "progress": "Progress",
     "library": "Library",
-    "settings": "Settings"
+    "settings": "Settings",
+    "badges": {
+      "today": "something is waiting for you",
+      "progress": "review waiting"
+    }
   },
   "progress": {
     "title": "Your progress",
@@ -327,7 +331,8 @@
       "alreadyInPlan": "This exercise is already in your day.",
       "dailyLimit": "You already added 3 exercises today: that's plenty!",
       "invalid": "This exercise is no longer available."
-    }
+    },
+    "notes": "My notes"
   },
   "review": {
     "title": "Weekly review",
@@ -473,6 +478,176 @@
       "code": "6-digit code",
       "verify": "Check the code",
       "invalidCode": "Wrong or expired code. Try again with the code shown."
+    }
+  },
+  "notes": {
+    "title": "My notebook",
+    "hintExercise": "How I apply it: your cues, what works for you.",
+    "hintPrinciple": "How I apply this principle in my life.",
+    "placeholder": "Write your note…",
+    "length": "{{n}} / {{max}} characters",
+    "save": "Save the note",
+    "saved": "Note saved.",
+    "delete": "Delete the note",
+    "deleteTitle": "Delete this note?",
+    "deleteBody": "It will be erased for good.",
+    "keep": "Keep",
+    "deleted": "Note deleted.",
+    "private": "Private: only you can see it, never sent to the AI.",
+    "empty": "No note yet. Open an exercise or a principle to write how you apply it.",
+    "total_one": "{{count}} note",
+    "total_other": "{{count}} notes",
+    "exercise": "Exercise",
+    "principle": "Principle"
+  },
+  "guide": {
+    "journey": {
+      "title": "Your journey today",
+      "principle": "Principle",
+      "exercise": "Exercise",
+      "habits": "Habits",
+      "checkin": "Check-in",
+      "done": "done",
+      "next": "next step",
+      "todo": "to do",
+      "hint": "Shows the card"
+    },
+    "principle": {
+      "openHint": "Opens the principle sheet",
+      "read": "Read ✓",
+      "markRead": "I've read it"
+    },
+    "help": {
+      "label": "Help: {{title}}",
+      "principle": {
+        "title": "Principle of the day",
+        "body": "A key idea from the great books on success, summed up in one sentence. It gives meaning to today's exercise."
+      },
+      "exercise": {
+        "title": "Exercise of the day",
+        "body": "A concrete action that fits your time and energy. Do it, then note what you did; a short version counts too."
+      },
+      "why": {
+        "title": "Why today",
+        "body": "Why this was chosen for you today: your program, your energy or your time. Nothing is random."
+      },
+      "habits": {
+        "title": "Your habits",
+        "body": "Small repeated actions that make the difference over time. The minimal version counts: what matters is keeping the thread."
+      },
+      "checkin": {
+        "title": "Evening check-in",
+        "body": "Sixty seconds to note your energy, your mood and your time tomorrow. Your program adapts to your answers."
+      }
+    },
+    "tour": {
+      "progress": "Step {{n}} of {{total}}",
+      "skip": "Skip",
+      "next": "Next",
+      "finish": "Let's go",
+      "principle": {
+        "title": "One principle a day",
+        "body": "Every day, a key idea from a great book. Tap \"I've read it\" or open the sheet once read."
+      },
+      "exercise": {
+        "title": "Your exercise of the day",
+        "body": "A concrete action for today. No time? Say so: your program adapts, no blame."
+      },
+      "why": {
+        "title": "Why today",
+        "body": "Every choice is explained: you always know why this exercise is proposed."
+      },
+      "habits": {
+        "title": "Your habits",
+        "body": "Check them through the day. The minimal version counts too."
+      },
+      "checkin": {
+        "title": "The evening check-in",
+        "body": "In the evening, sixty seconds to take stock. The 4 steps at the top show where you are."
+      }
+    },
+    "tips": {
+      "label": "Tip of the day",
+      "close": "Got it",
+      "minimal_version": {
+        "title": "The minimal version",
+        "body": "A busy day? The minimal version of a habit counts as done. A small step beats none."
+      },
+      "no_time": {
+        "title": "\"No time\"",
+        "body": "If the exercise does not fit your day, tap \"No time\": tomorrow, your program will propose something shorter."
+      },
+      "library": {
+        "title": "The library",
+        "body": "All exercises and principles are in the Library tab. You can add one to your day."
+      },
+      "favorites": {
+        "title": "Your favorites",
+        "body": "Tap the star of an exercise or a principle to find it in \"My favorites\"."
+      },
+      "goal_progress": {
+        "title": "Your progress",
+        "body": "In Progress, update the current value of your goal: your adjustments take it into account."
+      },
+      "weekly_review": {
+        "title": "The weekly review",
+        "body": "On Sunday evening, your review proposes 1 to 3 adjustments. You choose, nothing is applied without your consent."
+      }
+    },
+    "milestones": {
+      "close": "Thanks!",
+      "streak_7": {
+        "title": "7 days in a row",
+        "body": "A full week: your new rhythm is taking shape."
+      },
+      "week_1": {
+        "title": "Week 1 done",
+        "body": "Your first program week is done: well done on this start."
+      },
+      "program_completed": {
+        "title": "Program completed",
+        "body": "You went all the way through your program. The journey goes on, at your pace."
+      },
+      "goal_achieved": {
+        "title": "Goal achieved",
+        "body": "You reached your goal. Take the time to enjoy this moment."
+      }
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "intro": "Every day, a simple 4-step journey, adapted to your energy and your time.",
+      "principle": {
+        "title": "1. The principle",
+        "body": "A key idea from the great books on success. It counts as read when you open its sheet or tap \"I've read it\"."
+      },
+      "exercise": {
+        "title": "2. The exercise",
+        "body": "A concrete action from your program. Do it, do the short version, or say you have no time: the program adapts."
+      },
+      "why": {
+        "title": "Why today",
+        "body": "Every proposal is explained by your program, your energy and your time."
+      },
+      "habits": {
+        "title": "3. The habits",
+        "body": "Up to 6 habits, with a minimal version for busy days."
+      },
+      "checkin": {
+        "title": "4. The check-in",
+        "body": "In the evening, sixty seconds to note your energy, your mood and your time tomorrow."
+      },
+      "progress": {
+        "title": "Your progress",
+        "body": "Streak, completion, goal and reflections: all in the Progress tab. One missed day does not break your streak."
+      },
+      "review": {
+        "title": "The weekly review",
+        "body": "Every Sunday evening, a summary of your week and a few adjustments you accept or refuse."
+      },
+      "notes": {
+        "title": "Your notebook",
+        "body": "On each exercise or principle, write how you apply it. Your notes stay private and are never sent to the AI."
+      }
     }
   }
 }

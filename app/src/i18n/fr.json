@@ -253,7 +253,11 @@
     "today": "Aujourd'hui",
     "progress": "Progression",
     "library": "Bibliothèque",
-    "settings": "Réglages"
+    "settings": "Réglages",
+    "badges": {
+      "today": "une action t'attend",
+      "progress": "bilan en attente"
+    }
   },
   "progress": {
     "title": "Ta progression",
@@ -327,7 +331,8 @@
       "alreadyInPlan": "Cet exercice est déjà dans ta journée.",
       "dailyLimit": "Tu as déjà ajouté 3 exercices aujourd'hui : c'est largement suffisant !",
       "invalid": "Cet exercice n'est plus disponible."
-    }
+    },
+    "notes": "Mes notes"
   },
   "review": {
     "title": "Bilan de la semaine",
@@ -473,6 +478,176 @@
       "code": "Code à 6 chiffres",
       "verify": "Valider le code",
       "invalidCode": "Code incorrect ou expiré. Réessaie avec le code affiché."
+    }
+  },
+  "notes": {
+    "title": "Mon carnet",
+    "hintExercise": "Comment je l'applique : tes repères, ce qui marche pour toi.",
+    "hintPrinciple": "Comment j'applique ce principe dans ma vie.",
+    "placeholder": "Écris ta note…",
+    "length": "{{n}} / {{max}} caractères",
+    "save": "Enregistrer la note",
+    "saved": "Note enregistrée.",
+    "delete": "Supprimer la note",
+    "deleteTitle": "Supprimer cette note ?",
+    "deleteBody": "Elle sera effacée définitivement.",
+    "keep": "Garder",
+    "deleted": "Note supprimée.",
+    "private": "Privée : visible par toi seul, jamais envoyée à l'IA.",
+    "empty": "Aucune note pour l'instant. Ouvre un exercice ou un principe pour écrire comment tu l'appliques.",
+    "total_one": "{{count}} note",
+    "total_other": "{{count}} notes",
+    "exercise": "Exercice",
+    "principle": "Principe"
+  },
+  "guide": {
+    "journey": {
+      "title": "Ton parcours du jour",
+      "principle": "Principe",
+      "exercise": "Exercice",
+      "habits": "Habitudes",
+      "checkin": "Check-in",
+      "done": "fait",
+      "next": "prochaine étape",
+      "todo": "à faire",
+      "hint": "Affiche la carte"
+    },
+    "principle": {
+      "openHint": "Ouvre la fiche du principe",
+      "read": "Lu ✓",
+      "markRead": "J'ai lu"
+    },
+    "help": {
+      "label": "Aide : {{title}}",
+      "principle": {
+        "title": "Principe du jour",
+        "body": "Une idée clé tirée des grands livres de réussite, résumée en une phrase. Elle donne le sens de l'exercice du jour."
+      },
+      "exercise": {
+        "title": "Exercice du jour",
+        "body": "Une action concrète, adaptée à ton temps et à ton énergie. Fais-la, puis note ce que tu as fait ; une version courte compte aussi."
+      },
+      "why": {
+        "title": "Pourquoi aujourd'hui",
+        "body": "La raison de ce choix pour toi aujourd'hui : ton programme, ton énergie ou ton temps. Rien n'est choisi au hasard."
+      },
+      "habits": {
+        "title": "Tes habitudes",
+        "body": "De petites actions répétées qui font la différence sur la durée. La version minimale compte : l'important est de ne pas casser le fil."
+      },
+      "checkin": {
+        "title": "Check-in du soir",
+        "body": "Soixante secondes pour noter ton énergie, ton humeur et ton temps de demain. Ton programme s'adapte à tes réponses."
+      }
+    },
+    "tour": {
+      "progress": "Étape {{n}} sur {{total}}",
+      "skip": "Passer",
+      "next": "Suivant",
+      "finish": "C'est parti",
+      "principle": {
+        "title": "Un principe par jour",
+        "body": "Chaque jour, une idée clé tirée d'un grand livre. Touche « J'ai lu » ou ouvre la fiche une fois lue."
+      },
+      "exercise": {
+        "title": "Ton exercice du jour",
+        "body": "Une action concrète à faire aujourd'hui. Pas le temps ? Dis-le : ton programme s'adapte, sans reproche."
+      },
+      "why": {
+        "title": "Pourquoi aujourd'hui",
+        "body": "Chaque choix est expliqué : tu sais toujours pourquoi cet exercice t'est proposé."
+      },
+      "habits": {
+        "title": "Tes habitudes",
+        "body": "Coche-les au fil de la journée. La version minimale compte aussi."
+      },
+      "checkin": {
+        "title": "Le check-in du soir",
+        "body": "Le soir, soixante secondes pour faire le point. Les 4 pastilles en haut te montrent où tu en es."
+      }
+    },
+    "tips": {
+      "label": "Astuce du jour",
+      "close": "Compris",
+      "minimal_version": {
+        "title": "La version minimale",
+        "body": "Une journée chargée ? La version minimale d'une habitude compte comme faite. Mieux vaut un petit pas qu'aucun."
+      },
+      "no_time": {
+        "title": "« Pas le temps »",
+        "body": "Si l'exercice ne rentre pas dans ta journée, touche « Pas le temps » : demain, ton programme proposera plus court."
+      },
+      "library": {
+        "title": "La bibliothèque",
+        "body": "Tous les exercices et principes sont dans l'onglet Bibliothèque. Tu peux en ajouter un à ta journée."
+      },
+      "favorites": {
+        "title": "Tes favoris",
+        "body": "Touche l'étoile d'un exercice ou d'un principe pour le retrouver dans « Mes favoris »."
+      },
+      "goal_progress": {
+        "title": "Ton avancement",
+        "body": "Dans Progression, mets à jour la valeur actuelle de ton objectif : tes ajustements en tiennent compte."
+      },
+      "weekly_review": {
+        "title": "Le bilan de la semaine",
+        "body": "Le dimanche soir, ton bilan te propose 1 à 3 ajustements. Tu choisis, rien n'est appliqué sans ton accord."
+      }
+    },
+    "milestones": {
+      "close": "Merci !",
+      "streak_7": {
+        "title": "7 jours de suite",
+        "body": "Une semaine d'affilée : ton nouveau rythme prend forme."
+      },
+      "week_1": {
+        "title": "Semaine 1 terminée",
+        "body": "Ta première semaine de programme est faite : bravo pour ce départ."
+      },
+      "program_completed": {
+        "title": "Programme terminé",
+        "body": "Tu as mené ton programme jusqu'au bout. La suite continue, à ton rythme."
+      },
+      "goal_achieved": {
+        "title": "Objectif atteint",
+        "body": "Tu as atteint ton objectif. Prends le temps de savourer ce moment."
+      }
+    },
+    "howItWorks": {
+      "title": "Comment ça marche",
+      "intro": "Chaque jour, un parcours simple en 4 étapes, adapté à ton énergie et à ton temps.",
+      "principle": {
+        "title": "1. Le principe",
+        "body": "Une idée clé tirée des grands livres de réussite. Elle compte comme lue quand tu ouvres sa fiche ou touches « J'ai lu »."
+      },
+      "exercise": {
+        "title": "2. L'exercice",
+        "body": "Une action concrète du programme. Tu peux la faire, la faire en version courte, ou dire que tu n'as pas le temps : le programme s'adapte."
+      },
+      "why": {
+        "title": "Pourquoi aujourd'hui",
+        "body": "Chaque proposition est expliquée selon ton programme, ton énergie et ton temps."
+      },
+      "habits": {
+        "title": "3. Les habitudes",
+        "body": "Jusqu'à 6 habitudes, avec une version minimale pour les jours chargés."
+      },
+      "checkin": {
+        "title": "4. Le check-in",
+        "body": "Le soir, soixante secondes pour noter ton énergie, ton humeur et ton temps de demain."
+      },
+      "progress": {
+        "title": "Ta progression",
+        "body": "Série, taux de réalisation, objectif et réflexions : tout est dans l'onglet Progression. Une journée manquée ne casse pas ta série."
+      },
+      "review": {
+        "title": "Le bilan de la semaine",
+        "body": "Chaque dimanche soir, un résumé de ta semaine et quelques ajustements que tu acceptes ou refuses."
+      },
+      "notes": {
+        "title": "Ton carnet",
+        "body": "Sur chaque exercice ou principe, écris comment tu l'appliques. Tes notes restent privées et ne sont jamais envoyées à l'IA."
+      }
     }
   }
 }

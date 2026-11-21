@@ -1,6 +1,6 @@
 // Exercise of the day: proof input by proof_type, "Fait" / "Pas le temps" / "Trop dur",
 // optional 1-5 rating after "Fait", correction until the end of the day.
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -59,11 +59,14 @@ export function ExerciseCard({
   editable,
   saving,
   onSave,
+  help,
 }: {
   item: Item;
   editable: boolean;
   saving: boolean;
   onSave: (input: ResultInput) => void;
+  // "?" button of the card
+  help?: ReactNode;
 }) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
@@ -97,8 +100,13 @@ export function ExerciseCard({
         <AppText variant="caption" tone="link">
           {item.origin === 'user' ? t('today.addedByYou') : t('today.exerciseOfDay')}
         </AppText>
-        <View style={[styles.pill, { backgroundColor: colors.primarySoft }]}>
-          <AppText variant="caption">{t('today.duration', { min: exercise.duration_min })}</AppText>
+        <View style={styles.headRight}>
+          <View style={[styles.pill, { backgroundColor: colors.primarySoft }]}>
+            <AppText variant="caption">
+              {t('today.duration', { min: exercise.duration_min })}
+            </AppText>
+          </View>
+          {help}
         </View>
       </View>
       <AppText variant="subtitle">{title}</AppText>
@@ -204,6 +212,7 @@ export function ExerciseCard({
 }
 
 const styles = StyleSheet.create({
+  headRight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   personalized: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pill: { borderRadius: radius.badge, paddingHorizontal: spacing.sm, paddingVertical: 2 },

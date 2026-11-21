@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 // Habits of the day, filtered by frequency; one tap to check, one tap for the minimal version.
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -27,7 +28,9 @@ export function HabitsSection({
   today,
   timezone,
   onAction,
+  help,
 }: {
+  help?: ReactNode;
   habits: Habit[];
   logs: { user_habit_id: string; date: string; done: boolean; minimal: boolean }[];
   today: string;
@@ -56,7 +59,10 @@ export function HabitsSection({
 
   return (
     <View style={styles.list}>
-      <AppText variant="subtitle">{t('today.habitsTitle')}</AppText>
+      <View style={styles.titleRow}>
+        <AppText variant="subtitle">{t('today.habitsTitle')}</AppText>
+        {help}
+      </View>
       {rows.map(({ habit, status }) => {
         const cue = habitText(habit.cue, habit.template, 'default_cue', language);
         const minimal = habitText(
@@ -153,6 +159,7 @@ export function HabitsSection({
 }
 
 const styles = StyleSheet.create({
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   list: { gap: spacing.sm },
   row: { borderWidth: 1.5, borderRadius: radius.card, padding: spacing.md, gap: spacing.sm },
   main: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
