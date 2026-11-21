@@ -89,6 +89,7 @@ export type Database = {
           introduced_habit_id: string | null;
           mode: Database['public']['Enums']['plan_mode'];
           principle_id: string | null;
+          principle_read_at: string | null;
           program_day: number | null;
           program_id: string | null;
           user_id: string;
@@ -104,6 +105,7 @@ export type Database = {
           introduced_habit_id?: string | null;
           mode: Database['public']['Enums']['plan_mode'];
           principle_id?: string | null;
+          principle_read_at?: string | null;
           program_day?: number | null;
           program_id?: string | null;
           user_id: string;
@@ -118,6 +120,7 @@ export type Database = {
           introduced_habit_id?: string | null;
           mode?: Database['public']['Enums']['plan_mode'];
           principle_id?: string | null;
+          principle_read_at?: string | null;
           program_day?: number | null;
           program_id?: string | null;
           user_id?: string;
@@ -354,6 +357,7 @@ export type Database = {
       };
       goals: {
         Row: {
+          achieved_at: string | null;
           created_at: string;
           current_value: number | null;
           current_value_updated_at: string | null;
@@ -369,6 +373,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          achieved_at?: string | null;
           created_at?: string;
           current_value?: number | null;
           current_value_updated_at?: string | null;
@@ -383,6 +388,7 @@ export type Database = {
           why?: string | null;
         };
         Update: {
+          achieved_at?: string | null;
           created_at?: string;
           current_value?: number | null;
           current_value_updated_at?: string | null;
@@ -604,6 +610,37 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      notes: {
+        Row: {
+          body: string;
+          created_at: string;
+          entity_id: string;
+          entity_type: Database['public']['Enums']['favorite_entity'];
+          id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          body: string;
+          created_at?: string;
+          entity_id: string;
+          entity_type: Database['public']['Enums']['favorite_entity'];
+          id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Update: {
+          body?: string;
+          created_at?: string;
+          entity_id?: string;
+          entity_type?: Database['public']['Enums']['favorite_entity'];
+          id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
       };
       plan_items: {
         Row: {
@@ -1039,6 +1076,34 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_guide_state: {
+        Row: {
+          milestones: NonNullable<Json>;
+          tips_seen: NonNullable<Json>;
+          tour_finished_at: string | null;
+          tour_skipped: boolean;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          milestones?: NonNullable<Json>;
+          tips_seen?: NonNullable<Json>;
+          tour_finished_at?: string | null;
+          tour_skipped?: boolean;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          milestones?: NonNullable<Json>;
+          tips_seen?: NonNullable<Json>;
+          tour_finished_at?: string | null;
+          tour_skipped?: boolean;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       user_habits: {
         Row: {
           active: boolean;
@@ -1240,9 +1305,13 @@ export type Database = {
         }[];
       };
       erase_mood_energy: { Args: Record<PropertyKey, never>; Returns: number };
+      finish_guided_tour: { Args: { p_skipped: boolean }; Returns: undefined };
       get_app_flags: { Args: Record<PropertyKey, never>; Returns: Json };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_premium: { Args: { p_user_id: string }; Returns: boolean };
+      mark_milestone_celebrated: { Args: { p_milestone: string }; Returns: undefined };
+      mark_principle_read: { Args: { p_plan_id: string }; Returns: undefined };
+      mark_tip_seen: { Args: { p_tip: string }; Returns: undefined };
       my_done_days: { Args: Record<PropertyKey, never>; Returns: string[] };
       purge_deleted_accounts: { Args: { p_now: string }; Returns: number };
       replace_active_goal: {

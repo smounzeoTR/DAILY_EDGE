@@ -16,6 +16,8 @@ const USER_TABLES = [
   'profile_stats',
   'engine_decisions',
   'llm_calls',
+  'notes',
+  'user_guide_state',
 ] as const;
 
 Deno.serve(async (req) => {
