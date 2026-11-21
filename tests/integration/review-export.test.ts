@@ -109,6 +109,9 @@ describe('export-my-data', () => {
     const data = res.body.data as Record<string, { user_id: string }[]>;
     expect(Object.keys(data).sort()).toEqual(
       [
+        'assistant_actions',
+        'assistant_messages',
+        'assistant_threads',
         'checkins',
         'daily_plans',
         'engine_decisions',

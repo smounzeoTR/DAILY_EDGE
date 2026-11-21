@@ -1,0 +1,99 @@
+# Lot 9: new account -> Coach tab presentation -> premium (prototype switch) and AI consent ->
+# "Je n'ai que 10 minutes aujourd'hui" -> action card -> "Appliquer" -> Today shows the short
+# version; then a note shared with the coach (pre-filled input, sent by the user).
+# Local mock provider of config.toml (streamed answer, adapt_today tool).
+# Run: maestro test app/e2e/lot9-coach.yaml -e APP_URL=exp://127.0.0.1:8081
+appId: host.exp.Exponent
+# APP_URL is required on the command line (-e): it is not defined here on purpose
+---
+- runFlow: subflows/sign-in-onboarding.yaml
+- tapOn: 'Plus tard'
+- runFlow: subflows/dismiss-guide.yaml
+- extendedWaitUntil:
+    visible: 'Jour 1 sur 28.*'
+    timeout: 30000
+- assertVisible: 'Écrire son objectif principal'
+
+# ---- Coach tab: presentation, then premium and AI consent -----------------------------
+- tapOn: 'Coach.*'
+- extendedWaitUntil:
+    visible: 'Coach Edge'
+    timeout: 10000
+- assertVisible: 'Passer à premium'
+- takeScreenshot: e2e-l9-01-presentation
+- tapOn: 'Passer à premium'
+- runFlow:
+    when:
+      visible: 'Ouvrir les consentements'
+    commands:
+      - tapOn: 'Ouvrir les consentements'
+      - scrollUntilVisible:
+          element: 'Personnalisation par IA'
+          direction: DOWN
+          centerElement: true
+      - tapOn: 'Personnalisation par IA'
+      - tapOn: 'Coach.*'
+- extendedWaitUntil:
+    visible: 'Nouvelle conversation'
+    timeout: 15000
+
+# ---- "Only 10 minutes" -> action card -> Apply -------------------------------------
+- tapOn: 'Nouvelle conversation'
+- tapOn:
+    id: 'coach-input'
+- inputText: "Je n'ai que 10 minutes aujourd'hui"
+- runFlow: subflows/dismiss-keyboard-tip.yaml
+- tapOn: 'Envoyer'
+- extendedWaitUntil:
+    visible: 'Passer à une version courte de ta journée \(10 min\)'
+    timeout: 20000
+- assertVisible: 'Rien ne change tant que.*'
+- takeScreenshot: e2e-l9-02-action-card
+- tapOn: 'Appliquer : Passer à une version courte.*'
+- extendedWaitUntil:
+    visible: 'Appliqué ✓'
+    timeout: 15000
+- takeScreenshot: e2e-l9-03-applied
+- tapOn: 'Retour'
+- tapOn: 'Aujourd.hui.*'
+- extendedWaitUntil:
+    visible: 'Le plus petit pas'
+    timeout: 15000
+- assertNotVisible: 'Écrire son objectif principal'
+- takeScreenshot: e2e-l9-04-today-short
+
+# ---- A note shared with the coach (pre-filled, sent by the user) -----------------------
+- tapOn: 'Bibliothèque.*'
+- tapOn: 'Écrire son objectif principal'
+- scrollUntilVisible:
+    element: 'Mon carnet'
+    direction: DOWN
+    centerElement: true
+- tapOn:
+    id: 'note-input'
+- inputText: 'Je bloque quand je dois chiffrer mon objectif.'
+- runFlow: subflows/dismiss-keyboard-tip.yaml
+- scrollUntilVisible:
+    element: 'Enregistrer la note'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Enregistrer la note'
+- extendedWaitUntil:
+    visible: 'Note enregistrée\.'
+    timeout: 10000
+- scrollUntilVisible:
+    element: 'Partager avec le coach'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Partager avec le coach'
+- extendedWaitUntil:
+    visible: 'Je bloque quand je dois chiffrer mon objectif\.'
+    timeout: 10000
+# Nothing sent automatically: the text waits in the input field
+- assertNotVisible: 'Merci de partager.*'
+- takeScreenshot: e2e-l9-05-shared-prefilled
+- tapOn: 'Envoyer'
+- extendedWaitUntil:
+    visible: 'Merci de partager cela avec moi.*'
+    timeout: 20000
+- takeScreenshot: e2e-l9-06-shared-answer
