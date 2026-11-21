@@ -320,10 +320,10 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 # Control how many MFA factors can be enrolled at once per user.
 max_enrolled_factors = 10
 
-# Control MFA via App Authenticator (TOTP)
+# Control MFA via App Authenticator (TOTP): mandatory for the admin screens (is_admin needs aal2)
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 # Configure MFA via Phone Messaging
 [auth.mfa.phone]
@@ -411,6 +411,13 @@ deno_version = 2
 # Local-only value; production: `supabase secrets set PLANS_BATCH_SECRET=...` (same value as Vault plans_batch_secret)
 [edge_runtime.secrets]
 PLANS_BATCH_SECRET = "local-dev-plans-batch-secret"
+# AI: mock provider locally (deterministic, no network). Production: supabase secrets set
+# LLM_PROVIDER, LLM_MODEL, the provider key and the prices (see supabase/functions/.env.example)
+LLM_PROVIDER = "mock"
+LLM_MODEL = "mock-1"
+LLM_MOCK_DELAY_MS = "1500"
+LLM_PRICE_IN_EUR_PER_MTOK = "0.10"
+LLM_PRICE_OUT_EUR_PER_MTOK = "0.50"
 
 # Plan generation: the user comes from the JWT only
 [functions.generate-plan]

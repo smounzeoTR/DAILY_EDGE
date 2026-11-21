@@ -11,3 +11,6 @@ select vault.create_secret(
   'plans_batch_secret',
   'Shared secret checked by generate-plans-batch'
 );
+
+-- Prototype premium switch shown in the app (false by default, never true in production)
+update public.app_settings set value = 'true' where key = 'allow_plan_toggle';

@@ -23,6 +23,25 @@ export type Database = {
   };
   public: {
     Tables: {
+      app_settings: {
+        Row: {
+          key: string;
+          updated_at: string;
+          value: NonNullable<Json>;
+        };
+        ComputedFields: never;
+        Insert: {
+          key: string;
+          updated_at?: string;
+          value: NonNullable<Json>;
+        };
+        Update: {
+          key?: string;
+          updated_at?: string;
+          value?: NonNullable<Json>;
+        };
+        Relationships: [];
+      };
       checkins: {
         Row: {
           created_at: string;
@@ -62,6 +81,7 @@ export type Database = {
       };
       daily_plans: {
         Row: {
+          ai_status: string | null;
           created_at: string;
           date: string;
           generated_at: string | null;
@@ -76,6 +96,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          ai_status?: string | null;
           created_at?: string;
           date: string;
           generated_at?: string | null;
@@ -89,6 +110,7 @@ export type Database = {
           why_today?: string | null;
         };
         Update: {
+          ai_status?: string | null;
           created_at?: string;
           date?: string;
           generated_at?: string | null;
@@ -503,6 +525,85 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      llm_calls: {
+        Row: {
+          attempts: number;
+          cost_eur: number;
+          created_at: string;
+          decision_id: string | null;
+          fallback_reason: string | null;
+          feature: Database['public']['Enums']['llm_feature'];
+          id: string;
+          input_hash: string | null;
+          input_tokens: number;
+          latency_ms: number | null;
+          local_date: string;
+          model: string | null;
+          outcome: Database['public']['Enums']['llm_outcome'];
+          output: Json | null;
+          output_tokens: number;
+          provider: string | null;
+          review_id: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          attempts?: number;
+          cost_eur?: number;
+          created_at?: string;
+          decision_id?: string | null;
+          fallback_reason?: string | null;
+          feature: Database['public']['Enums']['llm_feature'];
+          id?: string;
+          input_hash?: string | null;
+          input_tokens?: number;
+          latency_ms?: number | null;
+          local_date: string;
+          model?: string | null;
+          outcome: Database['public']['Enums']['llm_outcome'];
+          output?: Json | null;
+          output_tokens?: number;
+          provider?: string | null;
+          review_id?: string | null;
+          user_id: string;
+        };
+        Update: {
+          attempts?: number;
+          cost_eur?: number;
+          created_at?: string;
+          decision_id?: string | null;
+          fallback_reason?: string | null;
+          feature?: Database['public']['Enums']['llm_feature'];
+          id?: string;
+          input_hash?: string | null;
+          input_tokens?: number;
+          latency_ms?: number | null;
+          local_date?: string;
+          model?: string | null;
+          outcome?: Database['public']['Enums']['llm_outcome'];
+          output?: Json | null;
+          output_tokens?: number;
+          provider?: string | null;
+          review_id?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'llm_calls_decision_id_fkey';
+            columns: ['decision_id'];
+            isOneToOne: false;
+            referencedRelation: 'engine_decisions';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'llm_calls_review_id_fkey';
+            columns: ['review_id'];
+            isOneToOne: false;
+            referencedRelation: 'weekly_reviews';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       plan_items: {
         Row: {
@@ -992,6 +1093,7 @@ export type Database = {
       weekly_reviews: {
         Row: {
           accepted: NonNullable<Json>;
+          ai_status: string | null;
           created_at: string;
           generated_at: string;
           id: string;
@@ -1005,6 +1107,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           accepted?: NonNullable<Json>;
+          ai_status?: string | null;
           created_at?: string;
           generated_at?: string;
           id?: string;
@@ -1017,6 +1120,7 @@ export type Database = {
         };
         Update: {
           accepted?: NonNullable<Json>;
+          ai_status?: string | null;
           created_at?: string;
           generated_at?: string;
           id?: string;
@@ -1036,10 +1140,64 @@ export type Database = {
     Functions: {
       add_exercise_to_today: { Args: { p_exercise_id: string }; Returns: Json };
       add_habit_from_template: { Args: { p_template_id: string }; Returns: string };
+      admin_ai_cost_daily: {
+        Args: { p_days?: number };
+        Returns: {
+          avg_latency_ms: number;
+          cache_hits: number;
+          calls: number;
+          cost_eur: number;
+          day: string;
+          fallbacks: number;
+          feature: Database['public']['Enums']['llm_feature'];
+          input_tokens: number;
+          output_tokens: number;
+          quota_refusals: number;
+        }[];
+      };
+      admin_engine_log: {
+        Args: { p_email: string; p_limit?: number };
+        Returns: {
+          ai_status: string;
+          candidates: Json;
+          created_at: string;
+          decision_id: string;
+          items: Json;
+          llm_calls: Json;
+          mode: Database['public']['Enums']['plan_mode'];
+          plan_date: string;
+          program_day: number;
+          rules_fired: string[];
+          why: Json;
+        }[];
+      };
+      admin_exercise_stats: {
+        Args: { p_from: string; p_to: string };
+        Returns: {
+          added: number;
+          avg_rating: number;
+          domain: Database['public']['Enums']['domain'];
+          done: number;
+          done_rate: number;
+          exercise_id: string;
+          proposed: number;
+          skip_rate: number;
+          status: Database['public']['Enums']['content_status'];
+          title_en: string;
+          title_fr: string;
+          too_hard_rate: number;
+        }[];
+      };
       answer_review_proposal: {
         Args: { p_accept: boolean; p_index: number; p_review_id: string };
         Returns: Json;
       };
+      app_setting_enabled: { Args: { p_key: string }; Returns: boolean };
+      apply_plan_enrichment: {
+        Args: { p_generated_at: string; p_plan_id: string; p_result: Json };
+        Returns: string;
+      };
+      apply_review_enrichment: { Args: { p_result: Json; p_review_id: string }; Returns: string };
       cancel_account_deletion: { Args: Record<PropertyKey, never>; Returns: undefined };
       change_program: { Args: { p_program_id: string }; Returns: undefined };
       complete_onboarding: {
@@ -1068,6 +1226,10 @@ export type Database = {
         Returns: undefined;
       };
       current_user_local_date: { Args: Record<PropertyKey, never>; Returns: string };
+      dev_set_plan: {
+        Args: { p_plan: Database['public']['Enums']['subscription_plan'] };
+        Returns: undefined;
+      };
       engine_exercise_history: {
         Args: { p_user_id: string };
         Returns: {
@@ -1078,7 +1240,9 @@ export type Database = {
         }[];
       };
       erase_mood_energy: { Args: Record<PropertyKey, never>; Returns: number };
+      get_app_flags: { Args: Record<PropertyKey, never>; Returns: Json };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
+      is_premium: { Args: { p_user_id: string }; Returns: boolean };
       my_done_days: { Args: Record<PropertyKey, never>; Returns: string[] };
       purge_deleted_accounts: { Args: { p_now: string }; Returns: number };
       replace_active_goal: {
@@ -1092,6 +1256,7 @@ export type Database = {
         Returns: string;
       };
       request_account_deletion: { Args: Record<PropertyKey, never>; Returns: string };
+      require_admin: { Args: Record<PropertyKey, never>; Returns: undefined };
       save_daily_plan: {
         Args: { p_date: string; p_decision: Json; p_plan: Json; p_user_id: string };
         Returns: Json;
@@ -1153,6 +1318,8 @@ export type Database = {
       favorite_entity: 'principle' | 'exercise';
       goal_status: 'active' | 'achieved' | 'abandoned';
       habit_frequency: 'daily' | 'weekdays' | 'weekly' | 'biweekly' | 'monthly' | 'occasional';
+      llm_feature: 'plan' | 'review' | 'assistant';
+      llm_outcome: 'success' | 'fallback' | 'cache_hit' | 'quota_exceeded';
       motivation_style: 'challenge' | 'consistency' | 'meaning' | 'recognition';
       persona: 'entrepreneur' | 'employee' | 'career_changer' | 'financial_beginner';
       plan_item_origin: 'engine' | 'user';
@@ -1295,6 +1462,8 @@ export const Constants = {
       favorite_entity: ['principle', 'exercise'],
       goal_status: ['active', 'achieved', 'abandoned'],
       habit_frequency: ['daily', 'weekdays', 'weekly', 'biweekly', 'monthly', 'occasional'],
+      llm_feature: ['plan', 'review', 'assistant'],
+      llm_outcome: ['success', 'fallback', 'cache_hit', 'quota_exceeded'],
       motivation_style: ['challenge', 'consistency', 'meaning', 'recognition'],
       persona: ['entrepreneur', 'employee', 'career_changer', 'financial_beginner'],
       plan_item_origin: ['engine', 'user'],

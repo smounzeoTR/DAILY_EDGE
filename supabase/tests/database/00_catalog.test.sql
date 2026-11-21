@@ -49,8 +49,9 @@ select is(
   'regular user cannot update content'
 );
 
--- An admin sees unpublished content and can edit it
+-- An admin with a two-factor session (aal2) sees unpublished content and can edit it
 update public.profiles set role = 'admin' where user_id = '00000000-0000-0000-0000-0000000000c1';
+select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000c1","role":"authenticated","aal":"aal2"}', true);
 set local role authenticated;
 select is((select count(*)::int from public.exercises), 287, 'admin reads all statuses');
 update public.exercises set status = 'published' where id = 'E001';
