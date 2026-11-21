@@ -68,13 +68,14 @@ Acceptation : sur le téléphone, une journée complète (exercice, habitudes, c
 - [x] Échéance de l'objectif vérifiée par la base à chaque modification.
 
 ## Lot 8 — Guide quotidien et carnet de notes (§ 3.9)
-- [ ] Parcours du jour en 4 pastilles (Principe → Exercice → Habitudes → Check-in) en haut d'Aujourd'hui, prochaine étape mise en avant, défilement vers la carte.
-- [ ] Pastilles sur les onglets (check-in en attente, propositions de bilan sans réponse, habitude introduite proposée).
-- [ ] Première semaine accompagnée : visite guidée le jour 1 (« Passer » toujours visible), une astuce par jour du jour 2 au jour 7 ; état enregistré côté serveur.
-- [ ] « ? » sur chaque carte et page « Comment ça marche » dans les Réglages.
-- [ ] Mes notes : notes rattachées à un principe ou à un exercice, visibles sur la fiche et dans l'onglet « Mes notes » de la Bibliothèque ; RLS, export, suppression avec le compte ; jamais envoyées à l'IA.
-- [ ] Étapes célébrées sobrement (7 jours de série, semaine 1, programme terminé, objectif atteint).
-- [ ] Tests (pgTAP, Vitest, Maestro), textes FR et EN.
+- [x] Parcours du jour en 4 pastilles (Principe → Exercice → Habitudes → Check-in) en haut d'Aujourd'hui, prochaine étape mise en avant, défilement vers la carte.
+- [x] Pastilles sur les onglets : Aujourd'hui (check-in en attente, habitude introduite proposée), Progression (bilan en attente) ; pas sur Bibliothèque.
+- [x] Première semaine accompagnée : visite guidée le jour 1 (« Passer » toujours visible), une astuce par jour du jour 2 au jour 7 ; état enregistré côté serveur.
+- [x] « ? » sur chaque carte et page « Comment ça marche » dans les Réglages.
+- [x] Mes notes : notes rattachées à un principe ou à un exercice, visibles sur la fiche et dans l'onglet « Mes notes » de la Bibliothèque ; RLS, export, suppression avec le compte ; jamais envoyées à l'IA.
+- [x] Étapes célébrées sobrement (7 jours de série, semaine 1, programme terminé, objectif atteint).
+- [x] Une seule superposition par ouverture (visite, célébration, astuce).
+- [x] Tests (pgTAP, Vitest, Maestro), textes FR et EN.
 
 ## Lot 9 — Assistant Coach Edge (premium, § 3.10)
 - [ ] Edge Function `assistant-chat` en streaming, accès premium + `consent_ai`, compte non en cours de suppression.

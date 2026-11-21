@@ -154,7 +154,7 @@ Objectif : l'utilisateur sait toujours quoi faire ensuite, sans jamais se sentir
   - Exercice : fait (version minimale et ajouts compris).
   - Habitudes : toutes les habitudes attendues ce jour sont faites (« À l'occasion » exclue).
   - Check-in : enregistré pour la date du jour.
-- **Pastilles sur les onglets** : un point sur Aujourd'hui quand le check-in attend (après l'heure du rappel du soir), sur Progression quand un bilan a des propositions sans réponse, sur Bibliothèque quand une habitude introduite est proposée. Elles disparaissent dès que l'action est faite.
+- **Pastilles sur les onglets** : un point sur Aujourd'hui quand le check-in attend (après l'heure du rappel du soir) ou quand une habitude introduite est proposée et n'a pas été écartée (elle s'affiche sur Aujourd'hui), sur Progression quand un bilan a des propositions sans réponse. Pas de pastille sur Bibliothèque (décision du 21 novembre 2026). Elles disparaissent dès que l'action est faite.
 - **Première semaine accompagnée** :
   - jour 1 : visite guidée en bulles sur chaque carte d'Aujourd'hui, avec « Passer » toujours visible ;
   - jours 2 à 7 : une astuce par jour pour faire découvrir une fonction (version minimale, « Pas le temps », bibliothèque, favoris, valeur actuelle de l'objectif, bilan). Chaque astuce se ferme et ne revient jamais.
@@ -222,6 +222,18 @@ Décision du 21 novembre 2026.
 | Export des données, suppression du compte | ✅ | ✅ |
 
 Le gratuit est complet : l'app y tient sa promesse sans IA. Le premium apporte la personnalisation et l'accompagnement conversationnel.
+
+Précisions du 28 novembre 2026 (lot 8) :
+- **Principe lu** : quand l'utilisateur ouvre sa fiche depuis Aujourd'hui ou touche « J'ai lu » (pas de détection du défilement, trop fragile). Enregistré sur le plan (`daily_plans.principle_read_at`, via `mark_principle_read`), donc identique sur tous les appareils.
+- **Parcours du jour** : fonction pure testée (`dayJourney`), qui réutilise `habitStatusOn`. Exercice fait = au moins un exercice fait (version minimale et ajouts compris). Habitudes = toutes celles attendues ce jour faites (« fait dans la période » compte, « À l'occasion » exclue) ; la pastille est remplie quand aucune habitude n'est attendue. Toucher une pastille fait défiler jusqu'à sa carte ; VoiceOver lit l'état (« Exercice : fait »).
+- **Pastilles des onglets** : fonction pure `tabBadges`, calculée à partir des données déjà en cache (abonnement au cache, aucun appel réseau dédié) ; VoiceOver lit la raison (« Progression, bilan en attente »).
+- **Une seule superposition par ouverture** : une fonction pure (`overlayToShow`) choisit, par priorité, la visite guidée, puis une célébration, puis l'astuce du jour ; un seul des trois est montré, les autres attendent l'ouverture suivante.
+- **Visite guidée** (5 bulles : principe, exercice, pourquoi aujourd'hui, habitudes, check-in) : superposition maison au-dessus d'Aujourd'hui, « Passer » toujours visible en bas, VoiceOver annonce chaque bulle, animations désactivées avec « Réduire les animations ». Elle n'est montrée que dans les 7 jours qui suivent l'onboarding (compté depuis `onboarded_at`, pas depuis le début du programme, qu'un changement de programme remet à zéro) ; les comptes onboardés depuis plus de 7 jours ne la voient pas.
+- **Astuces** : du jour 2 au jour 7, au plus une par jour ; les jours manqués sont rattrapés dans l'ordre. Une astuce vue ne revient jamais.
+- **Étapes célébrées** : 7 jours de série, semaine 1 (jour de programme 8 à 14), programme terminé (depuis 7 jours au plus), objectif atteint (`goals.achieved_at` dans les 7 derniers jours). Chacune n'est célébrée qu'une fois ; une étape atteinte depuis longtemps est enregistrée sans être montrée.
+- **État du guide** côté serveur : table `user_guide_state` (visite finie ou passée, astuces vues, étapes célébrées), lecture seule pour l'utilisateur, écrite par `finish_guided_tour`, `mark_tip_seen` et `mark_milestone_celebrated` (listes fermées, ajout seulement : rien n'est jamais réécrit).
+- **Mes notes** : table `notes`, une note par principe ou exercice, 2 000 caractères au plus ; carte « Mon carnet » sur les fiches, onglet « Mes notes » dans la Bibliothèque. Jamais lues par l'IA (cas ajouté au test de minimisation) ; « Partager avec le coach » au lot 9.
+- Le défilement ferme le clavier (champs de texte sur plusieurs lignes).
 
 ## 4. Contenu
 
@@ -370,7 +382,12 @@ Droits par table : CRUD complet sur ses lignes pour `goals`, `user_habits`, `hab
 
 Moteur : `engine_decisions` : id, user_id, plan_id, rules_fired[], candidates (jsonb), why (jsonb : clé, paramètres, texte), llm_model, llm_input_hash, llm_output (jsonb), fallback_used, latency_ms, created_at. Lecture réservée aux admins. Fonctions serveur (service_role uniquement) : `save_daily_plan` (enregistrement transactionnel et idempotent d'un plan) et `engine_exercise_history` (historique agrégé par exercice).
 
-À venir (lots 8 et 9) : carnet de notes (table `notes` rattachée à un principe ou à un exercice), état du guide (visite faite, astuces vues, côté serveur), conversations de l'assistant (`assistant_threads`, `assistant_messages`, purgées après 90 jours). Toutes protégées par RLS, incluses dans l'export, supprimées avec le compte.
+Lot 8 :
+- `notes` : id, user_id, entity_type (principle / exercise), entity_id (vérifié par trigger), body (1 à 2 000 caractères), created_at, updated_at ; unique (user_id, entity_type, entity_id) ; CRUD sur ses lignes, seul le texte est modifiable.
+- `user_guide_state` : user_id, tour_finished_at, tour_skipped, tips_seen (jsonb : astuce → date), milestones (jsonb : étape → date), updated_at ; lecture de sa ligne, écriture par RPC uniquement.
+- `daily_plans.principle_read_at` (`mark_principle_read`) et `goals.achieved_at` (trigger au passage à « atteint »).
+
+À venir (lot 9) : conversations de l'assistant (`assistant_threads`, `assistant_messages`, purgées après 90 jours). Toutes protégées par RLS, incluses dans l'export, supprimées avec le compte.
 
 Dates utilisateur stockées en date locale, calculées avec `profiles.timezone`. Similarité entre exercices (pgvector) : reportée après la V1, le score d'affinité V1 se fonde sur les notes par domaine.
 
