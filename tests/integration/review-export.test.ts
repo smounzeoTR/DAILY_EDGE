@@ -115,6 +115,7 @@ describe('export-my-data', () => {
         'favorites',
         'goals',
         'habit_logs',
+        'llm_calls',
         'plan_items',
         'profile_stats',
         'profiles',

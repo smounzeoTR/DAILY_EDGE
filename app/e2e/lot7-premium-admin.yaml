@@ -1,0 +1,115 @@
+# Lot 7: demo account -> AI consent + premium (prototype switch) -> Today enriched by the AI
+# (mock provider of the local stack) with "Voir la consigne d'origine"; then the admin account:
+# two-factor activation (TOTP computed by scripts/totp.js) and the read-only screens.
+# Run: npm run seed:demo && maestro test app/e2e/lot7-premium-admin.yaml -e APP_URL=exp://127.0.0.1:8081
+appId: host.exp.Exponent
+# APP_URL is required on the command line (-e): it is not defined here on purpose
+---
+# ---- Premium: personalized plan -------------------------------------------------
+- runFlow:
+    file: subflows/sign-in-existing.yaml
+    env:
+      EMAIL: demo@daily-edge.local
+- extendedWaitUntil:
+    visible: 'Un petit rappel, matin et soir \?'
+    timeout: 30000
+- tapOn: 'Plus tard'
+- extendedWaitUntil:
+    visible: 'Jour 10 sur 28.*'
+    timeout: 30000
+- assertNotVisible: 'Voir la consigne d.origine.*'
+
+- tapOn: 'Réglages.*'
+- scrollUntilVisible:
+    element: 'Personnalisation par IA'
+    direction: DOWN
+- tapOn: 'Personnalisation par IA'
+- scrollUntilVisible:
+    element: 'Premium \(prototype\)'
+    direction: DOWN
+- tapOn: 'Premium \(prototype\)'
+- extendedWaitUntil:
+    visible: 'Ton offre : Premium'
+    timeout: 10000
+- takeScreenshot: e2e-l7-01-premium-on
+
+- tapOn: 'Aujourd.hui.*'
+# Rules plan first, then the background enrichment (mock: 1.5 s)
+- extendedWaitUntil:
+    visible: 'Voir la consigne d.origine.*'
+    timeout: 30000
+- assertVisible: 'Consigne personnalisée pour toi'
+- assertVisible: 'Pour ton objectif.*'
+- takeScreenshot: e2e-l7-02-personalized
+- tapOn: 'Voir la consigne d.origine.*'
+- assertVisible: 'Consigne d.origine'
+- assertVisible: 'Voir la consigne personnalisée.*'
+- takeScreenshot: e2e-l7-03-original
+
+# ---- Administration with two-factor authentication --------------------------------
+- runFlow:
+    file: subflows/sign-in-existing.yaml
+    env:
+      EMAIL: admin@daily-edge.local
+- extendedWaitUntil:
+    visible: 'Un petit rappel, matin et soir \?'
+    timeout: 30000
+- tapOn: 'Plus tard'
+- extendedWaitUntil:
+    visible: 'Jour 1 sur 28.*'
+    timeout: 30000
+- tapOn: 'Réglages.*'
+- scrollUntilVisible:
+    element: 'Ouvrir l.administration'
+    direction: DOWN
+- tapOn: 'Ouvrir l.administration'
+- extendedWaitUntil:
+    visible: 'Double authentification'
+    timeout: 15000
+# Without aal2 the admin screens are not reachable
+- assertNotVisible: 'Statistiques par exercice'
+- tapOn: 'Activer la double authentification'
+- extendedWaitUntil:
+    visible: 'Clé secrète'
+    timeout: 15000
+- takeScreenshot: e2e-l7-04-mfa-enroll
+- copyTextFrom:
+    id: 'totp-secret'
+- runScript: scripts/totp.js
+- tapOn:
+    id: 'totp-code'
+# The 6th digit submits the code (no return key on the number pad)
+- inputText: ${output.totp}
+- extendedWaitUntil:
+    visible: 'Statistiques par exercice'
+    timeout: 15000
+- takeScreenshot: e2e-l7-05-admin-home
+
+- tapOn: 'Statistiques par exercice'
+- extendedWaitUntil:
+    visible: 'Trier par'
+    timeout: 15000
+- assertVisible: '.*exercices?'
+- takeScreenshot: e2e-l7-06-exercise-stats
+- tapOn: 'Retour'
+
+- tapOn: 'Journal du moteur'
+- tapOn:
+    id: 'admin-email'
+- inputText: 'demo@daily-edge.local'
+- runFlow: subflows/dismiss-keyboard-tip.yaml
+- hideKeyboard
+- tapOn: 'Afficher le journal'
+- extendedWaitUntil:
+    visible: 'Règles : .*'
+    timeout: 15000
+- assertVisible: 'IA mock-1 · success.*'
+- takeScreenshot: e2e-l7-07-engine-log
+- tapOn: 'Retour'
+
+- tapOn: 'Coût IA par jour'
+- extendedWaitUntil:
+    visible: 'Total sur la période.*'
+    timeout: 15000
+- assertVisible: '.*Plan du jour'
+- takeScreenshot: e2e-l7-08-ai-cost

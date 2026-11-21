@@ -16,6 +16,8 @@ import {
 import { assertLocal } from './guard.ts';
 
 export const DEMO_EMAIL = 'demo@daily-edge.local';
+// Local admin (role admin; the TOTP factor is enrolled in the app, then required)
+export const ADMIN_EMAIL = 'admin@daily-edge.local';
 const TIMEZONE = 'Europe/Paris';
 
 type Status = { API_URL: string; SERVICE_ROLE_KEY: string };
@@ -75,14 +77,39 @@ async function main() {
   const today = localClock(new Date(), TIMEZONE).date;
   const start = addDays(today, -11);
 
-  // Recreate the demo user
+  // Recreate the demo and admin users (the admin's TOTP factor goes with it)
   const listed = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
   if (listed.error) throw listed.error;
-  const existing = listed.data.users.find((u) => u.email === DEMO_EMAIL);
-  if (existing) {
-    const removed = await db.auth.admin.deleteUser(existing.id);
-    if (removed.error) throw removed.error;
+  for (const email of [DEMO_EMAIL, ADMIN_EMAIL]) {
+    const existing = listed.data.users.find((u) => u.email === email);
+    if (existing) {
+      const removed = await db.auth.admin.deleteUser(existing.id);
+      if (removed.error) throw removed.error;
+    }
   }
+  const createdAdmin = await db.auth.admin.createUser({
+    email: ADMIN_EMAIL,
+    email_confirm: true,
+    user_metadata: { locale: 'fr', timezone: TIMEZONE, display_name: 'Admin' },
+  });
+  if (createdAdmin.error || !createdAdmin.data.user) throw createdAdmin.error;
+  must(
+    await db
+      .from('profiles')
+      .update({
+        role: 'admin',
+        onboarded_at: new Date().toISOString(),
+        persona: 'entrepreneur',
+        program_id: 'PR1',
+        program_start_date: today,
+        program_day: 1,
+        level: 'beginner',
+        daily_minutes: 15,
+      })
+      .eq('user_id', createdAdmin.data.user.id)
+      .select('user_id'),
+    'admin profile',
+  );
   const createdUser = await db.auth.admin.createUser({
     email: DEMO_EMAIL,
     email_confirm: true,
@@ -294,6 +321,7 @@ async function main() {
   console.log(
     `   Review of the week of ${weekStart}: ${review.status}, proposals: ${JSON.stringify((saved?.proposals as { type: string }[] | undefined)?.map((p) => p.type) ?? [])}`,
   );
+  console.log(`✅ Admin ${ADMIN_EMAIL} (role admin, two-factor setup on first access)`);
   console.log('   Sign in with the 6-digit code from Mailpit: http://127.0.0.1:54324');
 }
 

@@ -60,6 +60,8 @@ appId: host.exp.Exponent
 - scrollUntilVisible:
     element: 'Faire mon check-in'
     direction: DOWN
+    # Centered: at the bottom edge the tap would land on the tab bar
+    centerElement: true
 - tapOn: 'Faire mon check-in'
 - assertVisible: 'Check-in du soir'
 - tapOn: 'Énergie 4 sur 5'
