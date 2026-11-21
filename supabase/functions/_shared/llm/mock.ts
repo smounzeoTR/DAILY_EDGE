@@ -1,6 +1,13 @@
 // Mock provider: deterministic answers for tests and the local stack (never a network call).
 // It reads the task payload (daily_plan or weekly_review) from the user message.
-import { LlmError, type LlmProvider, type LlmRequest, type LlmResponse } from './types.ts';
+import {
+  LlmError,
+  type LlmContentBlock,
+  type LlmProvider,
+  type LlmRequest,
+  type LlmResponse,
+  type LlmStreamEvent,
+} from './types.ts';
 
 export type MockMode = 'valid' | 'invalid_json' | 'unknown_id' | 'timeout' | 'error';
 
@@ -11,6 +18,8 @@ export type MockOptions = {
   delayMs?: number;
   // Custom answer (overrides mode)
   respond?: (request: LlmRequest, payload: unknown) => string;
+  // Assistant stream: pause between chunks
+  chunkDelayMs?: number;
 };
 
 export type MockProvider = LlmProvider & { calls: LlmRequest[] };
@@ -88,8 +97,23 @@ export function createMockProvider(options: MockOptions = {}): MockProvider {
       }
       if (mode === 'error') throw new LlmError('provider_error', 'mock error');
       const last = request.messages[request.messages.length - 1];
-      const payload = JSON.parse(typeof last?.content === 'string' ? last.content : '{}') as
-        PlanPayloadLike | ReviewPayloadLike;
+      let payload: PlanPayloadLike | ReviewPayloadLike | null = null;
+      try {
+        payload = JSON.parse(typeof last?.content === 'string' ? last.content : '{}') as
+          PlanPayloadLike | ReviewPayloadLike;
+      } catch {
+        payload = null;
+      }
+      // Not a JSON task (assistant history summary): a plain text answer
+      if (!payload || !('task' in payload)) {
+        const summary = 'Résumé : échanges précédents sur le programme et la journée.';
+        return {
+          model: options.model ?? 'mock',
+          content: [{ type: 'text', text: summary }],
+          usage: { inputTokens: Math.ceil(JSON.stringify(request).length / 4), outputTokens: 12 },
+          stopReason: 'end_turn',
+        };
+      }
       const text = options.respond
         ? options.respond(request, payload)
         : mode === 'invalid_json'
@@ -105,5 +129,101 @@ export function createMockProvider(options: MockOptions = {}): MockProvider {
         stopReason: 'end_turn',
       };
     },
+    async *stream(request: LlmRequest): AsyncIterable<LlmStreamEvent> {
+      calls.push(request);
+      const mode = options.mode ?? 'valid';
+      if (options.delayMs) await wait(options.delayMs, request.signal);
+      if (mode === 'timeout') await wait(60_000, request.signal);
+      if (mode === 'error') throw new LlmError('provider_error', 'mock error');
+      const turn = assistantTurn(request);
+      const content: LlmContentBlock[] = [];
+      if (turn.text) {
+        // Streamed word by word
+        for (const chunk of turn.text.match(/\S+\s*/g) ?? []) {
+          if (options.chunkDelayMs) await wait(options.chunkDelayMs, request.signal);
+          yield { type: 'text_delta', text: chunk };
+        }
+        content.push({ type: 'text', text: turn.text });
+      }
+      if (turn.tool) {
+        const block = {
+          type: 'tool_use' as const,
+          id: `toolu_mock_${calls.length}`,
+          name: turn.tool.name,
+          input: turn.tool.input,
+        };
+        content.push(block);
+        yield { type: 'tool_use', block };
+      }
+      yield {
+        type: 'done',
+        response: {
+          model: options.model ?? 'mock',
+          content,
+          usage: {
+            inputTokens: Math.ceil(JSON.stringify(request).length / 4),
+            outputTokens: Math.ceil((turn.text ?? '').length / 4) + (turn.tool ? 20 : 0),
+          },
+          stopReason: turn.tool ? 'tool_use' : 'end_turn',
+        },
+      };
+    },
+  };
+}
+
+// Scripted assistant: a few triggers call tools, otherwise a kind text answer
+function assistantTurn(request: LlmRequest): {
+  text?: string;
+  tool?: { name: string; input: Record<string, unknown> };
+} {
+  const en = /Language: en\b/.test(request.system);
+  const last = request.messages[request.messages.length - 1];
+  const blocks = typeof last?.content === 'string' ? null : (last?.content ?? []);
+  const toolResult = blocks?.find((b) => b.type === 'tool_result');
+  // Test trigger: keeps calling a tool (the orchestrator caps the tool calls per message)
+  const firstUser = [...request.messages]
+    .reverse()
+    .find((m) => m.role === 'user' && typeof m.content === 'string');
+  const looping =
+    typeof firstUser?.content === 'string' && firstUser.content.includes('BOUCLE_OUTILS');
+  if (looping && request.tools?.length && request.toolChoice !== 'none') {
+    return { tool: { name: 'get_today', input: {} } };
+  }
+  if (toolResult && toolResult.type === 'tool_result') {
+    const pending = toolResult.content.includes('pending_confirmation');
+    return {
+      text: pending
+        ? en
+          ? 'I suggest this change. Tap "Apply" to confirm it, or "Cancel".'
+          : 'Je te propose ce changement. Touche « Appliquer » pour le confirmer, ou « Annuler ».'
+        : en
+          ? 'Here is what I found.'
+          : 'Voici ce que j’ai trouvé.',
+    };
+  }
+  const text =
+    typeof last?.content === 'string'
+      ? last.content
+      : (blocks ?? []).flatMap((b) => (b.type === 'text' ? [b.text] : [])).join(' ');
+  const canUseTools = Boolean(request.tools?.length) && request.toolChoice !== 'none';
+  const minutes = /(\d+)\s*min/i.exec(text);
+  if (canUseTools && minutes) {
+    return { tool: { name: 'adapt_today', input: { minutes: Number(minutes[1]) } } };
+  }
+  const progress = /(?:j'en suis à|j’en suis à|i am at)\s*(\d+)/i.exec(text);
+  if (canUseTools && progress) {
+    return { tool: { name: 'update_goal_progress', input: { value: Number(progress[1]) } } };
+  }
+  if (
+    canUseTools &&
+    /(aujourd'hui|aujourd’hui|today)/i.test(text) &&
+    /(plan|programme)/i.test(text)
+  ) {
+    return { tool: { name: 'get_today', input: {} } };
+  }
+  return {
+    text: en
+      ? 'Thanks for sharing this. Let us take it one small step at a time.'
+      : 'Merci de partager cela avec moi. Avançons pas à pas, à ton rythme.',
   };
 }

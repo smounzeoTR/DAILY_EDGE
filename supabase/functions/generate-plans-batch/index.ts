@@ -102,5 +102,16 @@ Deno.serve(async (req) => {
   });
   if (purgeError) console.error('purge_deleted_accounts failed', purgeError);
 
-  return json(200, { ...summary, reviews, purged: purged ?? 0 });
+  // Assistant conversations idle for more than 90 days
+  const { data: purgedThreads, error: threadsError } = await db.rpc('purge_assistant_history', {
+    p_now: now.toISOString(),
+  });
+  if (threadsError) console.error('purge_assistant_history failed', threadsError);
+
+  return json(200, {
+    ...summary,
+    reviews,
+    purged: purged ?? 0,
+    purged_assistant_threads: purgedThreads ?? 0,
+  });
 });

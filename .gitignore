@@ -14,3 +14,5 @@ android/
 coverage/
 *.tsbuildinfo
 /build/
+# Manual assistant evaluation reports (review only)
+scripts/assistant-eval/results/

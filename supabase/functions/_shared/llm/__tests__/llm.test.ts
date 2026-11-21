@@ -562,14 +562,42 @@ describe('providers (stubbed fetch, no network)', () => {
     });
   });
 
-  it('rejects tools until the assistant lot', async () => {
-    const provider = createMistralProvider({
-      apiKey: 'k',
-      model: 'm',
-      fetch: (async () => new Response('{}')) as typeof fetch,
+  it('Mistral: tools sent and tool calls read back (assistant)', async () => {
+    let sent: Record<string, unknown> = {};
+    const fakeFetch = (async (_url: string, init: RequestInit) => {
+      sent = JSON.parse(String(init.body)) as Record<string, unknown>;
+      return new Response(
+        JSON.stringify({
+          choices: [
+            {
+              message: {
+                content: '',
+                tool_calls: [
+                  { id: 'c1', function: { name: 'adapt_today', arguments: '{"minutes":10}' } },
+                ],
+              },
+              finish_reason: 'tool_calls',
+            },
+          ],
+          usage: { prompt_tokens: 10, completion_tokens: 5 },
+        }),
+        { status: 200 },
+      );
+    }) as typeof fetch;
+    const provider = createMistralProvider({ apiKey: 'k', model: 'm', fetch: fakeFetch });
+    const response = await provider.complete({
+      system: 's',
+      messages: [{ role: 'user', content: 'J’ai 10 minutes' }],
+      tools: [{ name: 'adapt_today', description: 'd', inputSchema: { type: 'object' } }],
+      maxTokens: 100,
     });
-    await expect(
-      provider.complete({ ...request, tools: [{ name: 't', description: 'd', inputSchema: {} }] }),
-    ).rejects.toMatchObject({ reason: 'unsupported' });
+    expect(sent).toMatchObject({ tool_choice: 'auto', tools: [{ type: 'function' }] });
+    expect(response.stopReason).toBe('tool_use');
+    expect(response.content).toContainEqual({
+      type: 'tool_use',
+      id: 'c1',
+      name: 'adapt_today',
+      input: { minutes: 10 },
+    });
   });
 });

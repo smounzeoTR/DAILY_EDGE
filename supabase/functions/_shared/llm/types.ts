@@ -1,6 +1,6 @@
 // Provider-neutral LLM interface (Anthropic, Mistral, mock).
-// Lot 7 uses one user message and a JSON output; tools and streaming are typed
-// now for the Coach Edge assistant (lot 9) and not implemented yet.
+// Plan and review (lot 7): one user message and a JSON output. Coach Edge assistant (lot 9):
+// conversation, tools and streamed answers.
 
 export type LlmTextBlock = { type: 'text'; text: string };
 export type LlmToolUseBlock = { type: 'tool_use'; id: string; name: string; input: unknown };
@@ -15,6 +15,9 @@ export type LlmContentBlock = LlmTextBlock | LlmToolUseBlock | LlmToolResultBloc
 export type LlmMessage = {
   role: 'user' | 'assistant';
   content: string | LlmContentBlock[];
+  // Assistant turn exactly as the provider returned it (e.g. thinking blocks), replayed as is
+  // inside a tool loop; neutral `content` is used otherwise
+  raw?: unknown;
 };
 
 export type LlmTool = {
@@ -27,8 +30,9 @@ export type LlmTool = {
 export type LlmRequest = {
   system: string;
   messages: LlmMessage[];
-  // Lot 9 (assistant); providers reject it until then
+  // Assistant (lot 9): tools the model may call; 'none' forces a text answer
   tools?: LlmTool[];
+  toolChoice?: 'auto' | 'none';
   // JSON Schema the answer must follow (structured output when the provider supports it)
   jsonSchema?: Record<string, unknown>;
   maxTokens: number;
@@ -40,6 +44,8 @@ export type LlmUsage = { inputTokens: number; outputTokens: number };
 export type LlmResponse = {
   model: string;
   content: LlmContentBlock[];
+  // Provider-specific assistant content to replay in the next request of a tool loop
+  raw?: unknown;
   usage: LlmUsage;
   stopReason: 'end_turn' | 'max_tokens' | 'tool_use' | 'refusal' | 'other';
 };

@@ -418,6 +418,12 @@ LLM_MODEL = "mock-1"
 LLM_MOCK_DELAY_MS = "1500"
 LLM_PRICE_IN_EUR_PER_MTOK = "0.10"
 LLM_PRICE_OUT_EUR_PER_MTOK = "0.50"
+# Coach Edge assistant: its own provider and model (mock locally, streamed word by word)
+LLM_ASSISTANT_PROVIDER = "mock"
+LLM_ASSISTANT_MODEL = "mock-assistant"
+LLM_ASSISTANT_MOCK_CHUNK_MS = "15"
+LLM_ASSISTANT_PRICE_IN_EUR_PER_MTOK = "0.10"
+LLM_ASSISTANT_PRICE_OUT_EUR_PER_MTOK = "0.50"
 
 # Plan generation: the user comes from the JWT only
 [functions.generate-plan]
@@ -432,6 +438,10 @@ verify_jwt = true
 
 # Also available to accounts pending deletion
 [functions.export-my-data]
+verify_jwt = true
+
+# Coach Edge assistant (premium + AI consent), streamed answer (SSE)
+[functions.assistant-chat]
 verify_jwt = true
 
 [analytics]

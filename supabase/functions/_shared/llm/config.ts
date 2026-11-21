@@ -2,7 +2,9 @@
 // LLM_PROVIDER (anthropic | mistral | mock | none), LLM_MODEL, ANTHROPIC_API_KEY / MISTRAL_API_KEY,
 // LLM_PRICE_IN_EUR_PER_MTOK / LLM_PRICE_OUT_EUR_PER_MTOK (cost estimate),
 // LLM_ANTHROPIC_EFFORT (low by default), LLM_MOCK_DELAY_MS / LLM_MOCK_MODE (mock only).
-// A missing setting disables the AI: the rules apply.
+// The Coach Edge assistant has its own variables: LLM_ASSISTANT_PROVIDER, LLM_ASSISTANT_MODEL,
+// LLM_ASSISTANT_PRICE_IN_EUR_PER_MTOK / ..._OUT_..., LLM_ASSISTANT_EFFORT, LLM_ASSISTANT_MOCK_CHUNK_MS
+// (the provider keys are shared). A missing setting disables the AI: the rules apply.
 import { createAnthropicProvider } from './anthropic.ts';
 import { createMistralProvider } from './mistral.ts';
 import { createMockProvider, type MockMode } from './mock.ts';
@@ -19,12 +21,16 @@ const number = (value: string | undefined): number => {
   return Number.isFinite(n) && n >= 0 ? n : 0;
 };
 
-export function llmConfigFromEnv(get: EnvGetter): LlmConfig {
-  const name = (get('LLM_PROVIDER') ?? 'none').trim().toLowerCase();
-  const model = get('LLM_MODEL')?.trim();
+export function llmConfigFromEnv(
+  get: EnvGetter,
+  scope: 'default' | 'assistant' = 'default',
+): LlmConfig {
+  const prefix = scope === 'assistant' ? 'LLM_ASSISTANT_' : 'LLM_';
+  const name = (get(`${prefix}PROVIDER`) ?? 'none').trim().toLowerCase();
+  const model = get(`${prefix}MODEL`)?.trim();
   const pricing: LlmPricing = {
-    inputPerMTok: number(get('LLM_PRICE_IN_EUR_PER_MTOK')),
-    outputPerMTok: number(get('LLM_PRICE_OUT_EUR_PER_MTOK')),
+    inputPerMTok: number(get(`${prefix}PRICE_IN_EUR_PER_MTOK`)),
+    outputPerMTok: number(get(`${prefix}PRICE_OUT_EUR_PER_MTOK`)),
   };
   if (name === 'none' || name === '') return { enabled: false, reason: 'provider_none' };
   if (name === 'mock') {
@@ -35,7 +41,8 @@ export function llmConfigFromEnv(get: EnvGetter): LlmConfig {
       provider: createMockProvider({
         model: model || 'mock',
         mode,
-        delayMs: number(get('LLM_MOCK_DELAY_MS')),
+        delayMs: scope === 'assistant' ? 0 : number(get('LLM_MOCK_DELAY_MS')),
+        chunkDelayMs: number(get('LLM_ASSISTANT_MOCK_CHUNK_MS')),
       }),
     };
   }
@@ -43,7 +50,7 @@ export function llmConfigFromEnv(get: EnvGetter): LlmConfig {
   if (name === 'anthropic') {
     const apiKey = get('ANTHROPIC_API_KEY');
     if (!apiKey) return { enabled: false, reason: 'missing_key' };
-    const effort = get('LLM_ANTHROPIC_EFFORT');
+    const effort = get(scope === 'assistant' ? 'LLM_ASSISTANT_EFFORT' : 'LLM_ANTHROPIC_EFFORT');
     return {
       enabled: true,
       pricing,

@@ -18,6 +18,9 @@ const USER_TABLES = [
   'llm_calls',
   'notes',
   'user_guide_state',
+  'assistant_threads',
+  'assistant_messages',
+  'assistant_actions',
 ] as const;
 
 Deno.serve(async (req) => {

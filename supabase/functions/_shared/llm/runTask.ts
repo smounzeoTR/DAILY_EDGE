@@ -15,7 +15,7 @@ export const FEATURE_GROUPS: Record<'plan' | 'review', ('plan' | 'review')[]> = 
   review: ['plan', 'review'],
 };
 
-export type LlmFeature = 'plan' | 'review';
+export type LlmFeature = 'plan' | 'review' | 'assistant';
 export type LlmOutcome = 'success' | 'fallback' | 'cache_hit' | 'quota_exceeded';
 
 export type LlmCallRecord = {
@@ -50,7 +50,7 @@ export type RunTaskArgs<T> = {
   pricing: LlmPricing;
   store: LlmStore;
   userId: string;
-  feature: LlmFeature;
+  feature: 'plan' | 'review';
   localDate: string;
   promptVersion: string;
   request: Omit<LlmRequest, 'signal'>;
