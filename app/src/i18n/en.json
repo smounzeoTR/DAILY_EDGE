@@ -257,7 +257,8 @@
     "badges": {
       "today": "something is waiting for you",
       "progress": "review waiting"
-    }
+    },
+    "coach": "Coach"
   },
   "progress": {
     "title": "Your progress",
@@ -648,6 +649,86 @@
         "title": "Your notebook",
         "body": "On each exercise or principle, write how you apply it. Your notes stay private and are never sent to the AI."
       }
+    }
+  },
+  "coach": {
+    "title": "Coach Edge",
+    "subtitle": "Your coach knows your program, your goal and the catalogue. It proposes, you decide.",
+    "intro": "A coach who knows your program, your goal and the catalogue, and helps you move forward day after day.",
+    "features": {
+      "adapt": "Adapt your day to your time or energy",
+      "exercise": "Do an exercise with you, step by step",
+      "goal": "Break your goal into milestones and if-then plans",
+      "habit": "Build a habit: cue, minimal version, moment",
+      "review": "Understand your week and your review"
+    },
+    "guardrails": "The coach changes nothing without your consent and gives no medical, financial or legal advice.",
+    "becomePremium": "Go premium",
+    "premiumOnly": "The coach is part of the premium offer.",
+    "needsConsent": "To talk with the coach, turn on \"AI personalization\" in the consents.",
+    "openConsents": "Open the consents",
+    "newConversation": "New conversation",
+    "noConversation": "No conversation yet.",
+    "untitled": "Conversation",
+    "delete": "Delete",
+    "keep": "Keep",
+    "deleteThreadFor": "Delete the conversation: {{title}}",
+    "deleteThreadTitle": "Delete this conversation?",
+    "deleteThreadBody": "It will be erased for good.",
+    "deleteAll": "Delete the whole coach history",
+    "deleteAllTitle": "Delete the whole history?",
+    "deleteAllBody": "All your conversations with the coach will be erased for good.",
+    "historyDeleted": "Coach history deleted.",
+    "retention": "Conversations are kept for 90 days, then deleted.",
+    "empty": "Ask your question: for example \"I only have 10 minutes today\".",
+    "placeholder": "Write your message…",
+    "inputLabel": "Message to the coach",
+    "send": "Send",
+    "remaining_one": "{{count}} message left today",
+    "remaining_other": "{{count}} messages left today",
+    "share": "Share with the coach",
+    "shareHint": "Opens the coach with this text in the input field, without sending it",
+    "shareReflection": "Share this reflection with the coach",
+    "actionTitle": "Coach's proposal",
+    "confirmHint": "Nothing changes until you tap \"Apply\".",
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "applyFor": "Apply: {{label}}",
+    "cancelFor": "Cancel: {{label}}",
+    "applied": "Applied ✓",
+    "cancelled": "Cancelled",
+    "expired": "Proposal expired",
+    "actions": {
+      "adapt_today": "Switch to a short version of your day ({{minutes}} min)",
+      "adapt_today_default": "Switch to a short version of your day",
+      "swap_exercise": "Replace the exercise of the day by \"{{title}}\"",
+      "save_exercise_result": "Record \"{{title}}\": {{status}}",
+      "add_habit": "Add the habit \"{{title}}\"",
+      "update_goal_progress": "Set your goal's progress to {{value}}"
+    },
+    "status": {
+      "done": "done",
+      "skipped": "no time",
+      "too_hard": "too hard"
+    },
+    "errors": {
+      "unavailable": "The coach cannot answer right now. Try again in a moment.",
+      "quota": "You reached the limit of {{limit}} messages for today. See you tomorrow!",
+      "plan_touched": "Your day has already started: nothing was changed.",
+      "action_expired": "This proposal expired: nothing was changed.",
+      "action_already_resolved": "This proposal was already handled.",
+      "invalid_swap": "This exercise can no longer replace today's.",
+      "no_shorter_exercise": "No shorter version available today.",
+      "too_many_habits": "You already have 6 active habits.",
+      "item_not_found": "This exercise is no longer in your day.",
+      "goal_not_found": "No active goal."
+    },
+    "safety": {
+      "title": "You are not alone",
+      "body": "If you are going through a hard time, talk to someone now. In France, 3114 is the national suicide prevention line: free, 24/7.",
+      "call": "Call 3114",
+      "callLabel": "Call 3114, national suicide prevention line",
+      "emergency": "In immediate danger: 15 (emergency medical service) or 112."
     }
   }
 }

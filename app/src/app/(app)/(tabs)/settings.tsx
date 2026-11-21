@@ -334,6 +334,30 @@ export default function Settings() {
           onPress={() => void exportData()}
           loading={busy === 'export'}
         />
+        <Button
+          label={t('coach.deleteAll')}
+          variant="ghost"
+          onPress={() =>
+            Alert.alert(t('coach.deleteAllTitle'), t('coach.deleteAllBody'), [
+              { text: t('coach.keep'), style: 'cancel' },
+              {
+                text: t('coach.deleteAll'),
+                style: 'destructive',
+                onPress: () => {
+                  void supabase
+                    .rpc('delete_assistant_history')
+                    .then(({ error }) =>
+                      setMessage(
+                        error
+                          ? { text: t('common.errorGeneric'), ok: false }
+                          : { text: t('coach.historyDeleted'), ok: true },
+                      ),
+                    );
+                },
+              },
+            ])
+          }
+        />
         <Button label={t('settings.delete')} variant="ghost" onPress={requestDeletion} />
       </Card>
 

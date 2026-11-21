@@ -1,6 +1,7 @@
 // "Mon carnet" on a principle or exercise sheet: one private note per element (2 000 characters
 // at most), never sent to the AI.
 import { useQueryClient } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, View } from 'react-native';
@@ -101,6 +102,15 @@ export function NoteCard({ entityType, entityId }: { entityType: NoteEntity; ent
         <AppText variant="caption" tone={message.ok ? 'link' : 'danger'}>
           {message.text}
         </AppText>
+      ) : null}
+      {note ? (
+        <Button
+          label={t('coach.share')}
+          variant="ghost"
+          onPress={() =>
+            router.push({ pathname: '/coach/[id]', params: { id: 'new', prefill: note.body } })
+          }
+        />
       ) : null}
       <AppText variant="caption" tone="secondary">
         {t('notes.private')}

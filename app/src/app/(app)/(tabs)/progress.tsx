@@ -4,7 +4,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { DayBars, EnergyLine, GoalBar } from '@/components/charts';
 import { SplashView } from '@/components/SplashView';
@@ -331,6 +331,24 @@ export default function Progress() {
               })}
             </AppText>
             {r.reflection ? <AppText tone="body">{r.reflection}</AppText> : null}
+            {r.reflection ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('coach.shareReflection')}
+                accessibilityHint={t('coach.shareHint')}
+                hitSlop={8}
+                onPress={() =>
+                  router.push({
+                    pathname: '/coach/[id]',
+                    params: { id: 'new', prefill: r.reflection ?? '' },
+                  })
+                }
+              >
+                <AppText variant="caption" tone="link">
+                  {t('coach.share')}
+                </AppText>
+              </Pressable>
+            ) : null}
             {r.note ? (
               <AppText variant="caption" tone="secondary">
                 {r.note}

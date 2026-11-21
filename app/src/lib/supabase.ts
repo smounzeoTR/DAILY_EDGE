@@ -13,6 +13,10 @@ if (!url || !key) {
   );
 }
 
+// Edge Functions called with fetch (streamed answers)
+export const supabaseUrl = url;
+export const supabaseKey = key;
+
 // Public key only: never the service_role / secret key in the app
 export const supabase = createClient<Database>(url, key, {
   auth: {

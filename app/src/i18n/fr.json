@@ -257,7 +257,8 @@
     "badges": {
       "today": "une action t'attend",
       "progress": "bilan en attente"
-    }
+    },
+    "coach": "Coach"
   },
   "progress": {
     "title": "Ta progression",
@@ -648,6 +649,86 @@
         "title": "Ton carnet",
         "body": "Sur chaque exercice ou principe, écris comment tu l'appliques. Tes notes restent privées et ne sont jamais envoyées à l'IA."
       }
+    }
+  },
+  "coach": {
+    "title": "Coach Edge",
+    "subtitle": "Ton coach connaît ton programme, ton objectif et le catalogue. Il propose, tu décides.",
+    "intro": "Un coach qui connaît ton programme, ton objectif et le catalogue, et qui t'aide à avancer jour après jour.",
+    "features": {
+      "adapt": "Adapter ta journée à ton temps ou à ton énergie",
+      "exercise": "Faire un exercice avec toi, pas à pas",
+      "goal": "Découper ton objectif en jalons et plans « si… alors… »",
+      "habit": "Construire une habitude : signal, version minimale, moment",
+      "review": "Comprendre ta semaine et ton bilan"
+    },
+    "guardrails": "Le coach ne modifie rien sans ton accord et ne donne pas de conseil médical, financier ni juridique.",
+    "becomePremium": "Passer à premium",
+    "premiumOnly": "Le coach est réservé à l'offre premium.",
+    "needsConsent": "Pour discuter avec le coach, active « Personnalisation par IA » dans les consentements.",
+    "openConsents": "Ouvrir les consentements",
+    "newConversation": "Nouvelle conversation",
+    "noConversation": "Aucune conversation pour l'instant.",
+    "untitled": "Conversation",
+    "delete": "Supprimer",
+    "keep": "Garder",
+    "deleteThreadFor": "Supprimer la conversation : {{title}}",
+    "deleteThreadTitle": "Supprimer cette conversation ?",
+    "deleteThreadBody": "Elle sera effacée définitivement.",
+    "deleteAll": "Supprimer tout l'historique du coach",
+    "deleteAllTitle": "Supprimer tout l'historique ?",
+    "deleteAllBody": "Toutes tes conversations avec le coach seront effacées définitivement.",
+    "historyDeleted": "Historique du coach supprimé.",
+    "retention": "Les conversations sont conservées 90 jours, puis supprimées.",
+    "empty": "Pose ta question : par exemple « Je n'ai que 10 minutes aujourd'hui ».",
+    "placeholder": "Écris ton message…",
+    "inputLabel": "Message pour le coach",
+    "send": "Envoyer",
+    "remaining_one": "Encore {{count}} message aujourd'hui",
+    "remaining_other": "Encore {{count}} messages aujourd'hui",
+    "share": "Partager avec le coach",
+    "shareHint": "Ouvre le coach avec ce texte dans le champ de saisie, sans l'envoyer",
+    "shareReflection": "Partager cette réflexion avec le coach",
+    "actionTitle": "Proposition du coach",
+    "confirmHint": "Rien ne change tant que tu n'as pas touché « Appliquer ».",
+    "apply": "Appliquer",
+    "cancel": "Annuler",
+    "applyFor": "Appliquer : {{label}}",
+    "cancelFor": "Annuler : {{label}}",
+    "applied": "Appliqué ✓",
+    "cancelled": "Annulé",
+    "expired": "Proposition expirée",
+    "actions": {
+      "adapt_today": "Passer à une version courte de ta journée ({{minutes}} min)",
+      "adapt_today_default": "Passer à une version courte de ta journée",
+      "swap_exercise": "Remplacer l'exercice du jour par « {{title}} »",
+      "save_exercise_result": "Enregistrer « {{title}} » : {{status}}",
+      "add_habit": "Ajouter l'habitude « {{title}} »",
+      "update_goal_progress": "Mettre l'avancement de ton objectif à {{value}}"
+    },
+    "status": {
+      "done": "fait",
+      "skipped": "pas le temps",
+      "too_hard": "trop dur"
+    },
+    "errors": {
+      "unavailable": "Le coach ne peut pas répondre pour l'instant. Réessaie dans un moment.",
+      "quota": "Tu as atteint la limite de {{limit}} messages pour aujourd'hui. À demain !",
+      "plan_touched": "Ta journée a déjà commencé : rien n'a été changé.",
+      "action_expired": "Cette proposition a expiré : rien n'a été changé.",
+      "action_already_resolved": "Cette proposition a déjà été traitée.",
+      "invalid_swap": "Cet exercice ne peut plus remplacer celui du jour.",
+      "no_shorter_exercise": "Pas de version plus courte disponible aujourd'hui.",
+      "too_many_habits": "Tu as déjà 6 habitudes actives.",
+      "item_not_found": "Cet exercice n'est plus dans ta journée.",
+      "goal_not_found": "Aucun objectif actif."
+    },
+    "safety": {
+      "title": "Tu n'es pas seul·e",
+      "body": "Si tu traverses un moment difficile, parle à quelqu'un maintenant. Le 3114 est le numéro national de prévention du suicide : gratuit, 24 h/24, 7 j/7.",
+      "call": "Appeler le 3114",
+      "callLabel": "Appeler le 3114, numéro national de prévention du suicide",
+      "emergency": "En cas de danger immédiat : 15 (SAMU) ou 112."
     }
   }
 }

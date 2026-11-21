@@ -59,6 +59,14 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="coach"
+        options={{
+          title: t('tabs.coach'),
+          tabBarIcon: ({ color }) => <TabIcon name="coach" color={color} />,
+          tabBarAccessibilityLabel: t('tabs.coach'),
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: t('tabs.settings'),
