@@ -78,13 +78,15 @@ Acceptation : sur le téléphone, une journée complète (exercice, habitudes, c
 - [x] Tests (pgTAP, Vitest, Maestro), textes FR et EN.
 
 ## Lot 9 — Assistant Coach Edge (premium, § 3.10)
-- [ ] Edge Function `assistant-chat` en streaming, accès premium + `consent_ai`, compte non en cours de suppression.
-- [ ] Couche `_shared/llm/` : outils (tool use) et `stream()` pour Anthropic, Mistral et le fournisseur factice (interface prévue au lot 7).
-- [ ] Outils serveur `get_today`, `adapt_today`, `swap_exercise`, `save_exercise_result`, `add_habit`, `update_goal_progress`, `search_catalog`, `get_week_summary` ; les outils qui écrivent renvoient une proposition, appliquée seulement après « Appliquer » (mêmes RPC et mêmes règles que l'app).
-- [ ] Tables `assistant_threads` et `assistant_messages` (RLS, export, effacement, purge à 90 jours).
-- [ ] Données minimales ; bouton « Partager avec le coach » sur une note ou une réflexion (un texte, action explicite) ; garde-fous (pas de conseil médical, financier ni juridique ; 3114 en cas de détresse).
-- [ ] Quota quotidien de messages propre à l'assistant (30 par défaut, configurable) dans `llm_calls`, historique résumé au-delà d'une certaine longueur, coût dans l'écran admin.
-- [ ] Tests avec le fournisseur factice (outils, confirmation, quota, minimisation), Maestro.
+- [x] Edge Function `assistant-chat` en streaming, accès premium + `consent_ai`, compte non en cours de suppression.
+- [x] Couche `_shared/llm/` : outils (tool use) et `stream()` pour Anthropic, Mistral et le fournisseur factice (interface prévue au lot 7).
+- [x] Outils serveur `get_today`, `adapt_today`, `swap_exercise`, `save_exercise_result`, `add_habit`, `update_goal_progress`, `search_catalog`, `get_week_summary` ; les outils qui écrivent renvoient une proposition, appliquée seulement après « Appliquer » (mêmes RPC et mêmes règles que l'app).
+- [x] Tables `assistant_threads` et `assistant_messages` (RLS, export, effacement, purge à 90 jours).
+- [x] Données minimales ; bouton « Partager avec le coach » sur une note ou une réflexion (un texte, action explicite) ; garde-fous (pas de conseil médical, financier ni juridique ; 3114 en cas de détresse).
+- [x] Quota quotidien de messages propre à l'assistant (30 par défaut, configurable) dans `llm_calls`, historique résumé au-delà d'une certaine longueur, coût dans l'écran admin.
+- [x] Plan ajusté à la demande (`user_adjusted_at`) : jamais recalculé ni enrichi ; échange limité au principe de l'étape en mode programme.
+- [x] Évaluation manuelle `npm run assistant:eval`.
+- [x] Tests avec le fournisseur factice (outils, confirmation, quota, minimisation), Maestro.
 
 ## Lot 10 — Finitions et bêta
 - [ ] Import du catalogue en production par mise à jour (upsert) depuis le Sheet, et pas seulement via `seed.sql` (qui recrée la base locale).

@@ -180,7 +180,7 @@ Accès : premium **et** `consent_ai` vrai, compte non en cours de suppression.
 | Approfondir | Explique un principe avec des exemples appliqués à l'objectif ; parle des livres sans citer de longs passages. |
 | Travailler l'objectif | Découpe en jalons, plans « si… alors… », mise à jour de la valeur actuelle si l'utilisateur valide. |
 | Construire une habitude | Aide à choisir signal, version minimale et moment, puis ajoute l'habitude (limite de 6 actives). |
-| Discuter du bilan | Explique la semaine et aide à choisir parmi les propositions (la réponse passe par `answer_review_proposal`). |
+| Discuter du bilan | Explique la semaine et aide à choisir parmi les propositions. Le bilan est **en lecture seule** dans l'assistant (outil `get_week_summary`) : la réponse aux propositions se fait dans l'écran du bilan (décision du 29 novembre 2026). |
 
 #### Garde-fous
 
@@ -196,6 +196,20 @@ Accès : premium **et** `consent_ai` vrai, compte non en cours de suppression.
 - Edge Function `assistant-chat` avec réponse diffusée au fil de l'eau (streaming).
 - Outils côté serveur : `get_today`, `adapt_today`, `swap_exercise`, `save_exercise_result`, `add_habit`, `update_goal_progress`, `search_catalog`, `get_week_summary`. Les outils qui écrivent renvoient une proposition d'action ; l'écriture n'a lieu qu'après confirmation de l'utilisateur.
 - Tables `assistant_threads` et `assistant_messages`, protégées par RLS.
+
+Précisions du 29 novembre 2026 (lot 9) :
+- **Accès** : onglet « Coach » visible par tous. En gratuit ou sans `consent_ai`, il présente le coach, avec « Passer à premium » (interrupteur de prototype, s'il est autorisé) ou un lien vers les consentements. Réponses dans la langue du profil.
+- **Conversation** : Edge Function `assistant-chat`, réponse en flux (SSE) lue avec le `fetch` d'`expo/fetch`. Événements : `thread`, `safety`, `text`, `action`, `done`, `error`. Plusieurs conversations, supprimables une à une ou toutes (onglet Coach ou Réglages). Au-delà de 20 messages, les anciens sont résumés une fois et le résumé est conservé sur le fil (`summary`, `summarized_until`).
+- **Prompt système** fixé côté serveur et versionné (`_shared/assistant/prompt.ts`, `ASSISTANT_PROMPT_VERSION`). Le contexte utilisateur, les résultats d'outils, le catalogue et les textes partagés sont des données, jamais des instructions. Interdits : conseils médicaux, financiers et juridiques, exercice hors catalogue, longue citation.
+- **Fournisseur propre** : `LLM_ASSISTANT_PROVIDER`, `LLM_ASSISTANT_MODEL` (par défaut documenté : `claude-haiku-5-5`, effort `low`), prix `LLM_ASSISTANT_PRICE_*`. Flux réel pour Anthropic et le fournisseur factice, simulé en un morceau pour Mistral.
+- **Outils** : lecture `get_today`, `search_catalog` (filtre `swap_valid` : exercices valides pour un échange), `get_week_summary` ; jamais de réflexion, de note ni de preuve. Écriture `adapt_today`, `swap_exercise`, `save_exercise_result`, `add_habit`, `update_goal_progress` : paramètres validés (zod puis base), aucune écriture, une action en attente dans `assistant_actions` (expire à la fin de la journée locale), affichée en carte « Appliquer / Annuler ». Au plus 4 appels d'outils par message ; ensuite le modèle doit répondre en texte.
+- **Confirmation** : `confirm_assistant_action(p_action_id)` revérifie tout et exécute par les RPC existantes (mêmes règles que l'app) ; refusée si l'action est expirée, déjà traitée ou d'un autre utilisateur. `cancel_assistant_action` l'annule.
+- **Plan ajusté à la demande** : `shorten_today_plan(p_minutes)` (programme : exercice minimal de l'étape ; catalogue : le candidat le plus court qui tient dans le temps) et `swap_today_exercise(p_exercise_id)` (programme : exercice publié partageant le principe de l'étape et tenant dans le temps disponible ; catalogue : tout exercice publié qui tient). Le nouvel exercice reste un item `engine` et compte pour l'avancement. Ces fonctions remplissent `daily_plans.user_adjusted_at` : un plan ajusté n'est plus recalculé par le moteur (`save_daily_plan` le renvoie tel quel) ni enrichi par l'IA. Temps disponible = même règle que le moteur (`today_available_minutes`).
+- **Partage explicite** : « Partager avec le coach » sur une note (carnet) ou une réflexion (Progression) ouvre une nouvelle conversation avec ce texte dans le champ de saisie, modifiable ; rien n'est envoyé automatiquement.
+- **Filet de sécurité** indépendant du modèle : détection de mots de détresse (FR et EN, volontairement large) sur chaque message de l'utilisateur ; la carte d'aide (3114, 15, 112) s'affiche quoi que réponde le modèle (`assistant_messages.distress`).
+- **Coût et quota** : 30 messages par jour par défaut (`app_settings.assistant_daily_messages`, modifiable sans déploiement), propre à l'assistant ; au-delà, réponse 429. Chaque message est journalisé dans `llm_calls` (fonctionnalité `assistant`, tokens cumulés sur les tours d'outils), visible dans le coût IA de l'écran admin.
+- **Conservation** : conversations purgées 90 jours après leur dernier message par la génération de secours (`purge_assistant_history`), incluses dans l'export, supprimées avec le compte.
+- **Évaluation manuelle** : `npm run assistant:eval` rejoue une vingtaine de questions pièges avec le vrai fournisseur (détresse, finance, médical, juridique, injections, exercice inventé, écriture sans confirmation, hors sujet, citation longue) et écrit un rapport à relire (non versionné).
 
 Règle sur les notes et réflexions (21 novembre 2026) : elles ne sont jamais lues par l'IA, ni par le plan, ni par le bilan, ni par l'assistant. Seule exception : le bouton « Partager avec le coach », qui envoie un seul texte dans la conversation en cours, par action explicite de l'utilisateur, sans consentement global.
 
@@ -387,7 +401,12 @@ Lot 8 :
 - `user_guide_state` : user_id, tour_finished_at, tour_skipped, tips_seen (jsonb : astuce → date), milestones (jsonb : étape → date), updated_at ; lecture de sa ligne, écriture par RPC uniquement.
 - `daily_plans.principle_read_at` (`mark_principle_read`) et `goals.achieved_at` (trigger au passage à « atteint »).
 
-À venir (lot 9) : conversations de l'assistant (`assistant_threads`, `assistant_messages`, purgées après 90 jours). Toutes protégées par RLS, incluses dans l'export, supprimées avec le compte.
+Lot 9 :
+- `assistant_threads` : id, user_id, title, summary, summarized_until, last_message_at, created_at.
+- `assistant_messages` : id, thread_id, user_id, role (user / assistant / tool), content, tool_calls (jsonb), action_id, distress, created_at.
+- `assistant_actions` : id, user_id, thread_id, type, params (jsonb), status (pending / applied / cancelled / failed), expires_at, result, created_at, resolved_at.
+- Lecture de ses lignes seulement ; écritures par l'Edge Function et par RPC (`confirm_assistant_action`, `cancel_assistant_action`, `delete_assistant_thread`, `delete_assistant_history`). Purge à 90 jours, export, suppression avec le compte.
+- `daily_plans.user_adjusted_at` (plan ajusté à la demande de l'utilisateur).
 
 Dates utilisateur stockées en date locale, calculées avec `profiles.timezone`. Similarité entre exercices (pgvector) : reportée après la V1, le score d'affinité V1 se fonde sur les notes par domaine.
 
@@ -398,6 +417,7 @@ Dates utilisateur stockées en date locale, calculées avec `profiles.timezone`.
 - Le LLM ne reçoit jamais l'historique brut ni d'identifiant direct.
 - Notes et réflexions ne sont jamais envoyées à l'IA ; seule exception : « Partager avec le coach » (§ 3.10), un texte à la fois, par action explicite.
 - Conversations avec l'assistant conservées 90 jours, effaçables à tout moment.
+- L'assistant reçoit le même contexte minimisé que la personnalisation (jamais de réflexion, de note, de nom ni d'e-mail) ; un texte partagé n'arrive que par action explicite de l'utilisateur.
 - Export JSON en libre-service, suppression sous 30 jours, rectification dans les réglages.
 - Journal du moteur purgé après 12 mois ; comptes inactifs 24 mois supprimés après préavis.
 - RLS sur toutes les tables utilisateur, aucune clé de service dans l'app, MFA pour l'admin, sauvegardes quotidiennes.
