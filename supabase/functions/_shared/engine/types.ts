@@ -183,6 +183,8 @@ export type PlanDecision = {
   // adopted: the user's addition of the program step exercise, now an engine item
   items: { exerciseId: string; position: number; adopted: boolean }[];
   introducedHabitId: string | null;
+  // Minutes available for the engine items (AI choices must fit in it)
+  budgetMinutes: number;
   whyToday: string;
   whyKey: WhyKey;
   whyParams: Record<string, string | number>;

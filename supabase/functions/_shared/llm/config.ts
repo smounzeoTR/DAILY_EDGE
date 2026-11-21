@@ -1,0 +1,63 @@
+// Provider and model chosen by environment variables, never hard-coded:
+// LLM_PROVIDER (anthropic | mistral | mock | none), LLM_MODEL, ANTHROPIC_API_KEY / MISTRAL_API_KEY,
+// LLM_PRICE_IN_EUR_PER_MTOK / LLM_PRICE_OUT_EUR_PER_MTOK (cost estimate),
+// LLM_ANTHROPIC_EFFORT (low by default), LLM_MOCK_DELAY_MS / LLM_MOCK_MODE (mock only).
+// A missing setting disables the AI: the rules apply.
+import { createAnthropicProvider } from './anthropic.ts';
+import { createMistralProvider } from './mistral.ts';
+import { createMockProvider, type MockMode } from './mock.ts';
+import type { LlmPricing, LlmProvider } from './types.ts';
+
+export type EnvGetter = (name: string) => string | undefined;
+
+export type LlmConfig =
+  | { enabled: true; provider: LlmProvider; pricing: LlmPricing }
+  | { enabled: false; reason: string };
+
+const number = (value: string | undefined): number => {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : 0;
+};
+
+export function llmConfigFromEnv(get: EnvGetter): LlmConfig {
+  const name = (get('LLM_PROVIDER') ?? 'none').trim().toLowerCase();
+  const model = get('LLM_MODEL')?.trim();
+  const pricing: LlmPricing = {
+    inputPerMTok: number(get('LLM_PRICE_IN_EUR_PER_MTOK')),
+    outputPerMTok: number(get('LLM_PRICE_OUT_EUR_PER_MTOK')),
+  };
+  if (name === 'none' || name === '') return { enabled: false, reason: 'provider_none' };
+  if (name === 'mock') {
+    const mode = (get('LLM_MOCK_MODE') ?? 'valid') as MockMode;
+    return {
+      enabled: true,
+      pricing,
+      provider: createMockProvider({
+        model: model || 'mock',
+        mode,
+        delayMs: number(get('LLM_MOCK_DELAY_MS')),
+      }),
+    };
+  }
+  if (!model) return { enabled: false, reason: 'missing_model' };
+  if (name === 'anthropic') {
+    const apiKey = get('ANTHROPIC_API_KEY');
+    if (!apiKey) return { enabled: false, reason: 'missing_key' };
+    const effort = get('LLM_ANTHROPIC_EFFORT');
+    return {
+      enabled: true,
+      pricing,
+      provider: createAnthropicProvider({
+        apiKey,
+        model,
+        effort: effort === 'medium' || effort === 'high' ? effort : 'low',
+      }),
+    };
+  }
+  if (name === 'mistral') {
+    const apiKey = get('MISTRAL_API_KEY');
+    if (!apiKey) return { enabled: false, reason: 'missing_key' };
+    return { enabled: true, pricing, provider: createMistralProvider({ apiKey, model }) };
+  }
+  return { enabled: false, reason: 'unknown_provider' };
+}

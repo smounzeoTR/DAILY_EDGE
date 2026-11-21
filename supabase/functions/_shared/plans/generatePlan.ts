@@ -3,7 +3,7 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 
 import type { Database } from '../database.types.ts';
-import { buildPlan, type ISODate } from '../engine/index.ts';
+import { buildPlan, type ISODate, type PlanDecision } from '../engine/index.ts';
 import { loadEngineInput, type Profile } from './load.ts';
 
 export { localDate, type Profile } from './load.ts';
@@ -13,6 +13,9 @@ type Client = SupabaseClient<Database>;
 export type GenerateResult = {
   status: 'created' | 'recomputed' | 'unchanged';
   plan: Awaited<ReturnType<typeof savedPlan>>;
+  // Computed plans only (used by the AI enrichment, never sent to the app)
+  decision?: PlanDecision;
+  decisionId?: string | null;
 };
 
 // Server-side client: bypasses RLS, never exposed to the app
@@ -26,7 +29,7 @@ export async function savedPlan(db: Client, planId: string) {
   const { data, error } = await db
     .from('daily_plans')
     .select(
-      'id, date, mode, program_day, principle_id, why_today, introduced_habit_id, generated_at, plan_items(id, exercise_id, position, status, rating, proof_value, origin, adopted)',
+      'id, date, mode, program_day, principle_id, why_today, introduced_habit_id, generated_at, ai_status, plan_items(id, exercise_id, position, status, rating, proof_value, origin, adopted, personalized_instructions)',
     )
     .eq('id', planId)
     .single();
@@ -44,6 +47,8 @@ export async function generatePlanForUser(
   db: Client,
   profile: Profile,
   date: ISODate,
+  // aiPending: the plan will be enriched by the AI in the background (premium)
+  options: { aiPending?: boolean } = {},
 ): Promise<GenerateResult> {
   // Touched plan: returned as is, nothing recomputed
   const { data: existing, error: existingError } = await db
@@ -74,6 +79,7 @@ export async function generatePlanForUser(
       principle_id: decision.principleId,
       introduced_habit_id: decision.introducedHabitId,
       why_today: decision.whyToday,
+      ai_status: options.aiPending ? 'pending' : null,
       items: decision.items.map((i) => ({
         exercise_id: i.exerciseId,
         position: i.position,
@@ -88,8 +94,17 @@ export async function generatePlanForUser(
     },
   });
   if (saveError) throw saveError;
-  const result = saved as { plan_id: string; status: GenerateResult['status'] };
-  return { status: result.status, plan: await savedPlan(db, result.plan_id) };
+  const result = saved as {
+    plan_id: string;
+    status: GenerateResult['status'];
+    decision_id?: string;
+  };
+  return {
+    status: result.status,
+    plan: await savedPlan(db, result.plan_id),
+    decision: result.status === 'unchanged' ? undefined : decision,
+    decisionId: result.decision_id ?? null,
+  };
 }
 
 export function env(name: string): string {

@@ -217,6 +217,7 @@ export function buildPlan(input: EngineInput): PlanDecision {
       adopted: exerciseId === selection.adoptedId,
     })),
     introducedHabitId,
+    budgetMinutes: step ? signals.availableMinutes : filterCtx.maxMinutes,
     whyToday: renderWhy(whyKey, input.language, usedParams),
     whyKey,
     whyParams: usedParams,

@@ -1,7 +1,12 @@
 // generate-plan: computes and saves the plan of a day for the calling user.
 // The user comes from the JWT only. Writes go through save_daily_plan (one transaction).
 // Body: { "date"?: "YYYY-MM-DD" } (today or tomorrow in the user's time zone; default today).
+// Premium with AI consent: the rules plan is saved and returned first (ai_status = pending),
+// then enriched by the AI in the background; the user never waits for the AI.
+import { enrichPlan } from '../_shared/ai/enrichPlan.ts';
+import { isAiEligible } from '../_shared/ai/store.ts';
 import { addDays } from '../_shared/engine/dates.ts';
+import { aiContext, inBackground } from '../_shared/plans/aiRuntime.ts';
 import {
   env,
   generatePlanForUser,
@@ -55,7 +60,34 @@ Deno.serve(async (req) => {
       return json(400, { error: 'invalid_date' });
     }
 
-    return json(200, await generatePlanForUser(db, profile, date));
+    const ai = aiContext(db);
+    const eligible = ai !== null && (await isAiEligible(db, profile));
+    const result = await generatePlanForUser(db, profile, date, { aiPending: eligible });
+    const { decision, plan } = result;
+    if (ai && eligible && decision && plan.generated_at) {
+      const generatedAt = plan.generated_at;
+      const markFallback = async () => {
+        await db.rpc('apply_plan_enrichment', {
+          p_plan_id: plan.id,
+          p_generated_at: generatedAt,
+          p_result: { status: 'fallback' },
+        });
+      };
+      inBackground(
+        () =>
+          enrichPlan(db, ai, {
+            profile,
+            planId: plan.id,
+            generatedAt,
+            decisionId: result.decisionId ?? null,
+            decision,
+            localDate: today,
+          }),
+        markFallback,
+      );
+    }
+    // The decision stays on the server
+    return json(200, { status: result.status, plan });
   } catch (error) {
     console.error('generate-plan failed', error);
     return json(500, { error: 'internal_error' });
