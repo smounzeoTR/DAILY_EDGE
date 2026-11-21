@@ -42,6 +42,130 @@ export type Database = {
         };
         Relationships: [];
       };
+      assistant_actions: {
+        Row: {
+          created_at: string;
+          expires_at: string;
+          id: string;
+          params: NonNullable<Json>;
+          resolved_at: string | null;
+          result: Json | null;
+          status: string;
+          thread_id: string;
+          type: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          expires_at: string;
+          id?: string;
+          params?: NonNullable<Json>;
+          resolved_at?: string | null;
+          result?: Json | null;
+          status?: string;
+          thread_id: string;
+          type: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          expires_at?: string;
+          id?: string;
+          params?: NonNullable<Json>;
+          resolved_at?: string | null;
+          result?: Json | null;
+          status?: string;
+          thread_id?: string;
+          type?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'assistant_actions_thread_id_user_id_fkey';
+            columns: ['thread_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'assistant_threads';
+            referencedColumns: ['id', 'user_id'];
+          },
+        ];
+      };
+      assistant_messages: {
+        Row: {
+          action_id: string | null;
+          content: string;
+          created_at: string;
+          distress: boolean;
+          id: string;
+          role: string;
+          thread_id: string;
+          tool_calls: Json | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          action_id?: string | null;
+          content?: string;
+          created_at?: string;
+          distress?: boolean;
+          id?: string;
+          role: string;
+          thread_id: string;
+          tool_calls?: Json | null;
+          user_id: string;
+        };
+        Update: {
+          action_id?: string | null;
+          content?: string;
+          created_at?: string;
+          distress?: boolean;
+          id?: string;
+          role?: string;
+          thread_id?: string;
+          tool_calls?: Json | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'assistant_messages_thread_id_user_id_fkey';
+            columns: ['thread_id', 'user_id'];
+            isOneToOne: false;
+            referencedRelation: 'assistant_threads';
+            referencedColumns: ['id', 'user_id'];
+          },
+        ];
+      };
+      assistant_threads: {
+        Row: {
+          created_at: string;
+          id: string;
+          last_message_at: string;
+          summarized_until: string | null;
+          summary: string | null;
+          title: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          last_message_at?: string;
+          summarized_until?: string | null;
+          summary?: string | null;
+          title?: string | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          last_message_at?: string;
+          summarized_until?: string | null;
+          summary?: string | null;
+          title?: string | null;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       checkins: {
         Row: {
           created_at: string;
@@ -92,6 +216,7 @@ export type Database = {
           principle_read_at: string | null;
           program_day: number | null;
           program_id: string | null;
+          user_adjusted_at: string | null;
           user_id: string;
           why_today: string | null;
         };
@@ -108,6 +233,7 @@ export type Database = {
           principle_read_at?: string | null;
           program_day?: number | null;
           program_id?: string | null;
+          user_adjusted_at?: string | null;
           user_id: string;
           why_today?: string | null;
         };
@@ -123,6 +249,7 @@ export type Database = {
           principle_read_at?: string | null;
           program_day?: number | null;
           program_id?: string | null;
+          user_adjusted_at?: string | null;
           user_id?: string;
           why_today?: string | null;
         };
@@ -1263,7 +1390,10 @@ export type Database = {
         Returns: string;
       };
       apply_review_enrichment: { Args: { p_result: Json; p_review_id: string }; Returns: string };
+      assistant_daily_limit: { Args: Record<PropertyKey, never>; Returns: number };
+      assistant_quota: { Args: Record<PropertyKey, never>; Returns: Json };
       cancel_account_deletion: { Args: Record<PropertyKey, never>; Returns: undefined };
+      cancel_assistant_action: { Args: { p_action_id: string }; Returns: undefined };
       change_program: { Args: { p_program_id: string }; Returns: undefined };
       complete_onboarding: {
         Args: {
@@ -1290,7 +1420,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      confirm_assistant_action: { Args: { p_action_id: string }; Returns: Json };
       current_user_local_date: { Args: Record<PropertyKey, never>; Returns: string };
+      delete_assistant_history: { Args: Record<PropertyKey, never>; Returns: undefined };
+      delete_assistant_thread: { Args: { p_thread_id: string }; Returns: undefined };
       dev_set_plan: {
         Args: { p_plan: Database['public']['Enums']['subscription_plan'] };
         Returns: undefined;
@@ -1309,10 +1442,36 @@ export type Database = {
       get_app_flags: { Args: Record<PropertyKey, never>; Returns: Json };
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
       is_premium: { Args: { p_user_id: string }; Returns: boolean };
+      lock_untouched_today_plan: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          ai_status: string | null;
+          created_at: string;
+          date: string;
+          generated_at: string | null;
+          id: string;
+          introduced_habit_id: string | null;
+          mode: Database['public']['Enums']['plan_mode'];
+          principle_id: string | null;
+          principle_read_at: string | null;
+          program_day: number | null;
+          program_id: string | null;
+          user_adjusted_at: string | null;
+          user_id: string;
+          why_today: string | null;
+        };
+        SetofOptions: {
+          from: '*';
+          to: 'daily_plans';
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       mark_milestone_celebrated: { Args: { p_milestone: string }; Returns: undefined };
       mark_principle_read: { Args: { p_plan_id: string }; Returns: undefined };
       mark_tip_seen: { Args: { p_tip: string }; Returns: undefined };
       my_done_days: { Args: Record<PropertyKey, never>; Returns: string[] };
+      purge_assistant_history: { Args: { p_now?: string }; Returns: number };
       purge_deleted_accounts: { Args: { p_now: string }; Returns: number };
       replace_active_goal: {
         Args: {
@@ -1343,6 +1502,15 @@ export type Database = {
         };
         Returns: Json;
       };
+      shorten_today_plan: { Args: { p_minutes?: number }; Returns: Json };
+      swap_candidates: {
+        Args: { p_date: string; p_user_id: string };
+        Returns: {
+          exercise_id: string;
+        }[];
+      };
+      swap_today_exercise: { Args: { p_exercise_id: string }; Returns: Json };
+      today_available_minutes: { Args: { p_date: string; p_user_id: string }; Returns: number };
       trigger_plans_batch: { Args: Record<PropertyKey, never>; Returns: number };
       upsert_checkin: {
         Args: {
