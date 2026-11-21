@@ -10,7 +10,7 @@
     "ios": {
       "icon": "./assets/expo.icon",
       "infoPlist": {},
-      "bundleIdentifier": "com.smounzeotr.daily-edge"
+      "bundleIdentifier": "com.trasenel.daily-edge"
     },
     "android": {
       "adaptiveIcon": {
