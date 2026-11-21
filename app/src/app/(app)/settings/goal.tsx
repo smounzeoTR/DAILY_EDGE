@@ -76,7 +76,12 @@ export default function GoalSettings() {
           });
     setSaving(false);
     if (saveError) {
-      setError(t('common.errorGeneric'));
+      // The database refuses a deadline that is not in the future
+      setError(
+        saveError.message === 'invalid_goal_deadline'
+          ? t('onboarding.errors.invalid_goal_deadline')
+          : t('common.errorGeneric'),
+      );
       return;
     }
     await done();

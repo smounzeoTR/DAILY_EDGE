@@ -167,7 +167,8 @@ set local role authenticated;
 delete from public.habit_logs where date = (select today from d) - 2;
 reset role;
 select is(
-  (select count(*)::int from public.habit_logs where date = (select today from d) - 2),
+  (select count(*)::int from public.habit_logs
+   where user_id = '00000000-0000-0000-0000-0000000000e9' and date = (select today from d) - 2),
   1, 'J-2 log cannot be deleted'
 );
 
