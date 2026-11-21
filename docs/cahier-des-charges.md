@@ -137,6 +137,85 @@ Précisions du 25 novembre 2026 (lot 6) — nouvel onglet Réglages :
 ### 3.8 Administration (rôle admin)
 Consultation et modification des contenus, changement de statut (Brouillon / En relecture / Validé / Rejeté), statistiques par exercice : nombre de propositions, taux de réalisation, note moyenne, taux de « trop dur ». Journal des décisions du moteur par utilisateur. En début de V1, Supabase Studio peut suffire ; l'écran admin intégré vient au lot 7.
 
+### 3.9 Guide quotidien (gratuit) — lot 8
+Cadrage validé le 21 novembre 2026.
+
+Objectif : l'utilisateur sait toujours quoi faire ensuite, sans jamais se sentir jugé.
+
+- **Parcours du jour en 4 pastilles** en haut d'Aujourd'hui : Principe → Exercice → Habitudes → Check-in. Chaque pastille se remplit quand l'étape est faite ; la prochaine étape est mise en avant. Toucher une pastille fait défiler jusqu'à la carte correspondante.
+  - Principe : considéré comme lu quand la carte a été ouverte ou affichée en entier.
+  - Exercice : fait (version minimale et ajouts compris).
+  - Habitudes : toutes les habitudes attendues ce jour sont faites (« À l'occasion » exclue).
+  - Check-in : enregistré pour la date du jour.
+- **Pastilles sur les onglets** : un point sur Aujourd'hui quand le check-in attend (après l'heure du rappel du soir), sur Progression quand un bilan a des propositions sans réponse, sur Bibliothèque quand une habitude introduite est proposée. Elles disparaissent dès que l'action est faite.
+- **Première semaine accompagnée** :
+  - jour 1 : visite guidée en bulles sur chaque carte d'Aujourd'hui, avec « Passer » toujours visible ;
+  - jours 2 à 7 : une astuce par jour pour faire découvrir une fonction (version minimale, « Pas le temps », bibliothèque, favoris, valeur actuelle de l'objectif, bilan). Chaque astuce se ferme et ne revient jamais.
+  - L'état (visite faite, astuces vues) est enregistré côté serveur pour suivre l'utilisateur d'un appareil à l'autre.
+- **« ? » sur chaque carte** : explication en deux phrases. Page « Comment ça marche » accessible depuis les Réglages.
+- **Mes notes (carnet)** : notes personnelles rattachées à un principe ou à un exercice (« comment je l'applique »). Visibles sur la fiche et dans un onglet « Mes notes » de la Bibliothèque. Privées (RLS), incluses dans l'export, supprimées avec le compte, **jamais envoyées à l'IA** (voir § 3.10, exception de partage explicite).
+- **Étapes célébrées sobrement** : 7 jours de série, semaine 1 terminée, programme terminé, objectif atteint. Animation courte et une phrase, jamais de comparaison avec d'autres utilisateurs, jamais de message négatif.
+- Tous les textes en FR et EN, ton bienveillant.
+
+### 3.10 Assistant virtuel « Coach Edge » (premium) — lot 9
+Cadrage validé le 21 novembre 2026.
+
+Une conversation avec un coach qui connaît le programme, l'objectif et le catalogue de l'utilisateur. Il peut agir dans l'app, toujours avec accord explicite.
+
+Accès : premium **et** `consent_ai` vrai, compte non en cours de suppression.
+
+#### Ce qu'il fait
+
+| Domaine | Exemples |
+| --- | --- |
+| Adapter la journée | « J'ai 10 minutes », « je suis épuisé » : il propose une version courte ou un autre exercice du catalogue, puis l'applique si l'utilisateur valide. |
+| Faire un exercice avec l'utilisateur | Guidage pas à pas (par exemple WOOP, « écrire son objectif »), puis enregistrement de la réponse comme preuve. |
+| Approfondir | Explique un principe avec des exemples appliqués à l'objectif ; parle des livres sans citer de longs passages. |
+| Travailler l'objectif | Découpe en jalons, plans « si… alors… », mise à jour de la valeur actuelle si l'utilisateur valide. |
+| Construire une habitude | Aide à choisir signal, version minimale et moment, puis ajoute l'habitude (limite de 6 actives). |
+| Discuter du bilan | Explique la semaine et aide à choisir parmi les propositions (la réponse passe par `answer_review_proposal`). |
+
+#### Garde-fous
+
+- **Rien n'est modifié sans confirmation** : chaque action passe par une carte « Appliquer / Annuler » dans la conversation. L'assistant n'agit qu'au travers d'outils serveur précis qui appellent les mêmes RPC et respectent les mêmes règles que l'app (jamais d'écriture directe, jamais de service role sur une donnée non vérifiée).
+- **Catalogue uniquement** : il personnalise mais n'invente pas d'exercice (« IA encadrée »).
+- **Données minimales** : profil résumé, objectif, chiffres des 3 derniers check-ins, plan du jour et conversation en cours. Il ne lit **ni les réflexions ni les notes**. Exception : un bouton « Partager avec le coach » sur une note ou une réflexion envoie ce seul texte dans la conversation en cours, par action explicite de l'utilisateur (pas de consentement global, pas de lecture automatique du carnet).
+- **Aucun conseil médical, financier ni juridique**. En cas de signes de détresse : réponse bienveillante et orientation vers le 3114, sans diagnostic.
+- **Conservation** : conversations conservées 90 jours puis purgées, effaçables à tout moment par l'utilisateur, incluses dans l'export, supprimées avec le compte.
+- **Coût maîtrisé** : quota quotidien de messages (30 par défaut, configurable), historique résumé au-delà d'une certaine longueur pour limiter les tokens, coût journalisé. Plafond distinct de celui du plan et du bilan.
+
+#### Architecture
+
+- Edge Function `assistant-chat` avec réponse diffusée au fil de l'eau (streaming).
+- Outils côté serveur : `get_today`, `adapt_today`, `swap_exercise`, `save_exercise_result`, `add_habit`, `update_goal_progress`, `search_catalog`, `get_week_summary`. Les outils qui écrivent renvoient une proposition d'action ; l'écriture n'a lieu qu'après confirmation de l'utilisateur.
+- Tables `assistant_threads` et `assistant_messages`, protégées par RLS.
+
+Règle sur les notes et réflexions (21 novembre 2026) : elles ne sont jamais lues par l'IA, ni par le plan, ni par le bilan, ni par l'assistant. Seule exception : le bouton « Partager avec le coach », qui envoie un seul texte dans la conversation en cours, par action explicite de l'utilisateur, sans consentement global.
+
+### 3.11 Offre gratuite / premium
+Décision du 21 novembre 2026.
+
+| Fonction | Gratuit | Premium |
+| --- | --- | --- |
+| Onboarding, objectif, programme de 28 jours (4 programmes) | ✅ | ✅ |
+| Plan quotidien adapté par les règles (modes normal, minimal, reprise) | ✅ | ✅ |
+| Principe du jour, exercice, preuve, note | ✅ | ✅ |
+| Habitudes (jusqu'à 6), version minimale | ✅ | ✅ |
+| Check-in du soir et rappels | ✅ | ✅ |
+| Progression : série, taux, objectif, énergie, réflexions | ✅ | ✅ |
+| Bibliothèque complète, favoris, « Ajouter à ma journée » | ✅ | ✅ |
+| Guide quotidien : pastilles, première semaine, astuces, « ? » | ✅ | ✅ |
+| Mes notes (carnet) | ✅ | ✅ |
+| Bilan de la semaine avec propositions | ✅ résumé chiffré, textes standard | ✅ résumé rédigé par l'IA |
+| « Pourquoi aujourd'hui » | ✅ phrase type | ✅ rédigé pour l'utilisateur |
+| Consigne des exercices personnalisée selon l'objectif | — | ✅ |
+| Choix des exercices affiné par l'IA (après le programme) | — | ✅ |
+| Assistant Coach Edge | — | ✅ |
+| Programmes avancés (V2) | — | ✅ |
+| Export des données, suppression du compte | ✅ | ✅ |
+
+Le gratuit est complet : l'app y tient sa promesse sans IA. Le premium apporte la personnalisation et l'accompagnement conversationnel.
+
 ## 4. Contenu
 
 Hiérarchie : Source → Principe → Exercice. 7 domaines : Clarté & objectifs, Discipline & habitudes, Argent & patrimoine, Entreprise & carrière, Mental & croyances, Relations & réseau, Énergie & santé (hygiène de vie générale, jamais médical).
@@ -270,6 +349,8 @@ Droits par table : CRUD complet sur ses lignes pour `goals`, `user_habits`, `hab
 
 Moteur : `engine_decisions` : id, user_id, plan_id, rules_fired[], candidates (jsonb), why (jsonb : clé, paramètres, texte), llm_model, llm_input_hash, llm_output (jsonb), fallback_used, latency_ms, created_at. Lecture réservée aux admins. Fonctions serveur (service_role uniquement) : `save_daily_plan` (enregistrement transactionnel et idempotent d'un plan) et `engine_exercise_history` (historique agrégé par exercice).
 
+À venir (lots 8 et 9) : carnet de notes (table `notes` rattachée à un principe ou à un exercice), état du guide (visite faite, astuces vues, côté serveur), conversations de l'assistant (`assistant_threads`, `assistant_messages`, purgées après 90 jours). Toutes protégées par RLS, incluses dans l'export, supprimées avec le compte.
+
 Dates utilisateur stockées en date locale, calculées avec `profiles.timezone`. Similarité entre exercices (pgvector) : reportée après la V1, le score d'affinité V1 se fonde sur les notes par domaine.
 
 ## 7. RGPD et sécurité
@@ -277,6 +358,8 @@ Dates utilisateur stockées en date locale, calculées avec `profiles.timezone`.
 - Consentements explicites et séparés (check-in ; IA) ; l'app fonctionne sans.
 - Hébergement et traitement dans l'UE ; fournisseur LLM sans réutilisation des données pour l'entraînement, DPA signé.
 - Le LLM ne reçoit jamais l'historique brut ni d'identifiant direct.
+- Notes et réflexions ne sont jamais envoyées à l'IA ; seule exception : « Partager avec le coach » (§ 3.10), un texte à la fois, par action explicite.
+- Conversations avec l'assistant conservées 90 jours, effaçables à tout moment.
 - Export JSON en libre-service, suppression sous 30 jours, rectification dans les réglages.
 - Journal du moteur purgé après 12 mois ; comptes inactifs 24 mois supprimés après préavis.
 - RLS sur toutes les tables utilisateur, aucune clé de service dans l'app, MFA pour l'admin, sauvegardes quotidiennes.

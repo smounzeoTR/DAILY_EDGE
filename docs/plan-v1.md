@@ -1,6 +1,6 @@
 # Daily Edge — Plan de développement de la V1
 
-Neuf lots, chacun livrable et testable seul. On ne commence un lot que lorsque le précédent est accepté. Cocher les cases au fil de l'eau.
+Onze lots, chacun livrable et testable seul. On ne commence un lot que lorsque le précédent est accepté. Cocher les cases au fil de l'eau.
 
 ## Lot 0 — Mise en place (½ journée)
 - [ ] Prérequis vérifiés : Node LTS, Docker Desktop lancé, Supabase CLI (`brew install supabase/tap/supabase`), Expo Go sur le téléphone, Git.
@@ -66,7 +66,27 @@ Acceptation : sur le téléphone, une journée complète (exercice, habitudes, c
 - [ ] Choix et personnalisation premium dans `generate-plan`, bilan hebdo rédigé par l'IA.
 - [ ] Écrans admin : contenus, statuts, statistiques par exercice, journal du moteur.
 
-## Lot 8 — Finitions et bêta
+## Lot 8 — Guide quotidien et carnet de notes (§ 3.9)
+- [ ] Parcours du jour en 4 pastilles (Principe → Exercice → Habitudes → Check-in) en haut d'Aujourd'hui, prochaine étape mise en avant, défilement vers la carte.
+- [ ] Pastilles sur les onglets (check-in en attente, propositions de bilan sans réponse, habitude introduite proposée).
+- [ ] Première semaine accompagnée : visite guidée le jour 1 (« Passer » toujours visible), une astuce par jour du jour 2 au jour 7 ; état enregistré côté serveur.
+- [ ] « ? » sur chaque carte et page « Comment ça marche » dans les Réglages.
+- [ ] Mes notes : notes rattachées à un principe ou à un exercice, visibles sur la fiche et dans l'onglet « Mes notes » de la Bibliothèque ; RLS, export, suppression avec le compte ; jamais envoyées à l'IA.
+- [ ] Étapes célébrées sobrement (7 jours de série, semaine 1, programme terminé, objectif atteint).
+- [ ] Tests (pgTAP, Vitest, Maestro), textes FR et EN.
+
+## Lot 9 — Assistant Coach Edge (premium, § 3.10)
+- [ ] Edge Function `assistant-chat` en streaming, accès premium + `consent_ai`, compte non en cours de suppression.
+- [ ] Couche `_shared/llm/` : outils (tool use) et `stream()` pour Anthropic, Mistral et le fournisseur factice (interface prévue au lot 7).
+- [ ] Outils serveur `get_today`, `adapt_today`, `swap_exercise`, `save_exercise_result`, `add_habit`, `update_goal_progress`, `search_catalog`, `get_week_summary` ; les outils qui écrivent renvoient une proposition, appliquée seulement après « Appliquer » (mêmes RPC et mêmes règles que l'app).
+- [ ] Tables `assistant_threads` et `assistant_messages` (RLS, export, effacement, purge à 90 jours).
+- [ ] Données minimales ; bouton « Partager avec le coach » sur une note ou une réflexion (un texte, action explicite) ; garde-fous (pas de conseil médical, financier ni juridique ; 3114 en cas de détresse).
+- [ ] Quota quotidien de messages propre à l'assistant (30 par défaut, configurable) dans `llm_calls`, historique résumé au-delà d'une certaine longueur, coût dans l'écran admin.
+- [ ] Tests avec le fournisseur factice (outils, confirmation, quota, minimisation), Maestro.
+
+## Lot 10 — Finitions et bêta
+- [ ] Import du catalogue en production par mise à jour (upsert) depuis le Sheet, et pas seulement via `seed.sql` (qui recrée la base locale).
+- [ ] Revérifier sur la grille officielle les prix du modèle par défaut (`claude-haiku-5-5`) indiqués dans `supabase/functions/.env.example` avant la production.
 - [ ] Cache hors ligne du plan du jour et des coches (expo-sqlite), synchronisation au retour du réseau.
 - [ ] Message bienveillant et ressources d'aide (3114) si humeur ≤ 2 pendant 5 jours.
 - [ ] Sentry et PostHog (UE), politique de confidentialité, mentions dans l'onboarding.
