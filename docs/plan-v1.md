@@ -61,10 +61,11 @@ Acceptation : sur le téléphone, une journée complète (exercice, habitudes, c
 - [x] Script de données de démonstration (§ 8).
 
 ## Lot 7 — Premium, IA et administration
-- [ ] Interrupteur gratuit / premium (table `subscriptions`).
-- [ ] Couche `_shared/llm/` : interface commune, fournisseurs Anthropic et Mistral, choix par variable d'environnement, validation zod, repli.
-- [ ] Choix et personnalisation premium dans `generate-plan`, bilan hebdo rédigé par l'IA.
-- [ ] Écrans admin : contenus, statuts, statistiques par exercice, journal du moteur.
+- [x] Interrupteur gratuit / premium (table `subscriptions`, `is_premium`, `dev_set_plan` autorisé par `app_settings.allow_plan_toggle`).
+- [x] Couche `_shared/llm/` : interface commune, fournisseurs Anthropic et Mistral, choix par variable d'environnement, validation zod, repli ; journal `llm_calls`, plafond quotidien, réutilisation par hachage.
+- [x] Choix et personnalisation premium dans `generate-plan` (en arrière-plan), bilan hebdo rédigé par l'IA.
+- [x] Écrans admin en lecture seule (le contenu reste édité dans le Sheet) : statistiques par exercice, journal du moteur, coût IA par jour ; MFA obligatoire (aal2).
+- [x] Échéance de l'objectif vérifiée par la base à chaque modification.
 
 ## Lot 8 — Guide quotidien et carnet de notes (§ 3.9)
 - [ ] Parcours du jour en 4 pastilles (Principe → Exercice → Habitudes → Check-in) en haut d'Aujourd'hui, prochaine étape mise en avant, défilement vers la carte.
