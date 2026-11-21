@@ -82,6 +82,12 @@ export default function ReviewScreen() {
 
       <Card>
         <AppText variant="bodyStrong">{t('review.summary')}</AppText>
+        {review.summary ? <AppText tone="body">{review.summary}</AppText> : null}
+        {review.ai_status === 'pending' ? (
+          <AppText variant="caption" tone="secondary">
+            {t('review.aiPending')}
+          </AppText>
+        ) : null}
         <AppText tone="body">
           {t('review.exercises', { done: s.exercisesDone, planned: s.exercisesPlanned })}
         </AppText>
@@ -120,7 +126,8 @@ export default function ReviewScreen() {
       ) : null}
       {error ? <AppText tone="danger">{error}</AppText> : null}
       {review.proposals.map((proposal, index) => {
-        const text = proposalText(proposal, t, language, habitRows, templateRows);
+        // Premium: reworded by the AI (same proposal, same parameters)
+        const text = proposal.text ?? proposalText(proposal, t, language, habitRows, templateRows);
         const answered = review.accepted[String(index)];
         return (
           <Card key={index}>

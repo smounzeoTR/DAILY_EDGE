@@ -27,6 +27,7 @@ export default function AppLayout() {
       <Stack.Screen name="settings/goal" />
       <Stack.Screen name="settings/habits" />
       <Stack.Screen name="settings/program" />
+      <Stack.Screen name="admin" />
       <Stack.Screen name="checkin" options={{ presentation: 'modal' }} />
       <Stack.Screen name="reminders" options={{ presentation: 'modal' }} />
     </Stack>

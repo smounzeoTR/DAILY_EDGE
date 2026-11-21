@@ -1,4 +1,5 @@
-// Settings: language, theme, reminder times, goal, habits, program, consents, export, deletion.
+// Settings: language, theme, reminder times, goal, habits, program, consents, offer (free /
+// premium), export, deletion; administration entry for admins.
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -15,7 +16,15 @@ import { resolveLanguage, type Language } from '@/i18n/language';
 import { localized } from '@/i18n/localize';
 import { useAuth, useUserId } from '@/lib/auth/AuthProvider';
 import type { Database } from '@/lib/database.types';
-import { queryKeys, useActiveGoal, useProfile, usePrograms } from '@/lib/queries';
+import {
+  premiumKey,
+  queryKeys,
+  useActiveGoal,
+  useAppFlags,
+  useIsPremium,
+  useProfile,
+  usePrograms,
+} from '@/lib/queries';
 import { supabase } from '@/lib/supabase';
 import { spacing, useTheme, type ThemePreference } from '@/theme';
 
@@ -91,6 +100,8 @@ export default function Settings() {
   const profile = useProfile(userId).data;
   const goal = useActiveGoal(userId).data;
   const programs = usePrograms().data ?? [];
+  const premium = useIsPremium(userId);
+  const flags = useAppFlags().data;
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null);
 
@@ -111,6 +122,16 @@ export default function Settings() {
     // Server texts (why today, emails) follow the profile locale
     await updateProfile({ locale: value });
     await scheduleReminders({ morning: profile.notify_morning, evening: profile.notify_evening });
+  };
+
+  // Prototype switch (no payment in V1), shown only when the server allows it
+  const setPremium = async (value: boolean) => {
+    setMessage(null);
+    const { error } = await supabase.rpc('dev_set_plan', { p_plan: value ? 'premium' : 'free' });
+    if (error) setMessage({ text: t('common.errorGeneric'), ok: false });
+    await queryClient.invalidateQueries({ queryKey: premiumKey(userId) });
+    // Today checks again whether its plan can be personalized
+    await queryClient.invalidateQueries({ queryKey: ['plan', userId] });
   };
 
   const changeTime = async (field: 'notify_morning' | 'notify_evening', value: string) => {
@@ -262,6 +283,38 @@ export default function Settings() {
           onChange={(v) => void setConsent('consent_ai', v)}
         />
       </Card>
+
+      <Card>
+        <AppText variant="bodyStrong">{t('settings.offer')}</AppText>
+        <AppText tone="body">
+          {t('settings.currentPlan', {
+            plan: premium.data ? t('settings.planPremium') : t('settings.planFree'),
+          })}
+        </AppText>
+        <AppText variant="caption" tone="secondary">
+          {t('settings.premiumPerks')}
+        </AppText>
+        {flags?.allow_plan_toggle ? (
+          <ConsentSwitch
+            title={t('settings.premiumSwitch')}
+            body={t('settings.premiumSwitchHint')}
+            value={premium.data === true}
+            onChange={(v) => void setPremium(v)}
+          />
+        ) : null}
+        {premium.data && !profile.consent_ai ? (
+          <AppText variant="caption" tone="link">
+            {t('settings.premiumNeedsConsent')}
+          </AppText>
+        ) : null}
+      </Card>
+
+      {profile.role === 'admin' ? (
+        <Card>
+          <AppText variant="bodyStrong">{t('admin.title')}</AppText>
+          <Row label={t('admin.open')} onPress={() => router.push('/admin')} />
+        </Card>
+      ) : null}
 
       <Card>
         <AppText variant="bodyStrong">{t('settings.data')}</AppText>

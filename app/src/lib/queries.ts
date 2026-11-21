@@ -41,7 +41,7 @@ export function useProfile(userId: string | undefined) {
         supabase
           .from('profiles')
           .select(
-            'user_id, display_name, locale, timezone, onboarded_at, program_id, program_day, notify_morning, notify_evening, consent_checkin, consent_ai, level, daily_minutes, persona, deletion_requested_at',
+            'user_id, display_name, locale, timezone, onboarded_at, program_id, program_day, notify_morning, notify_evening, consent_checkin, consent_ai, level, daily_minutes, persona, deletion_requested_at, role',
           )
           .eq('user_id', userId ?? '')
           .single(),
@@ -134,20 +134,32 @@ export function useUserHabits(userId: string) {
   });
 }
 
+// AI enrichment in progress: polled every 3 s, for at most 30 s after the computation
+export const AI_POLL_MS = 3000;
+export const AI_POLL_MAX_MS = 30_000;
+export function isAiPending(
+  row: { ai_status: string | null; generated_at: string | null } | null | undefined,
+  now = Date.now(),
+): boolean {
+  if (!row || row.ai_status !== 'pending' || !row.generated_at) return false;
+  return now - new Date(row.generated_at).getTime() < AI_POLL_MAX_MS;
+}
+
 // Plan of a day with its principle, exercises and proposed habit
 export function usePlan(userId: string, date: string) {
   return useQuery({
     queryKey: queryKeys.plan(userId, date),
     staleTime: 0,
+    refetchInterval: (query) => (isAiPending(query.state.data) ? AI_POLL_MS : false),
     queryFn: () =>
       unwrap(
         supabase
           .from('daily_plans')
           .select(
-            `id, date, mode, program_day, why_today, introduced_habit_id, generated_at,
+            `id, date, mode, program_day, why_today, introduced_habit_id, generated_at, ai_status,
              principle:principles(id, title_fr, title_en, summary_fr, summary_en),
              introduced:habit_templates(id, title_fr, title_en, description_fr, description_en, default_cue_fr, default_cue_en),
-             plan_items(id, position, status, proof_value, rating, origin,
+             plan_items(id, position, status, proof_value, rating, origin, personalized_instructions,
                exercise:exercises(id, title_fr, title_en, instructions_fr, instructions_en, duration_min, proof_type))`,
           )
           .eq('date', date)
@@ -361,6 +373,8 @@ export type ReviewProposal = {
     | 'daily_minutes';
   priority: number;
   params: Record<string, string | number>;
+  // Premium: proposal reworded by the AI (types and parameters never change)
+  text?: string;
 };
 
 export type ReviewStats = {
@@ -380,14 +394,27 @@ export type Review = {
   stats: ReviewStats;
   proposals: ReviewProposal[];
   accepted: Record<string, { accept: boolean; at: string }>;
+  // Premium: summary written by the AI
+  summary: string | null;
+  ai_status: 'pending' | 'enriched' | 'fallback' | null;
 };
 
-const REVIEW_COLUMNS = 'id, week_start, generated_at, stats, proposals, accepted';
+const REVIEW_COLUMNS =
+  'id, week_start, generated_at, stats, proposals, accepted, summary, ai_status';
 
 export function useReviews(userId: string) {
   return useQuery({
     queryKey: ['reviews', userId],
     staleTime: 0,
+    // The current review may be enriched by the AI right after its generation
+    refetchInterval: (query) =>
+      query.state.data?.some(
+        (r) =>
+          r.ai_status === 'pending' &&
+          isAiPending({ ...r, generated_at: r.generated_at }, Date.now()),
+      )
+        ? AI_POLL_MS
+        : false,
     queryFn: async () =>
       ((await unwrap(
         supabase
@@ -439,4 +466,34 @@ export async function exportMyData(): Promise<string> {
   const { data, error } = await supabase.functions.invoke('export-my-data', { body: {} });
   if (error) throw error;
   return typeof data === 'string' ? data : JSON.stringify(data, null, 2);
+}
+
+// ---------------------------------------------------------------------------
+// Premium (prototype switch) and server flags
+// ---------------------------------------------------------------------------
+export const premiumKey = (userId: string) => ['premium', userId] as const;
+
+// is_premium is the single point of truth (server side)
+export function useIsPremium(userId: string) {
+  return useQuery({
+    queryKey: premiumKey(userId),
+    staleTime: 0,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('is_premium', { p_user_id: userId });
+      if (error) throw error;
+      return data === true;
+    },
+  });
+}
+
+export function useAppFlags() {
+  return useQuery({
+    queryKey: ['appFlags'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_app_flags');
+      if (error) throw error;
+      return (data ?? {}) as { allow_plan_toggle?: boolean };
+    },
+  });
 }

@@ -72,8 +72,12 @@ export function ExerciseCard({
   const proofType = (exercise?.proof_type ?? 'checkbox') as ProofType;
   const [editing, setEditing] = useState(item.status === 'todo');
   const [proof, setProof] = useState(item.proof_value ?? '');
+  // Premium: instructions personalized by the AI, the original stays one tap away
+  const [showOriginal, setShowOriginal] = useState(false);
   if (!exercise) return null;
   const title = localized(exercise, 'title', language);
+  const personalized = item.personalized_instructions;
+  const original = localized(exercise, 'instructions', language);
 
   const save = (status: ResultInput['status'], rating: number | null = null) => {
     onSave({
@@ -98,7 +102,28 @@ export function ExerciseCard({
         </View>
       </View>
       <AppText variant="subtitle">{title}</AppText>
-      <AppText tone="body">{localized(exercise, 'instructions', language)}</AppText>
+      <AppText tone="body">{personalized && !showOriginal ? personalized : original}</AppText>
+      {personalized ? (
+        <View style={styles.personalized}>
+          <AppText variant="caption" tone="secondary">
+            {showOriginal ? t('today.originalInstructions') : t('today.personalizedForYou')}
+          </AppText>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={
+              showOriginal
+                ? t('today.showPersonalizedFor', { title })
+                : t('today.showOriginalFor', { title })
+            }
+            hitSlop={8}
+            onPress={() => setShowOriginal(!showOriginal)}
+          >
+            <AppText variant="caption" tone="link">
+              {showOriginal ? t('today.showPersonalized') : t('today.showOriginal')}
+            </AppText>
+          </Pressable>
+        </View>
+      ) : null}
 
       {showForm ? (
         <View style={styles.form}>
@@ -179,6 +204,7 @@ export function ExerciseCard({
 }
 
 const styles = StyleSheet.create({
+  personalized: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, alignItems: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   pill: { borderRadius: radius.badge, paddingHorizontal: spacing.sm, paddingVertical: 2 },
   form: { gap: spacing.sm, marginTop: spacing.sm },

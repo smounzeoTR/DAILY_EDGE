@@ -21,10 +21,12 @@ import { useAuth, useUserId } from '@/lib/auth/AuthProvider';
 import {
   generatePlan,
   generateReview,
+  isAiPending,
   isReviewOpen,
   queryKeys,
   useCheckin,
   useHabitLogs,
+  useIsPremium,
   usePlan,
   useProfile,
   usePrograms,
@@ -66,6 +68,7 @@ export default function Today() {
   const habits = useUserHabits(userId);
   const logs = useHabitLogs(userId, addDays(today, -31));
   const checkin = useCheckin(userId, today);
+  const premium = useIsPremium(userId);
   // Weekly review: generated server side when due (Sunday from 18:00 or missed week)
   const review = useQuery({
     queryKey: ['currentReview', userId],
@@ -80,6 +83,7 @@ export default function Today() {
   const [error, setError] = useState<string | null>(null);
   const [laterTick, setLaterTick] = useState(0);
   const generatedFor = useRef<string | null>(null);
+  const enrichRequestedFor = useRef<string | null>(null);
 
   // No plan yet for today: generate it (once per day)
   useEffect(() => {
@@ -94,6 +98,21 @@ export default function Today() {
       .catch(() => setGenerateError(true))
       .finally(() => setGenerating(false));
   }, [plan.isSuccess, plan.data, today, userId, queryClient]);
+
+  // Premium with AI consent: a plan computed without the AI (nightly batch, premium just
+  // enabled) is recomputed once with the background enrichment (server checks eligibility)
+  useEffect(() => {
+    const d = plan.data;
+    if (!d || !d.generated_at || premium.data !== true || !profile?.consent_ai) return;
+    const stalePending = d.ai_status === 'pending' && !isAiPending(d);
+    if (d.ai_status !== null && !stalePending) return;
+    if (d.plan_items.some((i) => i.origin === 'engine' && i.status !== 'todo')) return;
+    if (enrichRequestedFor.current === d.id) return;
+    enrichRequestedFor.current = d.id;
+    generatePlan()
+      .then(() => queryClient.invalidateQueries({ queryKey: queryKeys.plan(userId, today) }))
+      .catch(() => undefined);
+  }, [plan.data, premium.data, profile?.consent_ai, today, userId, queryClient]);
 
   // Refresh on every visit (an exercise may have been added from the library)
   useFocusEffect(
@@ -256,6 +275,11 @@ export default function Today() {
             {t('today.whyToday')}
           </AppText>
           <AppText tone="body">{data.why_today}</AppText>
+          {isAiPending(data) ? (
+            <AppText variant="caption" tone="secondary">
+              {t('today.aiPending')}
+            </AppText>
+          ) : null}
         </Card>
       ) : null}
 

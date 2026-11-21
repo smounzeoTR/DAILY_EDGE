@@ -205,7 +205,14 @@
     "proofFor": "What you did: {{title}}",
     "doneFor": "Done: {{title}}",
     "noTimeFor": "No time: {{title}}",
-    "tooHardFor": "Too hard: {{title}}"
+    "tooHardFor": "Too hard: {{title}}",
+    "personalizedForYou": "Instructions personalized for you",
+    "originalInstructions": "Original instructions",
+    "showOriginal": "See the original instructions",
+    "showPersonalized": "See the personalized instructions",
+    "showOriginalFor": "See the original instructions: {{title}}",
+    "showPersonalizedFor": "See the personalized instructions: {{title}}",
+    "aiPending": "Personalizing your day…"
   },
   "checkin": {
     "title": "Evening check-in",
@@ -349,7 +356,8 @@
       "update_goal_progress": "Update your progress: we can then adjust your goal more accurately.",
       "level_up": "Move up to {{level}}: you have been above 85% for 2 weeks.",
       "daily_minutes": "Plan {{minutes}} min a day (you spend about {{average}} min)."
-    }
+    },
+    "aiPending": "Your review is being written…"
   },
   "settings": {
     "title": "Settings",
@@ -402,11 +410,69 @@
     "programTitle": "Change program",
     "programConfirmTitle": "Switch to \"{{name}}\"?",
     "programConfirmBody": "You will restart at day 1. Your history is kept.",
-    "programConfirm": "Restart at day 1"
+    "programConfirm": "Restart at day 1",
+    "offer": "Plan",
+    "currentPlan": "Your plan: {{plan}}",
+    "planFree": "Free",
+    "planPremium": "Premium",
+    "premiumPerks": "Premium: instructions personalized for your goal, a \"why today\" written for you, exercise choice refined by AI after the program and a written weekly review. The Coach Edge assistant is coming soon.",
+    "premiumSwitch": "Premium (prototype)",
+    "premiumSwitchHint": "Demo switch: no payment in V1.",
+    "premiumNeedsConsent": "To enjoy personalization, turn on \"AI personalization\" in the consents."
   },
   "deletion": {
     "title": "Your account will be deleted on {{date}}",
     "body": "Until then, you can cancel the deletion or export your data. After that, everything will be erased for good.",
     "cancel": "Cancel the deletion"
+  },
+  "admin": {
+    "title": "Administration",
+    "open": "Open administration",
+    "readOnly": "Read only. Content is edited in the Sheet, then imported.",
+    "exercises": "Exercise statistics",
+    "engineLog": "Engine log",
+    "aiCost": "AI cost per day",
+    "lastDays_one": "{{count}} day",
+    "lastDays_other": "{{count}} days",
+    "search": "Search (id or title)",
+    "onlyProposed": "Proposed exercises only",
+    "sortBy": "Sort by",
+    "metrics": {
+      "proposed": "Proposed",
+      "done_rate": "Completion",
+      "avg_rating": "Average rating",
+      "too_hard_rate": "Too hard",
+      "skip_rate": "Skipped"
+    },
+    "count_one": "{{count}} exercise",
+    "count_other": "{{count}} exercises",
+    "statsLine": "Proposed {{proposed}} · added {{added}} · done {{done}} · rating {{rating}} · too hard {{tooHard}} · skipped {{skipped}}",
+    "email": "User e-mail",
+    "searchUser": "Show the log",
+    "userNotFound": "No account with this e-mail.",
+    "forbidden": "Access denied: two-factor authentication required.",
+    "noDecision": "No decision for this account.",
+    "rules": "Rules: {{rules}}",
+    "items": "Exercises: {{items}}",
+    "callLine": "AI {{model}} · {{outcome}} · fallback {{reason}} · {{tokens}} tokens · €{{cost}} · {{latency}} ms",
+    "totalCost": "Total over the period: €{{cost}}",
+    "noCall": "No AI call over the period.",
+    "features": {
+      "plan": "Daily plan",
+      "review": "Review",
+      "assistant": "Assistant"
+    },
+    "costLine": "{{calls}} calls · {{cache}} reused · {{fallbacks}} fallbacks · {{quota}} over the cap · {{tokens}} tokens · €{{cost}} · {{latency}} ms on average",
+    "mfa": {
+      "title": "Two-factor authentication",
+      "why": "Administration requires a one-time code from an authenticator app.",
+      "enable": "Turn on two-factor authentication",
+      "scan": "Scan this QR code with your authenticator app, or enter the key below.",
+      "qr": "Two-factor authentication QR code",
+      "secretLabel": "Secret key",
+      "code": "6-digit code",
+      "verify": "Check the code",
+      "invalidCode": "Wrong or expired code. Try again with the code shown."
+    }
   }
 }

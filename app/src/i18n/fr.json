@@ -205,7 +205,14 @@
     "proofFor": "Ce que tu as fait : {{title}}",
     "doneFor": "Fait : {{title}}",
     "noTimeFor": "Pas le temps : {{title}}",
-    "tooHardFor": "Trop dur : {{title}}"
+    "tooHardFor": "Trop dur : {{title}}",
+    "personalizedForYou": "Consigne personnalisée pour toi",
+    "originalInstructions": "Consigne d'origine",
+    "showOriginal": "Voir la consigne d'origine",
+    "showPersonalized": "Voir la consigne personnalisée",
+    "showOriginalFor": "Voir la consigne d'origine : {{title}}",
+    "showPersonalizedFor": "Voir la consigne personnalisée : {{title}}",
+    "aiPending": "Ta journée est en cours de personnalisation…"
   },
   "checkin": {
     "title": "Check-in du soir",
@@ -349,7 +356,8 @@
       "update_goal_progress": "Mets à jour ton avancement : on pourra ajuster ton objectif plus justement.",
       "level_up": "Passer au niveau {{level}} : tu dépasses 85 % depuis 2 semaines.",
       "daily_minutes": "Prévoir {{minutes}} min par jour (tu y passes environ {{average}} min)."
-    }
+    },
+    "aiPending": "Ton bilan est en cours de rédaction…"
   },
   "settings": {
     "title": "Réglages",
@@ -402,11 +410,69 @@
     "programTitle": "Changer de programme",
     "programConfirmTitle": "Passer à « {{name}} » ?",
     "programConfirmBody": "Tu recommenceras au jour 1. Ton historique est conservé.",
-    "programConfirm": "Recommencer au jour 1"
+    "programConfirm": "Recommencer au jour 1",
+    "offer": "Offre",
+    "currentPlan": "Ton offre : {{plan}}",
+    "planFree": "Gratuit",
+    "planPremium": "Premium",
+    "premiumPerks": "Premium : consignes personnalisées selon ton objectif, « pourquoi aujourd'hui » rédigé pour toi, choix des exercices affiné par l'IA après le programme et bilan de la semaine rédigé. L'assistant Coach Edge arrive bientôt.",
+    "premiumSwitch": "Premium (prototype)",
+    "premiumSwitchHint": "Interrupteur de démonstration : aucun paiement en V1.",
+    "premiumNeedsConsent": "Pour profiter de la personnalisation, active « Personnalisation par IA » dans les consentements."
   },
   "deletion": {
     "title": "Ton compte sera supprimé le {{date}}",
     "body": "D'ici là, tu peux annuler la suppression ou exporter tes données. Ensuite, tout sera définitivement effacé.",
     "cancel": "Annuler la suppression"
+  },
+  "admin": {
+    "title": "Administration",
+    "open": "Ouvrir l'administration",
+    "readOnly": "Lecture seule. Le contenu s'édite dans le Sheet puis s'importe.",
+    "exercises": "Statistiques par exercice",
+    "engineLog": "Journal du moteur",
+    "aiCost": "Coût IA par jour",
+    "lastDays_one": "{{count}} jour",
+    "lastDays_other": "{{count}} jours",
+    "search": "Rechercher (identifiant ou titre)",
+    "onlyProposed": "Seulement les exercices proposés",
+    "sortBy": "Trier par",
+    "metrics": {
+      "proposed": "Proposés",
+      "done_rate": "Réalisation",
+      "avg_rating": "Note moyenne",
+      "too_hard_rate": "Trop dur",
+      "skip_rate": "Sautés"
+    },
+    "count_one": "{{count}} exercice",
+    "count_other": "{{count}} exercices",
+    "statsLine": "Proposé {{proposed}} · ajouté {{added}} · fait {{done}} · note {{rating}} · trop dur {{tooHard}} · sauté {{skipped}}",
+    "email": "E-mail de l'utilisateur",
+    "searchUser": "Afficher le journal",
+    "userNotFound": "Aucun compte avec cet e-mail.",
+    "forbidden": "Accès refusé : double authentification requise.",
+    "noDecision": "Aucune décision pour ce compte.",
+    "rules": "Règles : {{rules}}",
+    "items": "Exercices : {{items}}",
+    "callLine": "IA {{model}} · {{outcome}} · repli {{reason}} · {{tokens}} tokens · {{cost}} € · {{latency}} ms",
+    "totalCost": "Total sur la période : {{cost}} €",
+    "noCall": "Aucun appel IA sur la période.",
+    "features": {
+      "plan": "Plan du jour",
+      "review": "Bilan",
+      "assistant": "Assistant"
+    },
+    "costLine": "{{calls}} appels · {{cache}} réutilisés · {{fallbacks}} replis · {{quota}} au-delà du plafond · {{tokens}} tokens · {{cost}} € · {{latency}} ms en moyenne",
+    "mfa": {
+      "title": "Double authentification",
+      "why": "L'administration exige un code à usage unique d'une application d'authentification.",
+      "enable": "Activer la double authentification",
+      "scan": "Scanne ce QR code avec ton application d'authentification, ou saisis la clé ci-dessous.",
+      "qr": "QR code de la double authentification",
+      "secretLabel": "Clé secrète",
+      "code": "Code à 6 chiffres",
+      "verify": "Valider le code",
+      "invalidCode": "Code incorrect ou expiré. Réessaie avec le code affiché."
+    }
   }
 }
