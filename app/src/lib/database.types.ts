@@ -662,6 +662,8 @@ export type Database = {
       llm_calls: {
         Row: {
           attempts: number;
+          cache_read_tokens: number;
+          cache_write_tokens: number;
           cost_eur: number;
           created_at: string;
           decision_id: string | null;
@@ -684,6 +686,8 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           attempts?: number;
+          cache_read_tokens?: number;
+          cache_write_tokens?: number;
           cost_eur?: number;
           created_at?: string;
           decision_id?: string | null;
@@ -705,6 +709,8 @@ export type Database = {
         };
         Update: {
           attempts?: number;
+          cache_read_tokens?: number;
+          cache_write_tokens?: number;
           cost_eur?: number;
           created_at?: string;
           decision_id?: string | null;
@@ -1394,6 +1400,8 @@ export type Database = {
       };
       apply_review_enrichment: { Args: { p_result: Json; p_review_id: string }; Returns: string };
       assistant_daily_limit: { Args: Record<PropertyKey, never>; Returns: number };
+      assistant_month_cost: { Args: { p_user_id: string }; Returns: number };
+      assistant_monthly_cap: { Args: Record<PropertyKey, never>; Returns: number };
       assistant_quota: { Args: Record<PropertyKey, never>; Returns: Json };
       cancel_account_deletion: { Args: Record<PropertyKey, never>; Returns: undefined };
       cancel_assistant_action: { Args: { p_action_id: string }; Returns: undefined };

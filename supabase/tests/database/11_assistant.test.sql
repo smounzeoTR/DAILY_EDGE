@@ -46,7 +46,7 @@ create function pg_temp.items(p_user uuid) returns text language sql as $$
 $$;
 grant execute on function pg_temp.items(uuid) to authenticated, service_role;
 
-select ok(public.assistant_daily_limit() = 30, 'assistant daily limit read from app_settings (30)');
+select ok(public.assistant_daily_limit() = 15, 'assistant daily limit read from app_settings (15)');
 select ok(public.today_available_minutes('00000000-0000-0000-0000-0000000000a9', (select today from d)) = 30,
   'available minutes from the profile when there is no check-in');
 
