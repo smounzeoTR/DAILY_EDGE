@@ -6,6 +6,11 @@ import { execSync } from 'node:child_process';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { assertMockProviders } from './guard.ts';
+
+// Never a real (paid) provider: fails before any call
+assertMockProviders();
+
 type Status = { API_URL: string; PUBLISHABLE_KEY: string; SERVICE_ROLE_KEY: string };
 const status = JSON.parse(execSync('supabase status -o json', { encoding: 'utf8' })) as Status;
 const url = status.API_URL;

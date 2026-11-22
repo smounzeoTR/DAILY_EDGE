@@ -39,6 +39,7 @@ export const TOOL_SCHEMAS = {
   search_catalog: z
     .object({
       query: z.string().max(80).optional(),
+      kind: z.enum(['exercise', 'habit', 'all']).optional(),
       domain: z.string().max(40).optional(),
       max_minutes: z.number().int().min(1).max(240).optional(),
       swap_valid: z.boolean().optional(),
@@ -88,9 +89,10 @@ export const TOOL_DEFINITIONS: LlmTool[] = [
   {
     name: 'search_catalog',
     description:
-      'Search published exercises of the catalogue. Use swap_valid=true to get only the exercises that can replace the exercise of the day (same principle in program mode, fits the time available, not already in the plan). Returns id, title, duration, domain.',
+      'Search the catalogue: published exercises and habit templates (kind: exercise, habit or all; all by default). Results are ranked by the words of the query found in titles and descriptions. Use swap_valid=true to get only the exercises that can replace the exercise of the day (same principle in program mode, fits the time available, not already in the plan). For an unrealistic or missing request, propose the closest result.',
     inputSchema: obj({
-      query: { type: 'string', description: 'Words of the title' },
+      query: { type: 'string', description: 'Words to look for (e.g. "méditer silence")' },
+      kind: { type: 'string', enum: ['exercise', 'habit', 'all'] },
       domain: { type: 'string', description: 'Domain code, e.g. clarity_goals' },
       max_minutes: { type: 'integer' },
       swap_valid: { type: 'boolean' },
@@ -145,6 +147,27 @@ export const TOOL_DEFINITIONS: LlmTool[] = [
 
 const fail = (reason: string): ToolOutcome => ({
   content: JSON.stringify({ error: reason }),
+  isError: true,
+});
+
+// A few close words (stems of 5 letters), so that a request absent from the catalogue still finds
+// the closest entries (e.g. "méditer" -> a few minutes of silence, breathing)
+const SYNONYMS: Record<string, string[]> = {
+  medit: ['silen', 'respi', 'calme'],
+  pleine: ['silen', 'respi'],
+  relax: ['respi', 'calme', 'silen'],
+  stres: ['respi', 'calme', 'pause'],
+  sport: ['march', 'bouge', 'activ'],
+  courir: ['march', 'bouge'],
+  runni: ['walk', 'move'],
+  livre: ['lectu', 'lire', 'pages'],
+  dormi: ['somme', 'couch', 'ecran'],
+  sleep: ['bedti', 'scree'],
+};
+
+// Not a mistake of the model: the action needs information only the user can give
+const proofRequired = (proofType: string, next: string): ToolOutcome => ({
+  content: JSON.stringify({ status: 'proof_required', proof_type: proofType, next_step: next }),
   isError: true,
 });
 
@@ -216,27 +239,81 @@ export async function runTool(env: ToolEnv, name: string, rawInput: unknown): Pr
       return { content: JSON.stringify(today ?? { error: 'no_plan_today' }) };
     }
     case 'search_catalog': {
-      const { data, error } = await env.db
-        .from('exercises')
-        .select('id, title_fr, title_en, duration_min, domain')
-        .eq('status', 'published')
-        .order('id');
-      if (error) throw error;
-      const q = input.query ? normalize(String(input.query)) : '';
-      const valid = input.swap_valid ? await swapCandidates(env) : null;
-      const rows = (data ?? [])
-        .filter((e) => !valid || valid.has(e.id))
-        .filter((e) => !input.domain || e.domain === input.domain)
-        .filter((e) => !input.max_minutes || e.duration_min <= Number(input.max_minutes))
-        .filter((e) => !q || normalize(title(e)).includes(q))
-        .slice(0, Number(input.limit ?? 8))
-        .map((e) => ({
-          id: e.id,
-          title: title(e),
-          duration_min: e.duration_min,
-          domain: e.domain,
-        }));
-      return { content: JSON.stringify({ exercises: rows }) };
+      const kind = String(input.kind ?? (input.swap_valid ? 'exercise' : 'all'));
+      const limit = Number(input.limit ?? 8);
+      // Ranked by the number of query words (4 letters or more, stem of 5) found in the texts
+      const stems = normalize(String(input.query ?? ''))
+        .split(/[^a-z0-9]+/)
+        .filter((w) => w.length >= 4)
+        .map((w) => w.slice(0, 5));
+      const words = [...new Set(stems.flatMap((w) => [w, ...(SYNONYMS[w] ?? [])]))];
+      const score = (text: string) => {
+        const t = normalize(text);
+        return words.filter((w) => t.includes(w)).length;
+      };
+      const ranked = <R extends { text: string }>(rows: R[]) =>
+        words.length === 0
+          ? rows
+          : rows
+              .map((r) => ({ r, s: score(r.text) }))
+              .filter((x) => x.s > 0)
+              .sort((a, b) => b.s - a.s)
+              .map((x) => x.r);
+      const result: Record<string, unknown> = {};
+      if (kind !== 'habit') {
+        const { data, error } = await env.db
+          .from('exercises')
+          .select('id, title_fr, title_en, instructions_fr, instructions_en, duration_min, domain')
+          .eq('status', 'published')
+          .order('id');
+        if (error) throw error;
+        const valid = input.swap_valid ? await swapCandidates(env) : null;
+        result.exercises = ranked(
+          (data ?? [])
+            .filter((e) => !valid || valid.has(e.id))
+            .filter((e) => !input.domain || e.domain === input.domain)
+            .filter((e) => !input.max_minutes || e.duration_min <= Number(input.max_minutes))
+            .map((e) => ({
+              e,
+              text: `${title(e)} ${lang === 'en' ? e.instructions_en : e.instructions_fr}`,
+            })),
+        )
+          .slice(0, limit)
+          .map(({ e }) => ({
+            id: e.id,
+            title: title(e),
+            duration_min: e.duration_min,
+            domain: e.domain,
+          }));
+      }
+      if (kind !== 'exercise') {
+        const { data, error } = await env.db
+          .from('habit_templates')
+          .select(
+            'id, title_fr, title_en, description_fr, description_en, minimal_version_fr, minimal_version_en, frequency, domain',
+          )
+          .order('id');
+        if (error) throw error;
+        const pick = (h: Record<string, unknown>, field: string) =>
+          String(h[`${field}_${lang}`] ?? '');
+        result.habits = ranked(
+          (data ?? [])
+            .filter((h) => !input.domain || h.domain === input.domain)
+            .map((h) => ({
+              h,
+              text: `${pick(h, 'title')} ${pick(h, 'description')} ${pick(h, 'minimal_version')}`,
+            })),
+        )
+          .slice(0, limit)
+          .map(({ h }) => ({
+            template_id: h.id,
+            title: pick(h, 'title'),
+            minimal_version: pick(h, 'minimal_version'),
+            frequency: h.frequency,
+            domain: h.domain,
+          }));
+      }
+      return { content: JSON.stringify(result) };
     }
     case 'get_week_summary': {
       const { data, error } = await env.db
@@ -262,15 +339,31 @@ export async function runTool(env: ToolEnv, name: string, rawInput: unknown): Pr
     case 'save_exercise_result': {
       const { data, error } = await env.db
         .from('plan_items')
-        .select('id, daily_plans!inner(date)')
+        .select('id, daily_plans!inner(date), exercise:exercises(proof_type)')
         .eq('user_id', env.userId)
         .eq('exercise_id', String(input.exercise_id))
         .eq('daily_plans.date', env.today)
         .maybeSingle();
       if (error) throw error;
-      return data
-        ? propose(env, 'save_exercise_result', input)
-        : fail('exercise_not_in_today_plan');
+      if (!data) return fail('exercise_not_in_today_plan');
+      // Same proof rules as set_plan_item_result: ask the user before proposing the action
+      if (input.status === 'done') {
+        const proofType = data.exercise?.proof_type ?? 'checkbox';
+        const proof = String(input.proof ?? '').trim();
+        if (proofType === 'free_text' && !proof) {
+          return proofRequired(
+            'free_text',
+            'Ask the user what they did (a few words), then call again with proof.',
+          );
+        }
+        if (proofType === 'numeric' && !/^-?[0-9]+([.,][0-9]+)?$/.test(proof)) {
+          return proofRequired(
+            'numeric',
+            'Ask the user for the number (e.g. how many), then call again with proof.',
+          );
+        }
+      }
+      return propose(env, 'save_exercise_result', input);
     }
     case 'add_habit': {
       const [template, active] = await Promise.all([

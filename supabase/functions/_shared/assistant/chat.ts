@@ -245,6 +245,8 @@ export async function runChat(args: ChatArgs): Promise<void> {
   try {
     for (;;) {
       turns += 1;
+      // Text of a new turn (after a tool) starts a new paragraph
+      let needBreak = answer.trim() !== '';
       const request = {
         system,
         messages,
@@ -268,8 +270,14 @@ export async function runChat(args: ChatArgs): Promise<void> {
           })();
       for await (const ev of stream) {
         if (ev.type === 'text_delta') {
-          answer += ev.text;
-          emit({ event: 'text', data: { text: ev.text } });
+          let chunk = ev.text;
+          if (needBreak && chunk.trim() !== '') {
+            chunk = `\n\n${chunk.trimStart()}`;
+            answer = answer.trimEnd();
+            needBreak = false;
+          }
+          answer += chunk;
+          emit({ event: 'text', data: { text: chunk } });
         } else if (ev.type === 'done') {
           response = ev.response;
         }

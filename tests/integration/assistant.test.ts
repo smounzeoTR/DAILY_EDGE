@@ -6,6 +6,11 @@ import { execSync } from 'node:child_process';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
+import { assertMockProviders } from './guard.ts';
+
+// Never a real (paid) provider: fails before any call
+assertMockProviders();
+
 type Status = { API_URL: string; PUBLISHABLE_KEY: string; SERVICE_ROLE_KEY: string };
 const status = JSON.parse(execSync('supabase status -o json', { encoding: 'utf8' })) as Status;
 const url = status.API_URL;
@@ -246,14 +251,47 @@ describe('tool calls', () => {
   });
 });
 
+describe('lot 9 corrections (coach-v2)', () => {
+  it('save_exercise_result without the required proof: no action, the model is asked for it', async () => {
+    const u = await user('coach-proof', true);
+    await generatePlan(u);
+    // PR1 day 1: E001 needs a free-text proof
+    const res = await chat(u, "Marque l'exercice du jour comme fait");
+    expect(res.status).toBe(200);
+    expect(first(res.events, 'action')).toBeUndefined();
+    const debug = res.events.filter((e) => e.event === 'debug');
+    expect(JSON.stringify(debug.at(-1))).toContain('proof_required');
+    const { count } = await admin
+      .from('assistant_actions')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', u.id);
+    expect(count).toBe(0);
+    const answer = res.events.flatMap((e) => (e.event === 'text' ? [e.data.text] : [])).join('');
+    expect(answer).toContain('Qu’as-tu fait');
+  });
+
+  it('search_catalog also returns habit templates, with the closest alternative', async () => {
+    const res = await chat(b, 'Je veux méditer 2 heures chaque matin');
+    const debug = res.events.filter((e) => e.event === 'debug');
+    const sent = JSON.stringify(debug.at(-1));
+    expect(sent).toContain('H27');
+  });
+});
+
 describe('quota and purge', () => {
   it('the daily quota (app_settings) answers 429', async () => {
-    await admin.from('app_settings').update({ value: 3 }).eq('key', 'assistant_daily_messages');
-    // b already sent 2 messages
+    const { count: sent } = await admin
+      .from('assistant_messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', b.id)
+      .eq('role', 'user');
+    // One message left today, then refused
+    const limit = (sent ?? 0) + 1;
+    await admin.from('app_settings').update({ value: limit }).eq('key', 'assistant_daily_messages');
     expect((await chat(b, 'Encore une question')).status).toBe(200);
     const refused = await chat(b, 'Et une autre');
     expect(refused.status).toBe(429);
-    expect(refused.body).toMatchObject({ error: 'quota_exceeded', limit: 3 });
+    expect(refused.body).toMatchObject({ error: 'quota_exceeded', limit });
     await admin.from('app_settings').update({ value: 30 }).eq('key', 'assistant_daily_messages');
   });
 
