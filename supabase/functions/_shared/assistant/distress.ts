@@ -22,7 +22,14 @@ const PATTERNS: RegExp[] = [
   /\b(me faire|me fais) du mal\b/,
   /\bautomutil/,
   /\bscarifi/,
-  /\b(envie de|veux) disparaitre\b/,
+  /\b(envie de|veux|voudrais|aimerais|besoin de|j ai envie de) disparaitre\b/,
+  /\bdisparaitre pour (toujours|de bon)\b/,
+  /\bpersonne ne (le |la |me )?(remarquerait|verrait|s apercevrait|regretterait)\b/,
+  /\b(tout le monde|ma famille|ils|mes proches|les autres) (serai(en)?t|seraient) mieux sans moi\b/,
+  /\bmieux sans moi\b/,
+  /\bne plus (etre la|exister)\b/,
+  /\bje ne sers (a|plus a) rien\b/,
+  /\bje suis un (poids|fardeau)\b/,
   /\ba quoi bon vivre\b/,
   /\bplus de raison de vivre\b/,
   // English
@@ -34,6 +41,14 @@ const PATTERNS: RegExp[] = [
   /\bno reason to live\b/,
   /\bbetter off dead\b/,
   /\bdon t want to (live|be alive)\b/,
+  /\b(want to|wanna|feel like|would like to) disappear(ing)?\b/,
+  /\bdisappear forever\b/,
+  /\b(nobody|no one|no-one) would (even )?(notice|care|miss me)\b/,
+  /\bbetter off without me\b/,
+  /\bnot (be )?(here|around) anymore\b/,
+  /\bi( a| )?m a burden\b/,
+  /\bdon t want to be (here|around|alive)( anymore)?\b/,
+  /\bi feel (worthless|useless)\b/,
 ];
 
 export function detectDistress(text: string): boolean {

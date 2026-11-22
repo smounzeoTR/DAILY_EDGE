@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import type { LlmRequest } from './types.ts';
 
-export const PLAN_PROMPT_VERSION = 'plan-v2';
+export const PLAN_PROMPT_VERSION = 'plan-v3';
 export const MAX_INSTRUCTIONS_CHARS = 400;
 export const MAX_WHY_SENTENCES = 2;
 export const MAX_WHY_CHARS = 300;
@@ -137,7 +137,8 @@ Rules:
 - If "mode" is "program", keep exactly the exercises listed in "locked_ids" (same ids, same order).
 - If "mode" is "catalog", choose 1 to 3 exercises best suited to the goal and the recent energy. Each candidate has its "duration_min"; the SUM of the duration_min of your chosen exercises must not exceed "max_total_minutes". Put the most important exercise first: if the total is too long, the last ones are removed.
 - For each chosen exercise, rewrite the instructions for this user's goal in at most 400 characters, without changing the nature of the exercise (same action, same expected result).
-- Write "why_today" in at most 2 short sentences explaining why this is the right exercise today.
+- Write "why_today" in at most 2 short sentences explaining why this is the right choice today.
+  Never mention how many exercises there are (some may be removed to fit the time).
 - Write everything in the language given by "language" (fr = French with "tu", en = English).
 - Kind, concrete, never guilt-inducing. No medical, financial or legal advice.
 Answer with JSON only: {"items":[{"exercise_id":"...","instructions":"..."}],"why_today":"..."}.`;
@@ -239,7 +240,10 @@ export function fitPlanToBudget(
     total += minutes;
   }
   if (kept.length === 0) return { reason: 'over_budget' };
-  return kept.length === output.items.length
-    ? { output }
-    : { output: { ...output, items: kept }, detail: 'trimmed_to_budget' };
+  if (kept.length === output.items.length) return { output };
+  // The AI's "why today" may describe the removed exercises: the rules' one is used instead
+  return {
+    output: { ...output, items: kept, why_today: payload.rules_why_today },
+    detail: 'trimmed_to_budget',
+  };
 }

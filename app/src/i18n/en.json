@@ -726,9 +726,9 @@
     "safety": {
       "title": "You are not alone",
       "body": "If you are going through a hard time, talk to someone now. In France, 3114 is the national suicide prevention line: free, 24/7.",
-      "call": "Call 3114",
-      "callLabel": "Call 3114, national suicide prevention line",
-      "emergency": "In immediate danger: 15 (emergency medical service) or 112."
+      "call": "Call 3114 (France)",
+      "callLabel": "Call 3114, national suicide prevention line in France",
+      "emergency": "In immediate danger: 15 or 112 in France. Outside France, call your local emergency number."
     }
   }
 }

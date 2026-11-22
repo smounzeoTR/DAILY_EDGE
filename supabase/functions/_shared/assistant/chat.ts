@@ -17,6 +17,7 @@ import {
 import { loadAssistantContext } from './context.ts';
 import { detectDistress } from './distress.ts';
 import { ASSISTANT_PROMPT_VERSION, buildSystemPrompt, SUMMARY_SYSTEM } from './prompt.ts';
+import { createIdentifierFilter } from './sanitize.ts';
 import { MAX_TOOL_CALLS, runTool, TOOL_DEFINITIONS } from './tools.ts';
 
 type Client = SupabaseClient<Database>;
@@ -247,6 +248,7 @@ export async function runChat(args: ChatArgs): Promise<void> {
       turns += 1;
       // Text of a new turn (after a tool) starts a new paragraph
       let needBreak = answer.trim() !== '';
+      const filter = createIdentifierFilter();
       const request = {
         system,
         messages,
@@ -270,7 +272,8 @@ export async function runChat(args: ChatArgs): Promise<void> {
           })();
       for await (const ev of stream) {
         if (ev.type === 'text_delta') {
-          let chunk = ev.text;
+          let chunk = filter.push(ev.text);
+          if (chunk === '') continue;
           if (needBreak && chunk.trim() !== '') {
             chunk = `\n\n${chunk.trimStart()}`;
             answer = answer.trimEnd();
@@ -281,6 +284,11 @@ export async function runChat(args: ChatArgs): Promise<void> {
         } else if (ev.type === 'done') {
           response = ev.response;
         }
+      }
+      const tail = filter.flush();
+      if (tail) {
+        answer += tail;
+        emit({ event: 'text', data: { text: tail } });
       }
       if (!response) throw new LlmError('provider_error', 'no response');
       inputTokens += response.usage.inputTokens;

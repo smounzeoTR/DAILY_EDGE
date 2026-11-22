@@ -328,8 +328,36 @@ export async function runTool(env: ToolEnv, name: string, rawInput: unknown): Pr
     }
     case 'adapt_today': {
       const problem = await planUntouched(env);
-      return problem ? fail(problem) : propose(env, 'adapt_today', input);
+      if (problem) return fail(problem);
+      // Nothing to propose when the day already fits the time given
+      const [items, available] = await Promise.all([
+        env.db
+          .from('plan_items')
+          .select('origin, exercise:exercises(duration_min), daily_plans!inner(date)')
+          .eq('user_id', env.userId)
+          .eq('origin', 'engine')
+          .eq('daily_plans.date', env.today),
+        input.minutes === undefined
+          ? env.db.rpc('today_available_minutes', { p_user_id: env.userId, p_date: env.today })
+          : Promise.resolve({ data: input.minutes, error: null }),
+      ]);
+      if (items.error) throw items.error;
+      if (available.error) throw available.error;
+      const total = (items.data ?? []).reduce((sum, i) => sum + (i.exercise?.duration_min ?? 0), 0);
+      const minutes = Number(available.data ?? 0);
+      if (total > 0 && total <= minutes) {
+        return {
+          content: JSON.stringify({
+            status: 'already_compatible',
+            plan_minutes: total,
+            minutes_available: minutes,
+            note: 'No action created: the day already fits this time.',
+          }),
+        };
+      }
+      return propose(env, 'adapt_today', input);
     }
+
     case 'swap_exercise': {
       const problem = await planUntouched(env);
       if (problem) return fail(problem);

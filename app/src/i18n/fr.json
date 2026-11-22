@@ -725,10 +725,10 @@
     },
     "safety": {
       "title": "Tu n'es pas seul·e",
-      "body": "Si tu traverses un moment difficile, parle à quelqu'un maintenant. Le 3114 est le numéro national de prévention du suicide : gratuit, 24 h/24, 7 j/7.",
-      "call": "Appeler le 3114",
-      "callLabel": "Appeler le 3114, numéro national de prévention du suicide",
-      "emergency": "En cas de danger immédiat : 15 (SAMU) ou 112."
+      "body": "Si tu traverses un moment difficile, parle à quelqu'un maintenant. En France, le 3114 est le numéro national de prévention du suicide : gratuit, 24 h/24, 7 j/7.",
+      "call": "Appeler le 3114 (France)",
+      "callLabel": "Appeler le 3114, numéro national de prévention du suicide en France",
+      "emergency": "En cas de danger immédiat : 15 (SAMU) ou 112 en France. Hors de France, appelle le numéro d'urgence local."
     }
   }
 }

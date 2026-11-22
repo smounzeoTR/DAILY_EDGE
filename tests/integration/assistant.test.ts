@@ -128,16 +128,16 @@ describe('actions: nothing is written without confirmation', () => {
   let actionId: string;
   let before: Awaited<ReturnType<typeof todayItems>>;
 
-  it('"I only have 10 minutes": streamed answer and a pending action, plan unchanged', async () => {
+  it('"I only have 5 minutes": streamed answer and a pending action, plan unchanged', async () => {
     before = await todayItems(a.id);
-    const res = await chat(a, "Je n'ai que 10 minutes aujourd'hui");
+    const res = await chat(a, "Je n'ai que 5 minutes aujourd'hui");
     expect(res.status).toBe(200);
     expect(first(res.events, 'thread')?.id).toBeTruthy();
     const action = first(res.events, 'action');
     expect(action).toMatchObject({
       type: 'adapt_today',
       status: 'pending',
-      params: { minutes: 10 },
+      params: { minutes: 5 },
     });
     expect(res.events.filter((e) => e.event === 'text').length).toBeGreaterThan(1);
     expect(first(res.events, 'done')?.remaining).toBe(29);
@@ -252,6 +252,17 @@ describe('tool calls', () => {
 });
 
 describe('lot 9 corrections (coach-v2)', () => {
+  it('adapt_today when the day already fits: no action, "already compatible" for the model', async () => {
+    const u = await user('coach-fits', true);
+    await generatePlan(u);
+    // PR1 day 1: a 10-minute exercise
+    const res = await chat(u, "Je n'ai que 10 minutes aujourd'hui");
+    expect(first(res.events, 'action')).toBeUndefined();
+    expect(JSON.stringify(res.events.filter((e) => e.event === 'debug').at(-1))).toContain(
+      'already_compatible',
+    );
+  });
+
   it('save_exercise_result without the required proof: no action, the model is asked for it', async () => {
     const u = await user('coach-proof', true);
     await generatePlan(u);

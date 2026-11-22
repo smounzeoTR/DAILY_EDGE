@@ -1,5 +1,5 @@
 # Lot 9: new account -> Coach tab presentation -> premium (prototype switch) and AI consent ->
-# "Je n'ai que 10 minutes aujourd'hui" -> action card -> "Appliquer" -> Today shows the short
+# "Je n'ai que 5 minutes aujourd'hui" (the 10-minute exercise of day 1 no longer fits) -> action card -> "Appliquer" -> Today shows the short
 # version; then a note shared with the coach (pre-filled input, sent by the user).
 # Local mock provider of config.toml (streamed answer, adapt_today tool).
 # Run: maestro test app/e2e/lot9-coach.yaml -e APP_URL=exp://127.0.0.1:8081
@@ -37,15 +37,15 @@ appId: host.exp.Exponent
     visible: 'Nouvelle conversation'
     timeout: 15000
 
-# ---- "Only 10 minutes" -> action card -> Apply -------------------------------------
+# ---- "Only 5 minutes" -> action card -> Apply -------------------------------------
 - tapOn: 'Nouvelle conversation'
 - tapOn:
     id: 'coach-input'
-- inputText: "Je n'ai que 10 minutes aujourd'hui"
+- inputText: "Je n'ai que 5 minutes aujourd'hui"
 - runFlow: subflows/dismiss-keyboard-tip.yaml
 - tapOn: 'Envoyer'
 - extendedWaitUntil:
-    visible: 'Passer à une version courte de ta journée \(10 min\)'
+    visible: 'Passer à une version courte de ta journée \(5 min\)'
     timeout: 20000
 - assertVisible: 'Rien ne change tant que.*'
 - takeScreenshot: e2e-l9-02-action-card

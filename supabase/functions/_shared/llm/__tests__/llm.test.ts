@@ -300,6 +300,7 @@ describe('plan trimmed to the budget (runTask)', () => {
     });
     expect(result).toMatchObject({ outcome: 'success', detail: 'trimmed_to_budget' });
     expect(applied[0]?.items.map((i) => i.exercise_id)).toEqual(['E003']);
+    expect(applied[0]?.why_today).toBe(payload.rules_why_today);
     expect(store.records[0]).toMatchObject({ outcome: 'success', detail: 'trimmed_to_budget' });
   });
 });
@@ -391,13 +392,14 @@ describe('plan output checks', () => {
   });
   it('over the budget: keeps the AI order and removes the last ones (trimmed_to_budget)', () => {
     // Budget 30: E002 (10) + E004 (25) is too long -> E002 kept
-    expect(fitPlanToBudget(out(['E002', 'E004']), payload)).toEqual({
-      output: out(['E002']),
+    // The rules' "why today" replaces the AI's (it may count the removed exercises)
+    expect(fitPlanToBudget(out(['E002', 'E004'], 'Ces deux exercices.'), payload)).toEqual({
+      output: { ...out(['E002']), why_today: payload.rules_why_today },
       detail: 'trimmed_to_budget',
     });
     // E003 (15) + E002 (10) fit; E004 (25) removed
     expect(fitPlanToBudget(out(['E003', 'E002', 'E004']), payload)).toEqual({
-      output: out(['E003', 'E002']),
+      output: { ...out(['E003', 'E002']), why_today: payload.rules_why_today },
       detail: 'trimmed_to_budget',
     });
     expect(fitPlanToBudget(out(['E002', 'E003']), payload)).toEqual({

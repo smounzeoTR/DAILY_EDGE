@@ -4,6 +4,7 @@ import { createMockProvider } from '../../llm/mock.ts';
 import type { LlmStreamEvent } from '../../llm/types.ts';
 import { localDayBounds } from '../chat.ts';
 import { buildAssistantContext } from '../context.ts';
+import { createIdentifierFilter, removeIdentifiers } from '../sanitize.ts';
 import { ASSISTANT_PROMPT_VERSION, buildSystemPrompt } from '../prompt.ts';
 import { TOOL_DEFINITIONS, TOOL_SCHEMAS, WRITE_TOOLS } from '../tools.ts';
 
@@ -170,5 +171,30 @@ describe('mock provider (assistant stream)', () => {
     );
     const none = await collect(mock.stream!({ ...request, toolChoice: 'none' }));
     expect(none.some((e) => e.type === 'tool_use')).toBe(false);
+  });
+});
+
+describe('internal identifiers never shown', () => {
+  it('removes codes, with or without parentheses', () => {
+    expect(removeIdentifiers('Essaie « Découper l’objectif » (E033) aujourd’hui.')).toBe(
+      'Essaie « Découper l’objectif » aujourd’hui.',
+    );
+    expect(removeIdentifiers('L’habitude H27 et le principe P002, programme PR1.')).toBe(
+      'L’habitude et le principe, programme.',
+    );
+    expect(removeIdentifiers('Elle Prend Huit Semaines')).toBe('Elle Prend Huit Semaines');
+  });
+  it('holds an identifier cut between two chunks', () => {
+    const f = createIdentifierFilter();
+    const shown = [
+      f.push('Je te propose (E0'),
+      f.push('33) : un bloc de 10 min. '),
+      f.flush(),
+    ].join('');
+    expect(shown).toBe('Je te propose : un bloc de 10 min. ');
+    const g = createIdentifierFilter();
+    expect([g.push('Habitude H'), g.push('27 ajoutée'), g.flush()].join('')).toBe(
+      'Habitude ajoutée',
+    );
   });
 });
