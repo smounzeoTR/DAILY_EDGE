@@ -43,6 +43,7 @@
       "@react-native-community/datetimepicker",
       "expo-sharing",
       "expo-secure-store",
+      "./plugins/withSentryXcodeEnv",
       "@sentry/react-native"
     ],
     "experiments": {
