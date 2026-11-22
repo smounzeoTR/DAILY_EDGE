@@ -1,6 +1,6 @@
 // Tab badges from the data already in the query cache: subscribed to the cache itself (no query
 // observer), so they never trigger a network call nor change the screens' queries.
-import { useQueryClient, type QueryKey } from '@tanstack/react-query';
+import { notifyManager, useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 
 import { introducedDismissedKey, isEveningHighlight, localToday } from '@/features/today/day';
@@ -16,7 +16,10 @@ type CachedHabit = { template_id: string | null };
 function useCachedData<T>(queryKey: QueryKey): T | undefined {
   const queryClient = useQueryClient();
   const subscribe = useCallback(
-    (onChange: () => void) => queryClient.getQueryCache().subscribe(onChange),
+    // The cache notifies synchronously, possibly while another screen renders (a query built by
+    // its useQuery): the change is scheduled, as React Query does for its own observers
+    (onChange: () => void) =>
+      queryClient.getQueryCache().subscribe(notifyManager.batchCalls(onChange)),
     [queryClient],
   );
   return useSyncExternalStore(subscribe, () => queryClient.getQueryData<T>(queryKey));
