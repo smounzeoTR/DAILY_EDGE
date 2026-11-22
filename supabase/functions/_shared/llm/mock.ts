@@ -178,7 +178,7 @@ function assistantTurn(request: LlmRequest): {
   text?: string;
   tool?: { name: string; input: Record<string, unknown> };
 } {
-  const en = /Language: en\b/.test(request.system);
+  const en = /Language: en\b/.test(`${request.cachedSystem ?? ''}\n${request.system}`);
   const last = request.messages[request.messages.length - 1];
   const blocks = typeof last?.content === 'string' ? null : (last?.content ?? []);
   const toolResult = blocks?.find((b) => b.type === 'tool_result');
@@ -218,6 +218,10 @@ function assistantTurn(request: LlmRequest): {
   const minutes = /(\d+)\s*min/i.exec(text);
   if (canUseTools && minutes) {
     return { tool: { name: 'adapt_today', input: { minutes: Number(minutes[1]) } } };
+  }
+  // Test trigger: announces a card without creating any action
+  if (text.includes('CARTE_FANTOME')) {
+    return { text: 'Touche « Appliquer » sur la carte pour valider.' };
   }
   if (canUseTools && /méditer|meditate/i.test(text)) {
     return { tool: { name: 'search_catalog', input: { query: text.slice(0, 80), kind: 'habit' } } };

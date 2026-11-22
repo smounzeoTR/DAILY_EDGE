@@ -721,7 +721,8 @@
       "no_shorter_exercise": "No shorter version available today.",
       "too_many_habits": "You already have 6 active habits.",
       "item_not_found": "This exercise is no longer in your day.",
-      "goal_not_found": "No active goal."
+      "goal_not_found": "No active goal.",
+      "monthlyCap": "Your coach is taking a break until next month. The rest of the app is still there: your plan, your habits and your check-in are waiting for you."
     },
     "safety": {
       "title": "You are not alone",

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createMockProvider } from '../../llm/mock.ts';
 import type { LlmStreamEvent } from '../../llm/types.ts';
 import { localDayBounds } from '../chat.ts';
+import { claimsCard } from '../claims.ts';
 import { buildAssistantContext } from '../context.ts';
 import { createIdentifierFilter, removeIdentifiers } from '../sanitize.ts';
 import { ASSISTANT_PROMPT_VERSION, buildSystemPrompt } from '../prompt.ts';
@@ -196,5 +197,24 @@ describe('internal identifiers never shown', () => {
     expect([g.push('Habitude H'), g.push('27 ajoutée'), g.flush()].join('')).toBe(
       'Habitude ajoutée',
     );
+  });
+});
+
+describe('card announced without an action', () => {
+  it.each([
+    'Touche « Appliquer » sur la carte.',
+    'La carte est prête.',
+    'Tap "Apply" to confirm.',
+    'I prepared a card for you.',
+  ])('flags "%s"', (text) => {
+    expect(claimsCard(text)).toBe(true);
+  });
+  it.each([
+    'Pour appliquer ce principe, commence petit.',
+    'Applique-le dès demain matin.',
+    'Apply this idea to your goal.',
+    'Ta journée tient déjà dans 10 minutes.',
+  ])('does not flag "%s"', (text) => {
+    expect(claimsCard(text)).toBe(false);
   });
 });

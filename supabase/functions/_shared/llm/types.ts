@@ -29,6 +29,9 @@ export type LlmTool = {
 
 export type LlmRequest = {
   system: string;
+  // Fixed part of the system prompt, sent before `system` and cached when the provider allows it
+  // (Anthropic: with the tool definitions, which come first in the prefix)
+  cachedSystem?: string;
   messages: LlmMessage[];
   // Assistant (lot 9): tools the model may call; 'none' forces a text answer
   tools?: LlmTool[];
@@ -39,7 +42,13 @@ export type LlmRequest = {
   signal?: AbortSignal;
 };
 
-export type LlmUsage = { inputTokens: number; outputTokens: number };
+export type LlmUsage = {
+  // Uncached input tokens
+  inputTokens: number;
+  outputTokens: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+};
 
 export type LlmResponse = {
   model: string;
@@ -66,7 +75,13 @@ export interface LlmProvider {
 }
 
 // EUR per million tokens (from the environment, never hard-coded)
-export type LlmPricing = { inputPerMTok: number; outputPerMTok: number };
+export type LlmPricing = {
+  inputPerMTok: number;
+  outputPerMTok: number;
+  // Cache reads and writes (defaults: 0.1x and 1.25x the input price when not set)
+  cacheReadPerMTok?: number;
+  cacheWritePerMTok?: number;
+};
 
 export type LlmErrorReason = 'timeout' | 'provider_error' | 'refusal' | 'unsupported';
 

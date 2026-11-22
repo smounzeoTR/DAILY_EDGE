@@ -33,8 +33,10 @@ export type LlmCallRecord = {
   latencyMs: number | null;
   inputHash: string;
   output: unknown;
-  // Success with an adjustment (e.g. trimmed_to_budget)
+  // Success with an adjustment (e.g. trimmed_to_budget) or a flagged answer
   detail?: string | null;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
   decisionId?: string | null;
   reviewId?: string | null;
 };
@@ -81,9 +83,20 @@ export async function sha256Hex(text: string): Promise<string> {
   return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-export function estimateCost(pricing: LlmPricing, inputTokens: number, outputTokens: number) {
+// Cost with the cache prices: uncached input, cache reads and writes, output
+export function estimateCost(
+  pricing: LlmPricing,
+  inputTokens: number,
+  outputTokens: number,
+  cacheReadTokens = 0,
+  cacheWriteTokens = 0,
+) {
+  const read = pricing.cacheReadPerMTok ?? pricing.inputPerMTok * 0.1;
+  const write = pricing.cacheWritePerMTok ?? pricing.inputPerMTok * 1.25;
   const cost =
     (inputTokens / 1_000_000) * pricing.inputPerMTok +
+    (cacheReadTokens / 1_000_000) * read +
+    (cacheWriteTokens / 1_000_000) * write +
     (outputTokens / 1_000_000) * pricing.outputPerMTok;
   return Math.round(cost * 1e6) / 1e6;
 }

@@ -50,7 +50,17 @@ function params(options: AnthropicOptions, request: LlmRequest) {
   return {
     model: options.model,
     max_tokens: request.maxTokens,
-    system: request.system,
+    // The fixed part is cached (with the tool definitions, which come before it)
+    system: request.cachedSystem
+      ? [
+          {
+            type: 'text' as const,
+            text: request.cachedSystem,
+            cache_control: { type: 'ephemeral' as const },
+          },
+          { type: 'text' as const, text: request.system },
+        ]
+      : request.system,
     messages: request.messages.map(toAnthropicMessage),
     ...(request.tools?.length
       ? {
@@ -88,6 +98,8 @@ function toResponse(message: Anthropic.Message): LlmResponse {
     usage: {
       inputTokens: message.usage.input_tokens,
       outputTokens: message.usage.output_tokens,
+      cacheReadTokens: message.usage.cache_read_input_tokens ?? 0,
+      cacheWriteTokens: message.usage.cache_creation_input_tokens ?? 0,
     },
     stopReason:
       message.stop_reason === 'end_turn' ||

@@ -107,7 +107,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await admin.from('app_settings').update({ value: 30 }).eq('key', 'assistant_daily_messages');
+  await admin.from('app_settings').update({ value: 15 }).eq('key', 'assistant_daily_messages');
   for (const id of created) await admin.auth.admin.deleteUser(id).catch(() => undefined);
 });
 
@@ -140,7 +140,7 @@ describe('actions: nothing is written without confirmation', () => {
       params: { minutes: 5 },
     });
     expect(res.events.filter((e) => e.event === 'text').length).toBeGreaterThan(1);
-    expect(first(res.events, 'done')?.remaining).toBe(29);
+    expect(first(res.events, 'done')?.remaining).toBe(14);
     actionId = action.id;
     expect(await todayItems(a.id)).toEqual(before);
     const { count } = await admin
@@ -289,6 +289,41 @@ describe('lot 9 corrections (coach-v2)', () => {
   });
 });
 
+describe('cost guards and flagged answers (coach-v4)', () => {
+  it('a card announced without an action is logged (card_claimed_without_action)', async () => {
+    const u = await user('coach-claim', true);
+    const res = await chat(u, 'CARTE_FANTOME : valide pour moi');
+    expect(first(res.events, 'action')).toBeUndefined();
+    const { data } = await admin
+      .from('llm_calls')
+      .select('detail, cache_read_tokens, cache_write_tokens')
+      .eq('user_id', u.id)
+      .eq('feature', 'assistant')
+      .single();
+    expect(data).toMatchObject({ detail: 'card_claimed_without_action', cache_read_tokens: 0 });
+  });
+
+  it('monthly cost cap reached: 402 for the coach, the rest of the app keeps working', async () => {
+    const u = await user('coach-cap', true);
+    await admin.from('llm_calls').insert({
+      user_id: u.id,
+      feature: 'assistant',
+      local_date: new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Paris' }).format(new Date()),
+      outcome: 'success',
+      attempts: 1,
+      cost_eur: 2,
+    });
+    const res = await chat(u, 'Bonjour');
+    expect(res.status).toBe(402);
+    expect(res.body).toMatchObject({ error: 'monthly_cap_reached' });
+    const { data: quota } = await u.client.rpc('assistant_quota');
+    expect(quota).toMatchObject({ monthly_cap_reached: true });
+    // The plan of the day is still generated
+    const plan = await generatePlan(u);
+    expect(plan.plan?.id).toBeTruthy();
+  });
+});
+
 describe('quota and purge', () => {
   it('the daily quota (app_settings) answers 429', async () => {
     const { count: sent } = await admin
@@ -303,7 +338,7 @@ describe('quota and purge', () => {
     const refused = await chat(b, 'Et une autre');
     expect(refused.status).toBe(429);
     expect(refused.body).toMatchObject({ error: 'quota_exceeded', limit });
-    await admin.from('app_settings').update({ value: 30 }).eq('key', 'assistant_daily_messages');
+    await admin.from('app_settings').update({ value: 15 }).eq('key', 'assistant_daily_messages');
   });
 
   it('conversations idle for more than 90 days are purged by the fallback generation', async () => {

@@ -1,6 +1,7 @@
 // assistant-chat: one Coach Edge turn, streamed as Server-Sent Events.
 // The user comes from the JWT only. Body: { "thread_id"?: uuid, "message": string }.
-// Premium (is_premium) + AI consent + account not pending deletion; daily message quota.
+// Premium (is_premium) + AI consent + account not pending deletion; daily message quota (429) and
+// monthly cost cap per user (402).
 // Events: thread, safety (help card), text (chunk), action (Apply / Cancel card), done, error.
 import { isAiEligible, supabaseLlmStore } from '../_shared/ai/store.ts';
 import {
@@ -80,6 +81,17 @@ Deno.serve(async (req) => {
         })
         .catch(() => undefined);
       return json(429, { error: 'quota_exceeded', limit: quota.limit });
+    }
+
+    // Monthly cost cap per user (app_settings): the coach comes back next month
+    const [monthCost, monthCap] = await Promise.all([
+      db.rpc('assistant_month_cost', { p_user_id: profile.user_id }),
+      db.rpc('assistant_monthly_cap'),
+    ]);
+    if (monthCost.error) throw monthCost.error;
+    if (monthCap.error) throw monthCap.error;
+    if (Number(monthCost.data ?? 0) >= Number(monthCap.data ?? 2)) {
+      return json(402, { error: 'monthly_cap_reached' });
     }
 
     const encoder = new TextEncoder();

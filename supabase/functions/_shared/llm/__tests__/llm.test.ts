@@ -528,6 +528,14 @@ describe('review task', () => {
 });
 
 describe('helpers and configuration', () => {
+  it('estimates the cost with the cache prices (defaults 0.1x read, 1.25x write)', () => {
+    const p = { inputPerMTok: 2, outputPerMTok: 10 };
+    // 1000 uncached in, 500 out, 3000 read, 2000 written
+    expect(estimateCost(p, 1000, 500, 3000, 2000)).toBeCloseTo(0.002 + 0.005 + 0.0006 + 0.005, 6);
+    expect(
+      estimateCost({ ...p, cacheReadPerMTok: 0.1, cacheWritePerMTok: 2.5 }, 0, 0, 1_000_000, 0),
+    ).toBeCloseTo(0.1, 6);
+  });
   it('estimates the cost from the environment prices', () => {
     expect(estimateCost({ inputPerMTok: 0.1, outputPerMTok: 0.5 }, 2500, 500)).toBeCloseTo(
       0.0005,
@@ -582,7 +590,12 @@ describe('providers (stubbed fetch, no network)', () => {
           content: [{ type: 'text', text: '{"items":[],"why_today":"x"}' }],
           stop_reason: 'end_turn',
           stop_sequence: null,
-          usage: { input_tokens: 1200, output_tokens: 300 },
+          usage: {
+            input_tokens: 1200,
+            output_tokens: 300,
+            cache_read_input_tokens: 2500,
+            cache_creation_input_tokens: 0,
+          },
         }),
         { status: 200, headers: { 'Content-Type': 'application/json' } },
       );
@@ -593,12 +606,21 @@ describe('providers (stubbed fetch, no network)', () => {
       effort: 'low',
       fetch: fakeFetch,
     });
-    const response = await provider.complete(request);
+    const response = await provider.complete({ ...request, cachedSystem: 'FIXED RULES' });
     expect(sent).toMatchObject({
+      system: [
+        { type: 'text', text: 'FIXED RULES', cache_control: { type: 'ephemeral' } },
+        { type: 'text' },
+      ],
       model: 'model-from-env',
       output_config: { effort: 'low', format: { type: 'json_schema' } },
     });
-    expect(response.usage).toEqual({ inputTokens: 1200, outputTokens: 300 });
+    expect(response.usage).toEqual({
+      inputTokens: 1200,
+      outputTokens: 300,
+      cacheReadTokens: 2500,
+      cacheWriteTokens: 0,
+    });
     expect(response.content[0]).toEqual({ type: 'text', text: '{"items":[],"why_today":"x"}' });
   });
 

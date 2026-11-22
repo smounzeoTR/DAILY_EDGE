@@ -4,7 +4,9 @@
 // LLM_ANTHROPIC_EFFORT (low by default), LLM_MOCK_DELAY_MS / LLM_MOCK_MODE (mock only).
 // The Coach Edge assistant has its own variables: LLM_ASSISTANT_PROVIDER, LLM_ASSISTANT_MODEL,
 // LLM_ASSISTANT_PRICE_IN_EUR_PER_MTOK / ..._OUT_..., LLM_ASSISTANT_EFFORT, LLM_ASSISTANT_MOCK_CHUNK_MS
-// (the provider keys are shared). A missing setting disables the AI: the rules apply.
+// (the provider keys are shared). Cache prices: ..._PRICE_CACHE_READ_EUR_PER_MTOK and
+// ..._PRICE_CACHE_WRITE_EUR_PER_MTOK (default 0.1x and 1.25x the input price).
+// A missing setting disables the AI: the rules apply.
 import { createAnthropicProvider } from './anthropic.ts';
 import { createMistralProvider } from './mistral.ts';
 import { createMockProvider, type MockMode } from './mock.ts';
@@ -28,9 +30,15 @@ export function llmConfigFromEnv(
   const prefix = scope === 'assistant' ? 'LLM_ASSISTANT_' : 'LLM_';
   const name = (get(`${prefix}PROVIDER`) ?? 'none').trim().toLowerCase();
   const model = get(`${prefix}MODEL`)?.trim();
+  const optional = (name: string) => {
+    const value = get(`${prefix}${name}`);
+    return value === undefined || value === '' ? undefined : number(value);
+  };
   const pricing: LlmPricing = {
     inputPerMTok: number(get(`${prefix}PRICE_IN_EUR_PER_MTOK`)),
     outputPerMTok: number(get(`${prefix}PRICE_OUT_EUR_PER_MTOK`)),
+    cacheReadPerMTok: optional('PRICE_CACHE_READ_EUR_PER_MTOK'),
+    cacheWritePerMTok: optional('PRICE_CACHE_WRITE_EUR_PER_MTOK'),
   };
   if (name === 'none' || name === '') return { enabled: false, reason: 'provider_none' };
   if (name === 'mock') {

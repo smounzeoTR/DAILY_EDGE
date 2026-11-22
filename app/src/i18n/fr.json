@@ -721,7 +721,8 @@
       "no_shorter_exercise": "Pas de version plus courte disponible aujourd'hui.",
       "too_many_habits": "Tu as déjà 6 habitudes actives.",
       "item_not_found": "Cet exercice n'est plus dans ta journée.",
-      "goal_not_found": "Aucun objectif actif."
+      "goal_not_found": "Aucun objectif actif.",
+      "monthlyCap": "Ton coach fait une pause jusqu'au mois prochain. Tout le reste de l'app reste disponible : ton plan, tes habitudes et ton check-in t'attendent."
     },
     "safety": {
       "title": "Tu n'es pas seul·e",

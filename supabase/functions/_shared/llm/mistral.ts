@@ -74,7 +74,12 @@ export function createMistralProvider(options: MistralOptions): LlmProvider {
           model: options.model,
           max_tokens: request.maxTokens,
           messages: [
-            { role: 'system', content: request.system },
+            {
+              role: 'system',
+              content: request.cachedSystem
+                ? `${request.cachedSystem}\n\n${request.system}`
+                : request.system,
+            },
             ...request.messages.flatMap(toMistralMessages),
           ],
           ...(request.jsonSchema ? { response_format: { type: 'json_object' } } : {}),

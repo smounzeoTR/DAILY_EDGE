@@ -109,7 +109,7 @@ export function useCoachQuota(userId: string) {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('assistant_quota');
       if (error) throw error;
-      return data as { used: number; limit: number };
+      return data as { used: number; limit: number; monthly_cap_reached: boolean };
     },
   });
 }

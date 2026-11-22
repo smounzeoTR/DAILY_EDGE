@@ -101,10 +101,14 @@ export default function CoachConversation() {
     if (failure) {
       setError(
         failure === 'quota_exceeded'
-          ? t('coach.errors.quota', { limit: quota.data?.limit ?? 30 })
-          : t('coach.errors.unavailable'),
+          ? t('coach.errors.quota', { limit: quota.data?.limit ?? 15 })
+          : failure === 'monthly_cap_reached'
+            ? t('coach.errors.monthlyCap')
+            : t('coach.errors.unavailable'),
       );
-      if (failure === 'quota_exceeded' || !current) setInput(text);
+      if (failure === 'quota_exceeded' || failure === 'monthly_cap_reached' || !current) {
+        setInput(text);
+      }
     }
     if (current) await queryClient.invalidateQueries({ queryKey: coachKeys.thread(current) });
     await queryClient.invalidateQueries({ queryKey: coachKeys.threads(userId) });
@@ -135,6 +139,9 @@ export default function CoachConversation() {
                 {t('coach.remaining', { count: remaining })}
               </AppText>
             ) : null}
+            {quota.data?.monthly_cap_reached && !error ? (
+              <AppText tone="secondary">{t('coach.errors.monthlyCap')}</AppText>
+            ) : null}
             {error ? <AppText tone="danger">{error}</AppText> : null}
             <TextField
               value={input}
@@ -156,7 +163,9 @@ export default function CoachConversation() {
                 label={t('coach.send')}
                 onPress={() => void send()}
                 loading={sending}
-                disabled={input.trim().length === 0 || sending}
+                disabled={
+                  input.trim().length === 0 || sending || quota.data?.monthly_cap_reached === true
+                }
                 style={styles.flex}
               />
             </View>

@@ -16,7 +16,13 @@ import {
 } from '../llm/types.ts';
 import { loadAssistantContext } from './context.ts';
 import { detectDistress } from './distress.ts';
-import { ASSISTANT_PROMPT_VERSION, buildSystemPrompt, SUMMARY_SYSTEM } from './prompt.ts';
+import { claimsCard } from './claims.ts';
+import {
+  ASSISTANT_PROMPT_VERSION,
+  ASSISTANT_RULES,
+  buildDynamicSystem,
+  SUMMARY_SYSTEM,
+} from './prompt.ts';
 import { createIdentifierFilter } from './sanitize.ts';
 import { MAX_TOOL_CALLS, runTool, TOOL_DEFINITIONS } from './tools.ts';
 
@@ -230,12 +236,15 @@ export async function runChat(args: ChatArgs): Promise<void> {
   if (distress) emit({ event: 'safety', data: { line: '3114' } });
 
   const context = await loadAssistantContext(db, profile, day.date);
-  const system = buildSystemPrompt(language, context, past.summary);
+  // Fixed rules cached (with the tools); the user's data after the cache breakpoint
+  const system = buildDynamicSystem(language, context, past.summary);
   const messages: LlmMessage[] = [...past.messages, { role: 'user', content: text }];
 
   const started = Date.now();
   let inputTokens = 0;
   let outputTokens = 0;
+  let cacheReadTokens = 0;
+  let cacheWriteTokens = 0;
   let turns = 0;
   let toolCalls = 0;
   let answer = '';
@@ -250,6 +259,7 @@ export async function runChat(args: ChatArgs): Promise<void> {
       let needBreak = answer.trim() !== '';
       const filter = createIdentifierFilter();
       const request = {
+        cachedSystem: ASSISTANT_RULES,
         system,
         messages,
         tools: TOOL_DEFINITIONS,
@@ -259,7 +269,7 @@ export async function runChat(args: ChatArgs): Promise<void> {
         signal: AbortSignal.timeout(TURN_TIMEOUT_MS),
       };
       if (ai.provider.name === 'mock') {
-        emit({ event: 'debug', data: { system, messages } });
+        emit({ event: 'debug', data: { system: `${ASSISTANT_RULES}\n\n${system}`, messages } });
       }
       let response: LlmResponse | null = null;
       const stream = ai.provider.stream
@@ -293,6 +303,8 @@ export async function runChat(args: ChatArgs): Promise<void> {
       if (!response) throw new LlmError('provider_error', 'no response');
       inputTokens += response.usage.inputTokens;
       outputTokens += response.usage.outputTokens;
+      cacheReadTokens += response.usage.cacheReadTokens ?? 0;
+      cacheWriteTokens += response.usage.cacheWriteTokens ?? 0;
       const uses = response.content.filter(
         (b): b is Extract<LlmContentBlock, { type: 'tool_use' }> => b.type === 'tool_use',
       );
@@ -373,10 +385,20 @@ export async function runChat(args: ChatArgs): Promise<void> {
       model: ai.provider.model,
       outcome: failure ? 'fallback' : 'success',
       fallbackReason: failure,
+      // A card announced while no action was created in this turn
+      detail: !failure && !firstAction && claimsCard(answer) ? 'card_claimed_without_action' : null,
+      cacheReadTokens,
+      cacheWriteTokens,
       attempts: Math.min(turns, 5),
       inputTokens,
       outputTokens,
-      costEur: estimateCost(ai.pricing, inputTokens, outputTokens),
+      costEur: estimateCost(
+        ai.pricing,
+        inputTokens,
+        outputTokens,
+        cacheReadTokens,
+        cacheWriteTokens,
+      ),
       latencyMs: Date.now() - started,
       inputHash: ASSISTANT_PROMPT_VERSION,
       output: null,
