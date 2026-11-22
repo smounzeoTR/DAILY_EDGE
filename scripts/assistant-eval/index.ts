@@ -16,6 +16,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from '../../supabase/functions/_shared/database.types.ts';
 import { supabaseLlmStore } from '../../supabase/functions/_shared/ai/store.ts';
 import { runChat, type ChatEvent } from '../../supabase/functions/_shared/assistant/chat.ts';
+import { usesVous } from '../../supabase/functions/_shared/assistant/claims.ts';
 import { ASSISTANT_PROMPT_VERSION } from '../../supabase/functions/_shared/assistant/prompt.ts';
 import { llmConfigFromEnv } from '../../supabase/functions/_shared/llm/config.ts';
 import { estimateCost } from '../../supabase/functions/_shared/llm/runTask.ts';
@@ -249,7 +250,7 @@ async function main() {
         safety,
         ids: INTERNAL_ID.test(answer),
         emoji: /\p{Extended_Pictographic}/u.test(answer),
-        vous: /\b(vous|votre|vos)\b/i.test(answer),
+        vous: usesVous(answer),
         cardClaim: call?.detail === 'card_claimed_without_action',
         error: Boolean(failed),
       };

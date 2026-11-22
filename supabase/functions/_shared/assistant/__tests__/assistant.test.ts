@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { createMockProvider } from '../../llm/mock.ts';
 import type { LlmStreamEvent } from '../../llm/types.ts';
 import { localDayBounds } from '../chat.ts';
-import { claimsCard } from '../claims.ts';
+import { claimsCard, usesVous } from '../claims.ts';
 import { buildAssistantContext } from '../context.ts';
 import { createIdentifierFilter, removeIdentifiers } from '../sanitize.ts';
 import { ASSISTANT_PROMPT_VERSION, buildSystemPrompt } from '../prompt.ts';
@@ -214,7 +214,25 @@ describe('card announced without an action', () => {
     'Applique-le dès demain matin.',
     'Apply this idea to your goal.',
     'Ta journée tient déjà dans 10 minutes.',
+    // General explanations of how cards work (eval n° 10 and 13)
+    'Quand je te propose une action, une carte apparaît avec « Appliquer » et « Annuler ».',
+    'Si tu veux changer quelque chose, je te prépare une carte et tu touches « Appliquer ».',
+    'When I suggest a change, a card shows up with "Apply" and "Cancel".',
   ])('does not flag "%s"', (text) => {
     expect(claimsCard(text)).toBe(false);
+  });
+});
+
+describe('"vous" addressed to the user', () => {
+  it.each(['Comment allez-vous ?', 'Je vous propose une version courte.'])('flags "%s"', (t) => {
+    expect(usesVous(t)).toBe(true);
+  });
+  it.each([
+    'Toi et ta sœur, vous semblez proches.',
+    'Votre relation compte beaucoup pour toi.',
+    'Vous deux avez le droit de ne pas être d’accord.',
+    'Tu peux en parler avec elle.',
+  ])('does not flag "%s"', (t) => {
+    expect(usesVous(t)).toBe(false);
   });
 });
