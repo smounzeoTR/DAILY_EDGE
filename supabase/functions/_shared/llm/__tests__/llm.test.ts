@@ -11,6 +11,7 @@ import {
   buildPlanRequest,
   checkPlanOutput,
   countSentences,
+  fitPlanToBudget,
   PLAN_PROMPT_VERSION,
   PlanOutputSchema,
   type ExerciseSource,
@@ -264,6 +265,45 @@ describe('plan task with the mock provider', () => {
   });
 });
 
+describe('plan trimmed to the budget (runTask)', () => {
+  it('applies the trimmed choice and logs trimmed_to_budget', async () => {
+    const provider = createMockProvider({
+      respond: () =>
+        JSON.stringify({
+          items: [
+            { exercise_id: 'E003', instructions: 'Un.' },
+            { exercise_id: 'E004', instructions: 'Deux.' },
+          ],
+          why_today: 'Bon moment.',
+        }),
+    });
+    const store = memoryStore();
+    const payload = buildPlanPayload(planInput());
+    const applied: PlanOutput[] = [];
+    const result = await runTask({
+      provider,
+      pricing: { inputPerMTok: 0, outputPerMTok: 0 },
+      store,
+      userId: 'u1',
+      feature: 'plan',
+      localDate: '2026-11-21',
+      promptVersion: PLAN_PROMPT_VERSION,
+      request: buildPlanRequest(payload),
+      schema: PlanOutputSchema,
+      check: (output) => checkPlanOutput(output, payload),
+      adjust: (output) => fitPlanToBudget(output, payload),
+      apply: async (output) => {
+        applied.push(output);
+        return null;
+      },
+      onFallback: async () => undefined,
+    });
+    expect(result).toMatchObject({ outcome: 'success', detail: 'trimmed_to_budget' });
+    expect(applied[0]?.items.map((i) => i.exercise_id)).toEqual(['E003']);
+    expect(store.records[0]).toMatchObject({ outcome: 'success', detail: 'trimmed_to_budget' });
+  });
+});
+
 describe('plan payload (data minimization)', () => {
   it('never sends the e-mail, the name, a reflection or a note', async () => {
     const { provider } = await runPlan({});
@@ -345,10 +385,37 @@ describe('plan output checks', () => {
   it('accepts candidates that fit the budget', () => {
     expect(checkPlanOutput(out(['E002', 'E003']), payload)).toBeNull();
   });
-  it('refuses an unknown id, a duplicate or a choice over the budget', () => {
+  it('refuses an unknown id or a duplicate', () => {
     expect(checkPlanOutput(out(['E999']), payload)).toBe('unknown_id');
     expect(checkPlanOutput(out(['E002', 'E002']), payload)).toBe('duplicate_id');
-    expect(checkPlanOutput(out(['E002', 'E004']), payload)).toBe('over_budget');
+  });
+  it('over the budget: keeps the AI order and removes the last ones (trimmed_to_budget)', () => {
+    // Budget 30: E002 (10) + E004 (25) is too long -> E002 kept
+    expect(fitPlanToBudget(out(['E002', 'E004']), payload)).toEqual({
+      output: out(['E002']),
+      detail: 'trimmed_to_budget',
+    });
+    // E003 (15) + E002 (10) fit; E004 (25) removed
+    expect(fitPlanToBudget(out(['E003', 'E002', 'E004']), payload)).toEqual({
+      output: out(['E003', 'E002']),
+      detail: 'trimmed_to_budget',
+    });
+    expect(fitPlanToBudget(out(['E002', 'E003']), payload)).toEqual({
+      output: out(['E002', 'E003']),
+    });
+  });
+  it('over the budget: full fallback only when the first exercise alone is too long', () => {
+    const tight = buildPlanPayload(planInput({ budgetMinutes: 20 }));
+    expect(fitPlanToBudget(out(['E004', 'E002']), tight)).toEqual({ reason: 'over_budget' });
+    // Program mode is never trimmed
+    expect(fitPlanToBudget(out(['E001']), programPayload)).toEqual({ output: out(['E001']) });
+  });
+  it('the request states each duration and the maximum total', () => {
+    const request = buildPlanRequest(payload);
+    const text = String(request.messages[0]?.content);
+    expect(text).toContain('Maximum total duration: 30 minutes');
+    expect(text).toContain('E004=25 min');
+    expect(JSON.parse(text.slice(text.indexOf('{'))).max_total_minutes).toBe(30);
   });
   it('keeps the program exercise in program mode', () => {
     expect(checkPlanOutput(out(['E001']), programPayload)).toBeNull();

@@ -99,7 +99,9 @@ export function createMockProvider(options: MockOptions = {}): MockProvider {
       const last = request.messages[request.messages.length - 1];
       let payload: PlanPayloadLike | ReviewPayloadLike | null = null;
       try {
-        payload = JSON.parse(typeof last?.content === 'string' ? last.content : '{}') as
+        // A header line may come before the JSON data
+        const raw = typeof last?.content === 'string' ? last.content : '{}';
+        payload = JSON.parse(raw.slice(Math.max(0, raw.indexOf('{')))) as
           PlanPayloadLike | ReviewPayloadLike;
       } catch {
         payload = null;
@@ -190,6 +192,13 @@ function assistantTurn(request: LlmRequest): {
     return { tool: { name: 'get_today', input: {} } };
   }
   if (toolResult && toolResult.type === 'tool_result') {
+    if (toolResult.content.includes('proof_required')) {
+      return {
+        text: en
+          ? 'Great! What did you do, in a few words? I will then propose to record it.'
+          : 'Bravo ! Qu’as-tu fait, en quelques mots ? Je te proposerai ensuite de l’enregistrer.',
+      };
+    }
     const pending = toolResult.content.includes('pending_confirmation');
     return {
       text: pending
@@ -209,6 +218,14 @@ function assistantTurn(request: LlmRequest): {
   const minutes = /(\d+)\s*min/i.exec(text);
   if (canUseTools && minutes) {
     return { tool: { name: 'adapt_today', input: { minutes: Number(minutes[1]) } } };
+  }
+  if (canUseTools && /méditer|meditate/i.test(text)) {
+    return { tool: { name: 'search_catalog', input: { query: text.slice(0, 80), kind: 'habit' } } };
+  }
+  if (canUseTools && /comme fait|as done/i.test(text)) {
+    return {
+      tool: { name: 'save_exercise_result', input: { exercise_id: 'E001', status: 'done' } },
+    };
   }
   const progress = /(?:j'en suis à|j’en suis à|i am at)\s*(\d+)/i.exec(text);
   if (canUseTools && progress) {

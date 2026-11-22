@@ -665,6 +665,7 @@ export type Database = {
           cost_eur: number;
           created_at: string;
           decision_id: string | null;
+          detail: string | null;
           fallback_reason: string | null;
           feature: Database['public']['Enums']['llm_feature'];
           id: string;
@@ -686,6 +687,7 @@ export type Database = {
           cost_eur?: number;
           created_at?: string;
           decision_id?: string | null;
+          detail?: string | null;
           fallback_reason?: string | null;
           feature: Database['public']['Enums']['llm_feature'];
           id?: string;
@@ -706,6 +708,7 @@ export type Database = {
           cost_eur?: number;
           created_at?: string;
           decision_id?: string | null;
+          detail?: string | null;
           fallback_reason?: string | null;
           feature?: Database['public']['Enums']['llm_feature'];
           id?: string;

@@ -50,6 +50,7 @@ export function supabaseLlmStore(db: Client): LlmStore {
         cost_eur: r.costEur,
         latency_ms: r.latencyMs,
         input_hash: r.inputHash,
+        detail: r.detail ?? null,
         output: (r.output ?? null) as Database['public']['Tables']['llm_calls']['Insert']['output'],
         decision_id: r.decisionId ?? null,
         review_id: r.reviewId ?? null,

@@ -33,6 +33,8 @@ export type LlmCallRecord = {
   latencyMs: number | null;
   inputHash: string;
   output: unknown;
+  // Success with an adjustment (e.g. trimmed_to_budget)
+  detail?: string | null;
   decisionId?: string | null;
   reviewId?: string | null;
 };
@@ -57,6 +59,8 @@ export type RunTaskArgs<T> = {
   schema: z.ZodType<T>;
   // Checks the schema cannot express: a fallback reason or null
   check: (output: T) => string | null;
+  // Optional adjustment of a valid output (e.g. trimmed to the time budget), or a fallback reason
+  adjust?: (output: T) => { output: T; detail?: string } | { reason: string };
   // Applies a valid output: null when applied, else the reason it was not (e.g. plan_touched)
   apply: (output: T) => Promise<string | null>;
   // Keeps the rules result (marks the plan or review as fallback)
@@ -69,6 +73,7 @@ export type RunTaskResult<T> = {
   output: T | null;
   outcome: LlmOutcome;
   fallbackReason: string | null;
+  detail?: string | null;
 };
 
 export async function sha256Hex(text: string): Promise<string> {
@@ -93,7 +98,7 @@ export function parseJsonAnswer(text: string): unknown {
 }
 
 type Attempt<T> =
-  | { ok: true; output: T; inputTokens: number; outputTokens: number }
+  | { ok: true; output: T; detail?: string; inputTokens: number; outputTokens: number }
   | { ok: false; reason: string; inputTokens: number; outputTokens: number };
 
 async function attemptOnce<T>(args: RunTaskArgs<T>): Promise<Attempt<T>> {
@@ -116,7 +121,9 @@ async function attemptOnce<T>(args: RunTaskArgs<T>): Promise<Attempt<T>> {
     if (!parsed.success) return { ok: false, reason: 'invalid_output', ...tokens };
     const problem = args.check(parsed.data);
     if (problem) return { ok: false, reason: problem, ...tokens };
-    return { ok: true, output: parsed.data, ...tokens };
+    const adjusted = args.adjust ? args.adjust(parsed.data) : { output: parsed.data };
+    if ('reason' in adjusted) return { ok: false, reason: adjusted.reason, ...tokens };
+    return { ok: true, output: adjusted.output, detail: adjusted.detail, ...tokens };
   } catch (error) {
     const reason = controller.signal.aborted
       ? 'timeout'
@@ -159,6 +166,7 @@ export async function runTask<T>(args: RunTaskArgs<T>): Promise<RunTaskResult<T>
       ...record,
       outcome: result.outcome,
       fallbackReason: result.fallbackReason,
+      detail: result.detail ?? null,
       output: result.output,
     });
     return result;
@@ -176,12 +184,23 @@ export async function runTask<T>(args: RunTaskArgs<T>): Promise<RunTaskResult<T>
   const cached = await store.findCachedOutput(args.userId, inputHash);
   if (cached !== null) {
     const parsed = args.schema.safeParse(cached);
-    if (parsed.success && args.check(parsed.data) === null) {
-      const notApplied = await args.apply(parsed.data);
+    const adjusted =
+      parsed.success && args.check(parsed.data) === null
+        ? args.adjust
+          ? args.adjust(parsed.data)
+          : { output: parsed.data }
+        : null;
+    if (adjusted && !('reason' in adjusted)) {
+      const notApplied = await args.apply(adjusted.output);
       return finish(
         notApplied
           ? { output: null, outcome: 'fallback', fallbackReason: notApplied }
-          : { output: parsed.data, outcome: 'cache_hit', fallbackReason: null },
+          : {
+              output: adjusted.output,
+              outcome: 'cache_hit',
+              fallbackReason: null,
+              detail: adjusted.detail ?? null,
+            },
         noCall,
       );
     }
@@ -221,7 +240,12 @@ export async function runTask<T>(args: RunTaskArgs<T>): Promise<RunTaskResult<T>
   return finish(
     notApplied
       ? { output: null, outcome: 'fallback', fallbackReason: notApplied }
-      : { output: last.output, outcome: 'success', fallbackReason: null },
+      : {
+          output: last.output,
+          outcome: 'success',
+          fallbackReason: null,
+          detail: last.detail ?? null,
+        },
     record,
   );
 }

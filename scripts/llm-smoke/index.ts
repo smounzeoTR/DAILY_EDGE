@@ -1,11 +1,12 @@
 // npm run llm:smoke — OPTIONAL manual check of a real provider (never part of npm test).
-// Reads supabase/functions/.env (LLM_PROVIDER, LLM_MODEL, key, prices) and sends one fictitious
+// Reads .env.llm at the repository root (LLM_PROVIDER, LLM_MODEL, key, prices) and sends one fictitious
 // daily-plan request. Stops without calling anything when no key is configured.
 import { llmConfigFromEnv } from '../../supabase/functions/_shared/llm/config.ts';
 import {
   buildPlanPayload,
   buildPlanRequest,
   checkPlanOutput,
+  fitPlanToBudget,
   PLAN_PROMPT_VERSION,
   PlanOutputSchema,
 } from '../../supabase/functions/_shared/llm/planTask.ts';
@@ -15,7 +16,7 @@ const config = llmConfigFromEnv((name) => process.env[name]);
 if (!config.enabled || config.provider.name === 'mock') {
   console.log(
     `No real provider configured (${config.enabled ? 'mock' : config.reason}): nothing sent. ` +
-      'Fill in supabase/functions/.env (see .env.example) to try one.',
+      'Fill in .env.llm at the repository root (see supabase/functions/.env.example) to try one.',
   );
   process.exit(0);
 }
@@ -92,12 +93,14 @@ const result = await runTask({
   request: buildPlanRequest(payload),
   schema: PlanOutputSchema,
   check: (output) => checkPlanOutput(output, payload),
+  adjust: (output) => fitPlanToBudget(output, payload),
   apply: async () => null,
   onFallback: async () => undefined,
 });
 const record = records[0];
 console.log(`Provider ${config.provider.name}, model ${config.provider.model}: ${result.outcome}`);
 if (result.fallbackReason) console.log(`Fallback reason: ${result.fallbackReason}`);
+if (result.detail) console.log(`Detail: ${result.detail}`);
 if (record) {
   console.log(
     `Tokens ${record.inputTokens} in / ${record.outputTokens} out, ~${record.costEur} EUR, ` +

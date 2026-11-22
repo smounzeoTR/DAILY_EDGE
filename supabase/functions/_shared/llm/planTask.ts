@@ -5,7 +5,7 @@ import { z } from 'zod';
 
 import type { LlmRequest } from './types.ts';
 
-export const PLAN_PROMPT_VERSION = 'plan-v1';
+export const PLAN_PROMPT_VERSION = 'plan-v2';
 export const MAX_INSTRUCTIONS_CHARS = 400;
 export const MAX_WHY_SENTENCES = 2;
 export const MAX_WHY_CHARS = 300;
@@ -85,6 +85,8 @@ export function buildPlanPayload(input: PlanTaskInput) {
     plan_mode: input.planMode,
     program_day: input.programDay,
     budget_minutes: input.budgetMinutes,
+    // Explicit limit: the sum of duration_min of the chosen exercises
+    max_total_minutes: input.budgetMinutes,
     rules_why_today: input.rulesWhy,
     profile: {
       situation: p.situation ?? null,
@@ -133,7 +135,7 @@ the user's goal, the numbers of their last check-ins and candidate exercises fro
 Rules:
 - Only use exercise ids from "candidates". Never invent an exercise.
 - If "mode" is "program", keep exactly the exercises listed in "locked_ids" (same ids, same order).
-- If "mode" is "catalog", choose 1 to 3 exercises whose total duration fits "budget_minutes", best suited to the goal and the recent energy.
+- If "mode" is "catalog", choose 1 to 3 exercises best suited to the goal and the recent energy. Each candidate has its "duration_min"; the SUM of the duration_min of your chosen exercises must not exceed "max_total_minutes". Put the most important exercise first: if the total is too long, the last ones are removed.
 - For each chosen exercise, rewrite the instructions for this user's goal in at most 400 characters, without changing the nature of the exercise (same action, same expected result).
 - Write "why_today" in at most 2 short sentences explaining why this is the right exercise today.
 - Write everything in the language given by "language" (fr = French with "tu", en = English).
@@ -164,9 +166,15 @@ export function planJsonSchema(candidateIds: string[]): Record<string, unknown> 
 }
 
 export function buildPlanRequest(payload: PlanPayload): Omit<LlmRequest, 'signal'> {
+  // Durations and the maximum total written out, then the data
+  const durations = payload.candidates.map((c) => `${c.id}=${c.duration_min} min`).join(', ');
+  const header =
+    payload.mode === 'catalog'
+      ? `Maximum total duration: ${payload.max_total_minutes} minutes. Candidate durations: ${durations}.\n`
+      : '';
   return {
     system: SYSTEM,
-    messages: [{ role: 'user', content: JSON.stringify(payload) }],
+    messages: [{ role: 'user', content: header + JSON.stringify(payload) }],
     jsonSchema: planJsonSchema(payload.candidates.map((c) => c.id)),
     maxTokens: 2000,
   };
@@ -209,10 +217,29 @@ export function checkPlanOutput(output: PlanOutput, payload: PlanPayload): strin
     if (ids.length !== locked.length || ids.some((id, i) => id !== locked[i])) {
       return 'program_changed';
     }
-  } else {
-    const total = ids.reduce((sum, id) => sum + (byId.get(id)?.duration_min ?? 0), 0);
-    if (total > payload.budget_minutes) return 'over_budget';
   }
   if (countSentences(output.why_today) > MAX_WHY_SENTENCES) return 'why_too_long';
   return null;
+}
+
+// Catalogue mode: keeps the AI's exercises in its order and removes the last ones until the total
+// fits the budget; a full fallback only when the first one alone is already too long.
+export function fitPlanToBudget(
+  output: PlanOutput,
+  payload: PlanPayload,
+): { output: PlanOutput; detail?: string } | { reason: string } {
+  if (payload.mode === 'program') return { output };
+  const duration = new Map(payload.candidates.map((c) => [c.id, c.duration_min]));
+  const kept: PlanOutput['items'] = [];
+  let total = 0;
+  for (const item of output.items) {
+    const minutes = duration.get(item.exercise_id) ?? Infinity;
+    if (total + minutes > payload.max_total_minutes) break;
+    kept.push(item);
+    total += minutes;
+  }
+  if (kept.length === 0) return { reason: 'over_budget' };
+  return kept.length === output.items.length
+    ? { output }
+    : { output: { ...output, items: kept }, detail: 'trimmed_to_budget' };
 }

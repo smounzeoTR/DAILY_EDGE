@@ -10,6 +10,7 @@ import {
   buildPlanPayload,
   buildPlanRequest,
   checkPlanOutput,
+  fitPlanToBudget,
   MAX_CANDIDATES,
   PLAN_PROMPT_VERSION,
   PlanOutputSchema,
@@ -119,6 +120,7 @@ export async function enrichPlan(
     request: buildPlanRequest(payload),
     schema: PlanOutputSchema,
     check: (output) => checkPlanOutput(output, payload),
+    adjust: (output) => fitPlanToBudget(output, payload),
     links: { decisionId: args.decisionId },
     apply: async (output) => {
       const { data, error } = await db.rpc('apply_plan_enrichment', {
