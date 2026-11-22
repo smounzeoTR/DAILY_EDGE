@@ -345,24 +345,42 @@ async function main() {
     }
   }
 
-  // Last week's review (same shared code as the server)
+  // Weekly reviews (same shared code as the server). Every week the server may consider due
+  // during a scenario is generated now, so that neither generate-review nor the hourly batch adds
+  // a newer review mid-run: the previous week, plus the current one on Sundays (due from 18:00).
   const profile = must(
     await db.from('profiles').select('*').eq('user_id', userId).single(),
     'profile',
   );
-  const weekStart = addDays(mondayOf(today), -7);
-  const review = await generateReviewForUser(db, profile, weekStart);
-  const saved = review.reviewId
-    ? must(
-        await db.from('weekly_reviews').select('proposals').eq('id', review.reviewId).single(),
-        'review',
-      )
-    : null;
+  const clock = localClock(new Date(), TIMEZONE);
+  const weekStarts = [addDays(mondayOf(today), -7)];
+  if (clock.isoDay === 7) weekStarts.push(mondayOf(today));
+  const reviews: { weekStart: string; status: string; types: string[] }[] = [];
+  for (const weekStart of weekStarts) {
+    const review = await generateReviewForUser(db, profile, weekStart);
+    const saved = review.reviewId
+      ? must(
+          await db.from('weekly_reviews').select('proposals').eq('id', review.reviewId).single(),
+          'review',
+        )
+      : null;
+    const types = ((saved?.proposals as { type: string }[] | undefined) ?? []).map((p) => p.type);
+    reviews.push({ weekStart, status: review.status, types });
+  }
+  // The app shows the most recent review; lot6-review-demo answers two of its proposals
+  const shown = reviews[reviews.length - 1]!;
+  if (shown.types.length < 2) {
+    throw new Error(
+      `demo review of ${shown.weekStart} has ${shown.types.length} proposal(s), 2 expected`,
+    );
+  }
 
   console.log(`✅ Demo user ${DEMO_EMAIL} (PR1, day 10 today, ${HISTORY.length} days of history)`);
-  console.log(
-    `   Review of the week of ${weekStart}: ${review.status}, proposals: ${JSON.stringify((saved?.proposals as { type: string }[] | undefined)?.map((p) => p.type) ?? [])}`,
-  );
+  for (const r of reviews) {
+    console.log(
+      `   Review of the week of ${r.weekStart}: ${r.status}, proposals: ${JSON.stringify(r.types)}`,
+    );
+  }
   console.log(`✅ Admin ${ADMIN_EMAIL} (role admin, two-factor setup on first access)`);
   console.log(`✅ ${SUPPORT_EMAIL} (low mood for 5 days: support card on Today)`);
   console.log('   Sign in with the 6-digit code from Mailpit: http://127.0.0.1:54324');

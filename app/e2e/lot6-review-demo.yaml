@@ -29,18 +29,20 @@ env:
 - assertVisible: 'Exercices réalisés : .*'
 - takeScreenshot: e2e-l6-02-review
 
-# Accept the first proposal (simplify a habit), refuse the second (daily time)
+# Accept the first proposal, refuse the next one. Their kind depends on the reviewed week (the
+# previous one, or the current one on Sundays: see seed:demo), so they are matched generically.
 - scrollUntilVisible:
-    element: 'Accepter : Simplifier.*'
+    element: 'Accepter : .*'
     direction: DOWN
-- tapOn: 'Accepter : Simplifier.*'
+- tapOn: 'Accepter : .*'
 - extendedWaitUntil:
     visible: 'Accepté'
     timeout: 10000
 - scrollUntilVisible:
-    element: 'Refuser : Prévoir.*'
+    element: 'Refuser : .*'
     direction: DOWN
-- tapOn: 'Refuser : Prévoir.*'
+    centerElement: true
+- tapOn: 'Refuser : .*'
 - extendedWaitUntil:
     visible: 'Refusé'
     timeout: 10000
