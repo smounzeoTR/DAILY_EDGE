@@ -87,7 +87,7 @@ Prérequis : Node LTS, Docker Desktop lancé, Supabase CLI, Expo Go sur le tél�
 | Essai manuel d'un vrai fournisseur (facultatif, payant) | copier `supabase/functions/.env.example` en `.env.llm` à la racine (ignoré par Git), renseigner la clé, puis `npm run llm:smoke` (charge fictive ; s'arrête sans clé) |
 | Assistant Coach Edge en local | Fournisseur factice (`LLM_ASSISTANT_PROVIDER = "mock"`) dans `[edge_runtime.secrets]` de `config.toml` ; réponse en flux (SSE) de `POST /functions/v1/assistant-chat` avec `{ "thread_id"?, "message" }` |
 | Évaluation de l'assistant (manuelle, payante) | renseigner `LLM_ASSISTANT_*` et la clé dans `.env.llm`, Supabase local lancé, puis `npm run assistant:eval` (comparer : `npm run assistant:eval -- --model claude-sonnet-5-5 --price-in 2 --price-out 10`) ; rapport dans `scripts/assistant-eval/results/` (non versionné) |
-| Quota de l'assistant | `update public.app_settings set value = '30' where key = 'assistant_daily_messages'` |
+| Quota et plafond de l'assistant | `update public.app_settings set value = '15' where key = 'assistant_daily_messages'` ; plafond mensuel par utilisateur : `key = 'assistant_monthly_cost_cap_eur'` (2 € par défaut) |
 | Interrupteur premium | autorisé si `app_settings.allow_plan_toggle` est vrai (vrai seulement par `seeds/local_dev.sql`) ; ne jamais l'activer en production |
 | Typecheck (racine + app) | `npm run typecheck` |
 | Lint | `npm run lint` |
