@@ -104,6 +104,10 @@ appId: host.exp.Exponent
 - assertVisible:
     text: 'Check-in du soir'
     checked: true
+# Audience measurement stays off unless explicitly chosen (lot 10a)
+- assertVisible:
+    text: 'Mesure d.audience'
+    checked: false
 - tapOn: 'Continuer'
 - assertVisible: 'Ton programme'
 - assertVisible: 'Lancer son projet'

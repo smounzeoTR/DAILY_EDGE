@@ -18,6 +18,8 @@ import { assertLocal } from './guard.ts';
 export const DEMO_EMAIL = 'demo@daily-edge.local';
 // Local admin (role admin; the TOTP factor is enrolled in the app, then required)
 export const ADMIN_EMAIL = 'admin@daily-edge.local';
+// Low mood five days in a row: the support card shows on Today (lot 10a)
+export const SUPPORT_EMAIL = 'support@daily-edge.local';
 const TIMEZONE = 'Europe/Paris';
 
 type Status = { API_URL: string; SERVICE_ROLE_KEY: string };
@@ -80,7 +82,7 @@ async function main() {
   // Recreate the demo and admin users (the admin's TOTP factor goes with it)
   const listed = await db.auth.admin.listUsers({ page: 1, perPage: 1000 });
   if (listed.error) throw listed.error;
-  for (const email of [DEMO_EMAIL, ADMIN_EMAIL]) {
+  for (const email of [DEMO_EMAIL, ADMIN_EMAIL, SUPPORT_EMAIL]) {
     const existing = listed.data.users.find((u) => u.email === email);
     if (existing) {
       const removed = await db.auth.admin.deleteUser(existing.id);
@@ -109,6 +111,46 @@ async function main() {
       .eq('user_id', createdAdmin.data.user.id)
       .select('user_id'),
     'admin profile',
+  );
+  const createdSupport = await db.auth.admin.createUser({
+    email: SUPPORT_EMAIL,
+    email_confirm: true,
+    user_metadata: { locale: 'fr', timezone: TIMEZONE, display_name: 'Sam' },
+  });
+  if (createdSupport.error || !createdSupport.data.user) throw createdSupport.error;
+  const supportId = createdSupport.data.user.id;
+  must(
+    await db
+      .from('profiles')
+      .update({
+        onboarded_at: new Date().toISOString(),
+        persona: 'entrepreneur',
+        program_id: 'PR1',
+        program_start_date: addDays(today, -5),
+        program_day: 1,
+        level: 'beginner',
+        daily_minutes: 15,
+        consent_checkin: true,
+        consent_at: new Date().toISOString(),
+      })
+      .eq('user_id', supportId)
+      .select('user_id'),
+    'support profile',
+  );
+  must(
+    await db
+      .from('checkins')
+      .insert(
+        [-5, -4, -3, -2, -1].map((offset) => ({
+          user_id: supportId,
+          date: addDays(today, offset),
+          energy: 2,
+          mood: offset === -3 ? 1 : 2,
+          minutes_tomorrow: 15,
+        })),
+      )
+      .select('date'),
+    'support checkins',
   );
   const createdUser = await db.auth.admin.createUser({
     email: DEMO_EMAIL,
@@ -322,6 +364,7 @@ async function main() {
     `   Review of the week of ${weekStart}: ${review.status}, proposals: ${JSON.stringify((saved?.proposals as { type: string }[] | undefined)?.map((p) => p.type) ?? [])}`,
   );
   console.log(`✅ Admin ${ADMIN_EMAIL} (role admin, two-factor setup on first access)`);
+  console.log(`✅ ${SUPPORT_EMAIL} (low mood for 5 days: support card on Today)`);
   console.log('   Sign in with the 6-digit code from Mailpit: http://127.0.0.1:54324');
 }
 

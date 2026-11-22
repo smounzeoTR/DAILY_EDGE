@@ -1,0 +1,70 @@
+# Lot 10a: support card after five days of low mood (shown once per episode, remembered by the
+# server across restarts) and the audience measurement consent (off by default, switchable).
+# Offline mode cannot be driven by Maestro: manual check in docs/plan-v1.md (lot 10a).
+# Run: npm run seed:demo && maestro test app/e2e/lot10a-robustness.yaml -e APP_URL=exp://127.0.0.1:8081
+appId: host.exp.Exponent
+# APP_URL is required on the command line (-e): it is not defined here on purpose
+---
+- runFlow:
+    file: subflows/sign-in-existing.yaml
+    env:
+      EMAIL: support@daily-edge.local
+- extendedWaitUntil:
+    visible: 'Un petit rappel, matin et soir \?'
+    timeout: 30000
+- tapOn: 'Plus tard'
+- runFlow: subflows/dismiss-guide.yaml
+
+# Support card: kind message, 3114, local emergency number
+- extendedWaitUntil:
+    visible: 'On est là pour toi'
+    timeout: 30000
+- assertVisible: 'Appeler le 3114.*'
+- assertVisible: 'Hors de France.*'
+- takeScreenshot: e2e-l10a-01-support
+- tapOn: 'Merci, j.ai vu'
+- extendedWaitUntil:
+    notVisible: 'On est là pour toi'
+    timeout: 10000
+
+# Restart (persisted encrypted session): the card does not come back for this episode
+- stopApp
+- openLink: ${APP_URL}
+- runFlow: subflows/close-expo-dev-menu.yaml
+- runFlow: subflows/dismiss-guide.yaml
+- extendedWaitUntil:
+    visible: 'Réglages.*'
+    timeout: 60000
+- assertNotVisible: 'On est là pour toi'
+
+# Audience measurement: off by default, switched on then off again in Settings
+- tapOn: 'Réglages.*'
+- scrollUntilVisible:
+    element: 'Mesure d.audience'
+    direction: DOWN
+    centerElement: true
+- assertVisible:
+    text: 'Mesure d.audience'
+    checked: false
+- tapOn: 'Mesure d.audience'
+- extendedWaitUntil:
+    visible:
+      text: 'Mesure d.audience'
+      checked: true
+    timeout: 10000
+- takeScreenshot: e2e-l10a-02-analytics-consent
+- tapOn: 'Aujourd.hui.*'
+- tapOn: 'Réglages.*'
+- scrollUntilVisible:
+    element: 'Mesure d.audience'
+    direction: DOWN
+    centerElement: true
+- assertVisible:
+    text: 'Mesure d.audience'
+    checked: true
+- tapOn: 'Mesure d.audience'
+- extendedWaitUntil:
+    visible:
+      text: 'Mesure d.audience'
+      checked: false
+    timeout: 10000
