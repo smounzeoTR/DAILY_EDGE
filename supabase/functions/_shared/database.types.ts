@@ -952,6 +952,7 @@ export type Database = {
           blockers: Database['public']['Enums']['blocker'][];
           chronotype: Database['public']['Enums']['chronotype'] | null;
           consent_ai: boolean;
+          consent_analytics: boolean;
           consent_at: string | null;
           consent_checkin: boolean;
           created_at: string;
@@ -980,6 +981,7 @@ export type Database = {
           blockers?: Database['public']['Enums']['blocker'][];
           chronotype?: Database['public']['Enums']['chronotype'] | null;
           consent_ai?: boolean;
+          consent_analytics?: boolean;
           consent_at?: string | null;
           consent_checkin?: boolean;
           created_at?: string;
@@ -1007,6 +1009,7 @@ export type Database = {
           blockers?: Database['public']['Enums']['blocker'][];
           chronotype?: Database['public']['Enums']['chronotype'] | null;
           consent_ai?: boolean;
+          consent_analytics?: boolean;
           consent_at?: string | null;
           consent_checkin?: boolean;
           created_at?: string;
@@ -1215,6 +1218,7 @@ export type Database = {
       user_guide_state: {
         Row: {
           milestones: NonNullable<Json>;
+          support_seen: NonNullable<Json>;
           tips_seen: NonNullable<Json>;
           tour_finished_at: string | null;
           tour_skipped: boolean;
@@ -1224,6 +1228,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           milestones?: NonNullable<Json>;
+          support_seen?: NonNullable<Json>;
           tips_seen?: NonNullable<Json>;
           tour_finished_at?: string | null;
           tour_skipped?: boolean;
@@ -1232,6 +1237,7 @@ export type Database = {
         };
         Update: {
           milestones?: NonNullable<Json>;
+          support_seen?: NonNullable<Json>;
           tips_seen?: NonNullable<Json>;
           tour_finished_at?: string | null;
           tour_skipped?: boolean;
@@ -1480,6 +1486,7 @@ export type Database = {
       };
       mark_milestone_celebrated: { Args: { p_milestone: string }; Returns: undefined };
       mark_principle_read: { Args: { p_plan_id: string }; Returns: undefined };
+      mark_support_shown: { Args: { p_episode_start: string }; Returns: undefined };
       mark_tip_seen: { Args: { p_tip: string }; Returns: undefined };
       my_done_days: { Args: Record<PropertyKey, never>; Returns: string[] };
       purge_assistant_history: { Args: { p_now?: string }; Returns: number };
