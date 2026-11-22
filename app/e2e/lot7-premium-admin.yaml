@@ -64,6 +64,7 @@ appId: host.exp.Exponent
 - scrollUntilVisible:
     element: 'Ouvrir l.administration'
     direction: DOWN
+    centerElement: true
 - tapOn: 'Ouvrir l.administration'
 - extendedWaitUntil:
     visible: 'Double authentification'
@@ -109,6 +110,12 @@ appId: host.exp.Exponent
 - assertVisible: 'IA mock-1 · success.*'
 - takeScreenshot: e2e-l7-07-engine-log
 - tapOn: 'Retour'
+# The e-mail field may keep the keyboard open: the first tap then only closes it
+- runFlow:
+    when:
+      visible: 'Afficher le journal'
+    commands:
+      - tapOn: 'Retour'
 
 - tapOn: 'Coût IA par jour'
 - extendedWaitUntil:
