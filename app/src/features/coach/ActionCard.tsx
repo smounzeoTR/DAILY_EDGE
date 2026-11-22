@@ -10,6 +10,7 @@ import { resolveLanguage } from '@/i18n/language';
 import { localized } from '@/i18n/localize';
 import { useUserId } from '@/lib/auth/AuthProvider';
 import { useHabitTemplates, useLibrary } from '@/lib/queries';
+import { track } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { spacing, useTheme } from '@/theme';
 
@@ -81,6 +82,7 @@ export function ActionCard({ action }: { action: CoachAction }) {
     setError(null);
     const { error: e } = await supabase.rpc('confirm_assistant_action', { p_action_id: action.id });
     setBusy(null);
+    if (!e) track('action_card_applied', { type: action.type });
     if (e) {
       const known = (KNOWN_ERRORS as readonly string[]).includes(e.message);
       setError(

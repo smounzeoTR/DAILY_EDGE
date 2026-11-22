@@ -35,6 +35,8 @@ export type Answers = {
   notifyEvening: string;
   consentCheckin: boolean;
   consentAi: boolean;
+  // Audience measurement (PostHog), off by default
+  consentAnalytics: boolean;
   // Set by "Changer de programme"; null = program from the assignment rule
   programOverride: string | null;
   habits: ChosenHabit[];
@@ -57,6 +59,7 @@ export const emptyAnswers: Answers = {
   notifyEvening: '21:00',
   consentCheckin: false,
   consentAi: false,
+  consentAnalytics: false,
   programOverride: null,
   habits: [],
 };

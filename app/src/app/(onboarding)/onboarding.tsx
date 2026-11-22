@@ -148,6 +148,10 @@ export default function Onboarding() {
       setError(key ? t(key) : t('onboarding.errors.submit'));
       return;
     }
+    if (answers.consentAnalytics) {
+      // Separate from complete_onboarding: a failure here only leaves the measurement off
+      await supabase.from('profiles').update({ consent_analytics: true }).eq('user_id', userId);
+    }
     clearDraft(userId);
     // The auth guard switches to (app) once the profile is onboarded
     await queryClient.invalidateQueries({ queryKey: queryKeys.profile(userId) });

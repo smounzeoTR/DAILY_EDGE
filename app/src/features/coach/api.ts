@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetch } from 'expo/fetch';
 
 import type { Database } from '@/lib/database.types';
+import { track } from '@/lib/analytics';
 import { supabase, supabaseKey, supabaseUrl } from '@/lib/supabase';
 
 import { parseSse } from './sse';
@@ -26,6 +27,7 @@ export async function sendCoachMessage(
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
   if (!token) return 'unauthorized';
+  track('coach_message_sent');
   const res = await fetch(`${supabaseUrl}/functions/v1/assistant-chat`, {
     method: 'POST',
     headers: {

@@ -25,6 +25,7 @@ import {
   useProfile,
   usePrograms,
 } from '@/lib/queries';
+import { track } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { spacing, useTheme, type ThemePreference } from '@/theme';
 
@@ -129,6 +130,7 @@ export default function Settings() {
     setMessage(null);
     const { error } = await supabase.rpc('dev_set_plan', { p_plan: value ? 'premium' : 'free' });
     if (error) setMessage({ text: t('common.errorGeneric'), ok: false });
+    else if (value) track('premium_enabled');
     await queryClient.invalidateQueries({ queryKey: premiumKey(userId) });
     // Today checks again whether its plan can be personalized
     await queryClient.invalidateQueries({ queryKey: ['plan', userId] });
@@ -288,6 +290,12 @@ export default function Settings() {
           body={t('onboarding.consent.aiBody')}
           value={profile.consent_ai}
           onChange={(v) => void setConsent('consent_ai', v)}
+        />
+        <ConsentSwitch
+          title={t('onboarding.consent.analyticsTitle')}
+          body={t('onboarding.consent.analyticsBody')}
+          value={profile.consent_analytics}
+          onChange={(v) => void updateProfile({ consent_analytics: v })}
         />
       </Card>
 

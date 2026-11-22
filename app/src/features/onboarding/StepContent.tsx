@@ -327,6 +327,12 @@ function ConsentStep({ answers, update }: StepProps) {
         value={answers.consentAi}
         onChange={(consentAi) => update({ consentAi })}
       />
+      <ConsentRow
+        title={t('onboarding.consent.analyticsTitle')}
+        body={t('onboarding.consent.analyticsBody')}
+        value={answers.consentAnalytics}
+        onChange={(consentAnalytics) => update({ consentAnalytics })}
+      />
       <AppText variant="caption" tone="secondary">
         {t('onboarding.consent.note')}
       </AppText>
