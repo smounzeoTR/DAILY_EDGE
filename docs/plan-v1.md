@@ -90,7 +90,7 @@ Acceptation : sur le téléphone, une journée complète (exercice, habitudes, c
 
 ## Lot 10 — Finitions et bêta
 - [ ] Import du catalogue en production par mise à jour (upsert) depuis le Sheet, et pas seulement via `seed.sql` (qui recrée la base locale).
-- [ ] Revérifier sur la grille officielle les prix du modèle par défaut (`claude-haiku-5-5`) indiqués dans `supabase/functions/.env.example` avant la production.
+- [ ] Revérifier sur la grille officielle les prix des modèles (`claude-haiku-5-5` pour le plan et le bilan, `claude-sonnet-5-5` pour l'assistant) indiqués dans `supabase/functions/.env.example` avant la production, et confirmer le choix de Sonnet pour l'assistant avec le coût réel.
 - [ ] Cache hors ligne du plan du jour et des coches (expo-sqlite), synchronisation au retour du réseau.
 - [ ] Message bienveillant et ressources d'aide (3114) si humeur ≤ 2 pendant 5 jours.
 - [ ] Sentry et PostHog (UE), politique de confidentialité, mentions dans l'onboarding.
