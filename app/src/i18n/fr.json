@@ -134,7 +134,9 @@
       "checkinBody": "J'accepte que mon humeur et mon énergie soient enregistrées pour adapter mon plan.",
       "aiTitle": "Personnalisation par IA",
       "aiBody": "J'accepte qu'un profil résumé et anonymisé soit traité par une IA (offre premium).",
-      "note": "L'application reste utilisable sans ces options. Tu peux changer d'avis à tout moment dans les réglages."
+      "note": "L'application reste utilisable sans ces options. Tu peux changer d'avis à tout moment dans les réglages.",
+      "analyticsTitle": "Mesure d'audience",
+      "analyticsBody": "J'accepte l'envoi de statistiques d'usage anonymes (écrans ouverts, actions réalisées, jamais mes textes) pour améliorer l'app."
     },
     "program": {
       "title": "Ton programme",
@@ -234,7 +236,8 @@
     "tomorrowLater": "Ton plan de demain sera prêt demain matin.",
     "shortVersion": "Version courte, pour garder le rythme en douceur.",
     "backToday": "Retour à aujourd'hui",
-    "edit": "Modifier mon check-in"
+    "edit": "Modifier mon check-in",
+    "offline": "Le check-in demande une connexion. Tes réponses restent à l'écran : réessaie dès que tu es en ligne."
   },
   "reminders": {
     "title": "Un petit rappel, matin et soir ?",
@@ -731,5 +734,23 @@
       "callLabel": "Appeler le 3114, numéro national de prévention du suicide en France",
       "emergency": "En cas de danger immédiat : 15 (SAMU) ou 112 en France. Hors de France, appelle le numéro d'urgence local."
     }
+  },
+  "offline": {
+    "banner": "Hors ligne : ton plan reste disponible.",
+    "bannerPending_one": "Hors ligne : {{count}} action sera synchronisée au retour du réseau.",
+    "bannerPending_other": "Hors ligne : {{count}} actions seront synchronisées au retour du réseau.",
+    "synced_one": "{{count}} action enregistrée hors ligne a été synchronisée.",
+    "synced_other": "{{count}} actions enregistrées hors ligne ont été synchronisées.",
+    "refused_one": "{{count}} action hors ligne n'a pas pu être appliquée (la journée a changé entre-temps). Ton plan affiché est à jour.",
+    "refused_other": "{{count}} actions hors ligne n'ont pas pu être appliquées (la journée a changé entre-temps). Ton plan affiché est à jour.",
+    "dismiss": "Toucher pour masquer"
+  },
+  "support": {
+    "title": "On est là pour toi",
+    "body": "Ces derniers jours semblent difficiles. Prends soin de toi : en parler peut aider, et tu n'as pas à traverser ça seul·e. Ton plan peut attendre.",
+    "call": "Appeler le 3114 (France)",
+    "callLabel": "Appeler le 3114, numéro national de prévention du suicide, gratuit, 24 h sur 24",
+    "elsewhere": "Hors de France : appelle le numéro d'urgence local. En cas de danger immédiat : 112.",
+    "seen": "Merci, j'ai vu"
   }
 }

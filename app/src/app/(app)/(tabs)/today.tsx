@@ -37,10 +37,15 @@ import {
 } from '@/features/guide/guide';
 import { GuideOverlay, type TourStep } from '@/features/guide/GuideOverlay';
 import { HelpButton } from '@/features/guide/HelpButton';
+import { OfflineBanner } from '@/features/offline/OfflineBanner';
+import { classifyError } from '@/features/offline/queue';
+import { isOnline, queueAction } from '@/features/offline/sync';
 import { dayJourney } from '@/features/guide/journey';
 import { JourneyBar } from '@/features/guide/JourneyBar';
 import { streak } from '@/features/progress/progress';
 import { scheduleReminders, shouldShowPrimer } from '@/features/reminders/reminders';
+import { SupportCard } from '@/features/support/SupportCard';
+import { supportToShow } from '@/features/support/lowMood';
 import {
   canEditResult,
   introducedDismissedKey,
@@ -59,7 +64,9 @@ import {
   isAiPending,
   isReviewOpen,
   queryKeys,
+  type PlanData,
   useCheckin,
+  useCheckinsSince,
   useDoneDays,
   useGuideState,
   useHabitLogs,
@@ -72,6 +79,7 @@ import {
   useUserHabits,
 } from '@/lib/queries';
 import { storage } from '@/lib/storage';
+import { track } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { spacing } from '@/theme';
 
@@ -130,6 +138,8 @@ export default function Today() {
   const guideState = useGuideState(userId);
   const doneDays = useDoneDays(userId);
   const achievedGoal = useLastAchievedGoal(userId);
+  // Mood of the last days (low-mood support card)
+  const recentCheckins = useCheckinsSince(userId, addDays(today, -14));
   // Weekly review: generated server side when due (Sunday from 18:00 or missed week)
   const review = useQuery({
     queryKey: ['currentReview', userId],
@@ -309,9 +319,38 @@ export default function Today() {
     void generatePlan(tomorrow).catch(() => undefined);
   };
 
+  // Offline (or no answer from the server): queued and shown at once, sent when the network is back
+  const resultLocally = (input: ResultInput) =>
+    queryClient.setQueryData<PlanData | null>(queryKeys.plan(userId, today), (old) =>
+      old
+        ? {
+            ...old,
+            plan_items: old.plan_items.map((i) =>
+              i.id === input.itemId
+                ? { ...i, status: input.status, proof_value: input.proof, rating: input.rating }
+                : i,
+            ),
+          }
+        : old,
+    );
+  const queueResult = (input: ResultInput) => {
+    queueAction(userId, {
+      kind: 'result',
+      itemId: input.itemId,
+      status: input.status,
+      proof: input.proof,
+      rating: input.rating,
+    });
+    resultLocally(input);
+  };
+
   const saveResult = async (input: ResultInput) => {
-    setSaving(true);
     setError(null);
+    if (!isOnline()) {
+      queueResult(input);
+      return;
+    }
+    setSaving(true);
     const { error: rpcError } = await supabase.rpc('set_plan_item_result', {
       p_item_id: input.itemId,
       p_status: input.status,
@@ -319,18 +358,45 @@ export default function Today() {
       p_rating: input.rating ?? undefined,
     });
     setSaving(false);
+    if (rpcError && classifyError(rpcError) === 'network') {
+      queueResult(input);
+      return;
+    }
     if (rpcError) {
       setError(
         t(rpcError.message === 'day_closed' ? 'today.errors.dayClosed' : 'common.errorGeneric'),
       );
     } else {
+      track('exercise_result', { status: input.status });
       refreshTomorrow();
     }
     await queryClient.invalidateQueries({ queryKey: queryKeys.plan(userId, today) });
   };
 
+  const logsKey = queryKeys.habitLogs(userId, addDays(today, -31));
+  const habitLocally = (habitId: string, action: HabitAction['action']) =>
+    queryClient.setQueryData<
+      { user_habit_id: string; date: string; done: boolean; minimal: boolean }[]
+    >(logsKey, (old) => {
+      const rest = (old ?? []).filter((l) => !(l.user_habit_id === habitId && l.date === today));
+      return action === 'uncheck'
+        ? rest
+        : [
+            ...rest,
+            { user_habit_id: habitId, date: today, done: true, minimal: action === 'minimal' },
+          ];
+    });
+
   const habitAction = async ({ habitId, action }: HabitAction) => {
     setError(null);
+    const queueHabit = () => {
+      queueAction(userId, { kind: 'habit', habitId, date: today, action });
+      habitLocally(habitId, action);
+    };
+    if (!isOnline()) {
+      queueHabit();
+      return;
+    }
     const result =
       action === 'uncheck'
         ? await supabase.from('habit_logs').delete().eq('user_habit_id', habitId).eq('date', today)
@@ -344,7 +410,12 @@ export default function Today() {
             },
             { onConflict: 'user_habit_id,date' },
           );
+    if (result.error && classifyError(result.error) === 'network') {
+      queueHabit();
+      return;
+    }
     if (result.error) setError(t('common.errorGeneric'));
+    else track('habit_checked', { action });
     await queryClient.invalidateQueries({ queryKey: ['habitLogs', userId] });
   };
 
@@ -378,6 +449,17 @@ export default function Today() {
     logs: logs.data ?? [],
     checkinDone: Boolean(checkin.data),
   });
+  const supportEpisode = supportToShow(
+    recentCheckins.data ?? [],
+    today,
+    guideState.data?.support_seen as Record<string, unknown> | undefined,
+    profile.consent_checkin,
+  );
+  const supportSeen = async () => {
+    if (!supportEpisode) return;
+    await supabase.rpc('mark_support_shown', { p_episode_start: supportEpisode });
+    await queryClient.invalidateQueries({ queryKey: guideKey(userId) });
+  };
   const markPrincipleRead = async () => {
     const { error: rpcError } = await supabase.rpc('mark_principle_read', { p_plan_id: data.id });
     if (rpcError) setError(t('common.errorGeneric'));
@@ -410,6 +492,8 @@ export default function Today() {
           ) : null}
         </View>
 
+        <OfflineBanner />
+        {supportEpisode ? <SupportCard onSeen={() => void supportSeen()} /> : null}
         <JourneyBar journey={journey} onStep={scrollToSection} />
 
         {error ? <AppText tone="danger">{error}</AppText> : null}

@@ -1,6 +1,6 @@
 import '@/i18n';
 
-import { QueryClientProvider } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -8,10 +8,14 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 
 import { SplashView } from '@/components/SplashView';
+import { PERSIST_MAX_AGE, queryPersister, shouldPersistQuery } from '@/features/offline/persist';
+import { setAnalyticsConsent } from '@/lib/analytics';
 import { AuthProvider, useAuth } from '@/lib/auth/AuthProvider';
+import { initMonitoring } from '@/lib/monitoring';
 import { queryClient, useProfile } from '@/lib/queries';
 import { fontAssets, ThemeProvider, useTheme } from '@/theme';
 
+initMonitoring();
 void SplashScreen.preventAutoHideAsync();
 
 // Guarded screens fall back to the index route, which redirects
@@ -23,6 +27,9 @@ function RootNavigator() {
   const { scheme, colors } = useTheme();
   const { session, initializing } = useAuth();
   const profile = useProfile(session?.user.id);
+  // Audience measurement follows the profile consent (off when signed out)
+  const analyticsOn = session !== null && profile.data?.consent_analytics === true;
+  useEffect(() => setAnalyticsConsent(analyticsOn), [analyticsOn]);
 
   const loading = initializing || (session !== null && profile.isPending);
   if (loading) return <SplashView />;
@@ -70,12 +77,20 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
+    // Today's data kept (encrypted) between launches: usable offline
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: queryPersister,
+        maxAge: PERSIST_MAX_AGE,
+        dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
+      }}
+    >
       <ThemeProvider>
         <AuthProvider>
           <RootNavigator />
         </AuthProvider>
       </ThemeProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }

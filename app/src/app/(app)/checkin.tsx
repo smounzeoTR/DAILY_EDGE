@@ -14,6 +14,9 @@ import { resolveLanguage } from '@/i18n/language';
 import { localized } from '@/i18n/localize';
 import { useUserId } from '@/lib/auth/AuthProvider';
 import { exerciseTitles, generatePlan, queryKeys, useCheckin, useProfile } from '@/lib/queries';
+import { classifyError } from '@/features/offline/queue';
+import { isOnline } from '@/features/offline/sync';
+import { track } from '@/lib/analytics';
 import { supabase } from '@/lib/supabase';
 import { spacing } from '@/theme';
 
@@ -97,9 +100,15 @@ export default function Checkin() {
     });
     if (rpcError) {
       setSaving(false);
-      setError(t('common.errorGeneric'));
+      // The check-in needs the server (plan of tomorrow): a clear message when offline
+      setError(
+        !isOnline() || classifyError(rpcError) === 'network'
+          ? t('checkin.offline')
+          : t('common.errorGeneric'),
+      );
       return;
     }
+    track('checkin_completed');
     await queryClient.invalidateQueries({ queryKey: queryKeys.checkin(userId, today) });
     try {
       const generated = await generatePlan(addDays(today, 1));

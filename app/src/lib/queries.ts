@@ -1,11 +1,13 @@
 // Data access (TanStack Query). The app only reads published content (RLS).
 import { QueryClient, useQuery } from '@tanstack/react-query';
 
+import { track } from './analytics';
 import { supabase } from './supabase';
 
 export const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: 2, staleTime: 5 * 60 * 1000 },
+    // gcTime covers the persisted cache (offline start, see features/offline/persist.ts)
+    queries: { retry: 2, staleTime: 5 * 60 * 1000, gcTime: 3 * 24 * 60 * 60 * 1000 },
   },
 });
 
@@ -41,7 +43,7 @@ export function useProfile(userId: string | undefined) {
         supabase
           .from('profiles')
           .select(
-            'user_id, display_name, locale, timezone, onboarded_at, program_id, program_day, notify_morning, notify_evening, consent_checkin, consent_ai, level, daily_minutes, persona, deletion_requested_at, role',
+            'user_id, display_name, locale, timezone, onboarded_at, program_id, program_day, notify_morning, notify_evening, consent_checkin, consent_ai, consent_analytics, level, daily_minutes, persona, deletion_requested_at, role',
           )
           .eq('user_id', userId ?? '')
           .single(),
@@ -344,7 +346,9 @@ export function useCheckinsSince(userId: string, from: string) {
     queryKey: ['checkinsSince', userId, from],
     staleTime: 0,
     queryFn: () =>
-      unwrap(supabase.from('checkins').select('date, energy').gte('date', from).order('date')),
+      unwrap(
+        supabase.from('checkins').select('date, energy, mood').gte('date', from).order('date'),
+      ),
   });
 }
 
@@ -512,7 +516,7 @@ export function useGuideState(userId: string) {
       unwrap(
         supabase
           .from('user_guide_state')
-          .select('tour_finished_at, tour_skipped, tips_seen, milestones')
+          .select('tour_finished_at, tour_skipped, tips_seen, milestones, support_seen')
           .maybeSingle(),
       ),
   });
@@ -564,6 +568,7 @@ export async function saveNote(
     ? await supabase.from('notes').update({ body }).eq('id', existingId)
     : await supabase.from('notes').insert({ entity_type: entityType, entity_id: entityId, body });
   if (result.error) throw result.error;
+  track('note_saved', { entity: entityType });
 }
 
 export async function deleteNote(id: string) {

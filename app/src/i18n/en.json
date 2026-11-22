@@ -134,7 +134,9 @@
       "checkinBody": "I agree to my mood and energy being recorded to adapt my plan.",
       "aiTitle": "AI personalisation",
       "aiBody": "I agree to a summarised, anonymised profile being processed by an AI (premium plan).",
-      "note": "The app stays usable without these options. You can change your mind anytime in settings."
+      "note": "The app stays usable without these options. You can change your mind anytime in settings.",
+      "analyticsTitle": "Usage analytics",
+      "analyticsBody": "I agree to send anonymous usage statistics (screens opened, actions taken, never my texts) to improve the app."
     },
     "program": {
       "title": "Your program",
@@ -234,7 +236,8 @@
     "tomorrowLater": "Your plan for tomorrow will be ready in the morning.",
     "shortVersion": "Short version, to keep the rhythm gently.",
     "backToday": "Back to today",
-    "edit": "Edit my check-in"
+    "edit": "Edit my check-in",
+    "offline": "The check-in needs a connection. Your answers stay on screen: try again once you're online."
   },
   "reminders": {
     "title": "A little reminder, morning and evening?",
@@ -731,5 +734,23 @@
       "callLabel": "Call 3114, national suicide prevention line in France",
       "emergency": "In immediate danger: 15 or 112 in France. Outside France, call your local emergency number."
     }
+  },
+  "offline": {
+    "banner": "Offline: your plan is still available.",
+    "bannerPending_one": "Offline: {{count}} action will sync when you're back online.",
+    "bannerPending_other": "Offline: {{count}} actions will sync when you're back online.",
+    "synced_one": "{{count}} action saved offline has been synced.",
+    "synced_other": "{{count}} actions saved offline have been synced.",
+    "refused_one": "{{count}} offline action couldn't be applied (your day changed in the meantime). The plan shown is up to date.",
+    "refused_other": "{{count}} offline actions couldn't be applied (your day changed in the meantime). The plan shown is up to date.",
+    "dismiss": "Tap to hide"
+  },
+  "support": {
+    "title": "We're here for you",
+    "body": "The last few days seem hard. Take care of yourself: talking about it can help, and you don't have to go through this alone. Your plan can wait.",
+    "call": "Call 3114 (France)",
+    "callLabel": "Call 3114, the French national suicide prevention line, free, 24/7",
+    "elsewhere": "Outside France: call your local emergency number. In immediate danger: 112.",
+    "seen": "Thanks, I've seen it"
   }
 }

@@ -2,6 +2,8 @@ import type { Session } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 
+import { clearOfflineData, startOfflineSync } from '@/features/offline/sync';
+import { queryPersister } from '@/features/offline/persist';
 import { clearDraft } from '@/features/onboarding/draft';
 import { supabase } from '@/lib/supabase';
 
@@ -35,6 +37,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  // Offline queue replayed on reconnect and when the app comes back (per signed-in user)
+  const userId = session?.user.id;
+  useEffect(() => {
+    if (!userId) return;
+    return startOfflineSync(userId, queryClient);
+  }, [userId, queryClient]);
+
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
@@ -42,8 +51,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signOut: async () => {
         const userId = session?.user.id;
         await supabase.auth.signOut();
-        if (userId) clearDraft(userId);
+        if (userId) {
+          clearDraft(userId);
+          clearOfflineData(userId);
+        }
+        // Nothing of the account stays on the device
         queryClient.clear();
+        queryPersister.removeClient();
       },
     }),
     [session, initializing, queryClient],
