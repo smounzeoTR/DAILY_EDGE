@@ -43,6 +43,22 @@ describe('deploy check: waitlist', () => {
     expect(texts).toContain('waitlist_entries : RLS active');
     expect(texts).toContain('trigger waitlist_entries_make_webhook (Make) installé et actif');
     expect(texts).toContain('aucun secret Make dans le Vault de recette');
+    expect(texts).toContain('web_diagnostics : RLS active');
+    expect(texts).toContain("web_diagnostic_tokens : aucune politique d'accès (0)");
+    expect(texts).toContain('trigger web_diagnostics_make_webhook (Make) installé et actif');
+  });
+
+  it('diagnostic: fails with a public policy or without its Make trigger', async () => {
+    expect(
+      failed(
+        await checksAfter(`
+          create policy "public read" on public.web_diagnostics for select to anon using (true);
+          drop trigger web_diagnostics_make_webhook on public.web_diagnostics;`),
+      ),
+    ).toEqual([
+      "web_diagnostics : aucune politique d'accès (1)",
+      'trigger web_diagnostics_make_webhook (Make) installé et actif',
+    ]);
   });
 
   it('fails when a public access policy exists', async () => {
@@ -92,6 +108,13 @@ describe('deploy check: waitlist', () => {
     expect(failed(checks)).toEqual([]);
     expect(checks).toContainEqual({
       info: 'liste d’attente : migration pas encore appliquée (à vérifier après db)',
+    });
+    const diagnostic = await checksAfter(
+      "delete from supabase_migrations.schema_migrations where version = '20261212090000'",
+    );
+    expect(failed(diagnostic)).toEqual([]);
+    expect(diagnostic).toContainEqual({
+      info: 'diagnostic : migration pas encore appliquée (à vérifier après db)',
     });
   });
 });

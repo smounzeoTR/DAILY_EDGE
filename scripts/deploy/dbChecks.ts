@@ -4,8 +4,25 @@ import type { Sql } from 'postgres';
 
 import { MAKE_KEYS, type Target } from './plan.ts';
 
-// Migration of the waitlist (site lot S2): its checks apply once it is on the project
+// Migrations of the waitlist (site lot S2) and of the web diagnostic (S3a): their checks apply
+// once they are on the project
 export const WAITLIST_MIGRATION = '20261210090000';
+export const DIAGNOSTIC_MIGRATION = '20261212090000';
+
+const SITE_FEATURES = [
+  {
+    name: 'liste d’attente',
+    migration: WAITLIST_MIGRATION,
+    tables: ['waitlist_entries', 'waitlist_tokens'],
+    trigger: { table: 'waitlist_entries', name: 'waitlist_entries_make_webhook' },
+  },
+  {
+    name: 'diagnostic',
+    migration: DIAGNOSTIC_MIGRATION,
+    tables: ['web_diagnostics', 'web_diagnostic_tokens'],
+    trigger: { table: 'web_diagnostics', name: 'web_diagnostics_make_webhook' },
+  },
+] as const;
 
 export type DbCheck = { ok: boolean; text: string } | { info: string };
 
@@ -13,16 +30,22 @@ export async function waitlistDbChecks(sql: Sql, target: Target): Promise<DbChec
   const checks: DbCheck[] = [];
   const [migrations] =
     await sql`select to_regclass('supabase_migrations.schema_migrations') is not null as exists`;
-  const applied = migrations?.exists
-    ? (
-        await sql`select 1 from supabase_migrations.schema_migrations where version = ${WAITLIST_MIGRATION}`
-      ).length > 0
-    : false;
+  const appliedVersions = migrations?.exists
+    ? new Set(
+        (
+          await sql`select version from supabase_migrations.schema_migrations where version = any(${SITE_FEATURES.map((f) => f.migration)})`
+        ).map((r) => r.version as string),
+      )
+    : new Set<string>();
 
-  if (!applied) {
-    checks.push({ info: 'liste d’attente : migration pas encore appliquée (à vérifier après db)' });
-  } else {
-    for (const table of ['waitlist_entries', 'waitlist_tokens']) {
+  for (const feature of SITE_FEATURES) {
+    if (!appliedVersions.has(feature.migration)) {
+      checks.push({
+        info: `${feature.name} : migration pas encore appliquée (à vérifier après db)`,
+      });
+      continue;
+    }
+    for (const table of feature.tables) {
       const [t] = await sql`
         select c.relrowsecurity as rls,
                (select count(*)::int from pg_policies p
@@ -47,11 +70,11 @@ export async function waitlistDbChecks(sql: Sql, target: Target): Promise<DbChec
     const [trigger] = await sql`
       select t.tgenabled <> 'D' as enabled
       from pg_trigger t
-      where t.tgrelid = to_regclass('public.waitlist_entries')
-        and t.tgname = 'waitlist_entries_make_webhook' and not t.tgisinternal`;
+      where t.tgrelid = to_regclass(${`public.${feature.trigger.table}`})
+        and t.tgname = ${feature.trigger.name} and not t.tgisinternal`;
     checks.push({
       ok: Boolean(trigger?.enabled),
-      text: 'trigger waitlist_entries_make_webhook (Make) installé et actif',
+      text: `trigger ${feature.trigger.name} (Make) installé et actif`,
     });
   }
 

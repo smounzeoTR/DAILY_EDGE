@@ -153,6 +153,20 @@ describe('waitlist deployment rules', () => {
     );
   });
 
+  it('store links: empty or https, sent to the functions', () => {
+    expect(
+      checkFunctionSecrets({ ...good, APP_STORE_URL: 'apps.apple.com/x' }, 'recette'),
+    ).toContain('APP_STORE_URL : URL https attendue (ou vide)');
+    const withStores = {
+      ...good,
+      APP_STORE_URL: 'https://apps.apple.com/app/id1',
+      PLAY_STORE_URL: '',
+    };
+    expect(checkFunctionSecrets(withStores, 'recette')).toEqual([]);
+    expect(functionSecrets(withStores)).toHaveProperty('APP_STORE_URL');
+    expect(functionSecrets(withStores)).not.toHaveProperty('PLAY_STORE_URL');
+  });
+
   it('every sender is an address of auth.dailyedge.fr', () => {
     expect(checkSenders({ ...good, SMTP_ADMIN_EMAIL: 'connexion@auth.dailyedge.fr' })).toEqual([]);
     expect(checkSenders({ ...good, SMTP_ADMIN_EMAIL: 'connexion@dailyedge.trasenel.com' })).toEqual(

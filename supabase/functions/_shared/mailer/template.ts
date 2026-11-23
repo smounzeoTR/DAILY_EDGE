@@ -66,11 +66,7 @@ ${body}
     input.title,
     '',
     ...input.intro.flatMap((p) => [p, '']),
-    ...sections.flatMap((s) => [
-      ...(s.heading ? [s.heading] : []),
-      ...s.paragraphs,
-      '',
-    ]),
+    ...sections.flatMap((s) => [...(s.heading ? [s.heading] : []), ...s.paragraphs, '']),
     ...buttons.map((b) => `${b.label} : ${b.url}`),
     ...(input.footnote ? ['', input.footnote] : []),
     '',

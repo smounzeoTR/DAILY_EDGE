@@ -50,6 +50,9 @@ export const FUNCTION_SECRET_KEYS = [
   'SCW_TEM_REGION',
   'SITE_URL',
   'WAITLIST_FROM',
+  // Web diagnostic (diagnostic-submit): store buttons of the result e-mail, hidden while empty
+  'APP_STORE_URL',
+  'PLAY_STORE_URL',
 ] as const;
 
 // Every sender of the app and of the site uses this domain (Scaleway TEM)
@@ -116,6 +119,10 @@ export function checkWaitlistSecrets(env: Env, target: Target): string[] {
       if (!filled(env, k)) errors.push(`${k} manquant (e-mails de la liste d'attente)`);
     }
   }
+  for (const k of ['APP_STORE_URL', 'PLAY_STORE_URL']) {
+    const value = (env[k] ?? '').trim();
+    if (value && !/^https:\/\/\S+$/.test(value)) errors.push(`${k} : URL https attendue (ou vide)`);
+  }
   const site = (env.SITE_URL ?? '').trim();
   if (site) {
     if (target === 'production' && site !== PRODUCTION_SITE_URL) {
@@ -179,7 +186,9 @@ export function checkMakeValues(
     }
   }
   if (!filled(env, 'MAKE_HOOK_DIAGNOSTIC')) {
-    warnings.push('MAKE_HOOK_DIAGNOSTIC vide : diagnostic (lot S3) non relié à Brevo');
+    warnings.push(
+      'MAKE_HOOK_DIAGNOSTIC vide : les diagnostics du site (mode launch) ne seront pas envoyés à Brevo',
+    );
   }
   return { errors, warnings };
 }

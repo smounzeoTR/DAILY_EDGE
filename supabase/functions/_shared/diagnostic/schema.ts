@@ -3,12 +3,16 @@
 // onboarding can be prefilled with them.
 import { z } from 'zod';
 
-import { DOMAINS, SITUATIONS } from '../onboarding/program.ts';
+import {
+  AUTHORS,
+  CHRONOTYPES,
+  DIAGNOSTIC_BLOCKERS,
+  DIAGNOSTIC_MINUTES,
+  DOMAINS,
+  SITUATIONS,
+} from './values.ts';
 
-export const DIAGNOSTIC_BLOCKERS = ['motivation', 'organisation', 'constance', 'fear'] as const;
-export const DIAGNOSTIC_MINUTES = [5, 15, 30] as const;
-export const CHRONOTYPES = ['morning', 'midday', 'evening'] as const;
-export const AUTHORS = ['hill', 'kiyosaki', 'clear', 'covey', 'robbins', 'carnegie'] as const;
+export { AUTHORS, CHRONOTYPES, DIAGNOSTIC_BLOCKERS, DIAGNOSTIC_MINUTES };
 
 export const answersSchema = z
   .object({
