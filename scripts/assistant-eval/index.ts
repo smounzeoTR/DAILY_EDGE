@@ -151,6 +151,8 @@ async function main() {
     });
     const session = await client.auth.signInWithPassword({ email, password });
     if (session.error) throw session.error;
+    // Lot 10b: onboarding requires the 18+ confirmation
+    await client.rpc('confirm_adult_age');
     const steps = [
       client.rpc('complete_onboarding', {
         p_goal_title: 'Signer 5 nouveaux clients',

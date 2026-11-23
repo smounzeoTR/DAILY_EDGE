@@ -33,6 +33,8 @@ async function createUser(label: string): Promise<TestUser> {
 }
 
 async function onboard(user: TestUser): Promise<void> {
+  // Lot 10b: onboarding requires the 18+ confirmation
+  await user.client.rpc('confirm_adult_age');
   const { error } = await user.client.rpc('complete_onboarding', {
     p_goal_title: 'Signer 5 clients',
     p_program_id: 'PR1',

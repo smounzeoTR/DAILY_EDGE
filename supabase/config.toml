@@ -424,6 +424,9 @@ LLM_ASSISTANT_MODEL = "mock-assistant"
 LLM_ASSISTANT_MOCK_CHUNK_MS = "15"
 LLM_ASSISTANT_PRICE_IN_EUR_PER_MTOK = "0.10"
 LLM_ASSISTANT_PRICE_OUT_EUR_PER_MTOK = "0.50"
+# Operations alerts: no e-mail locally (alerts shown in the administration only)
+OPS_ALERT_EMAIL_PROVIDER = "none"
+OPS_ENV_NAME = "local"
 
 # Plan generation: the user comes from the JWT only
 [functions.generate-plan]
@@ -431,6 +434,10 @@ verify_jwt = true
 
 # Hourly fallback generation (pg_cron): protected by a server secret, not a user JWT
 [functions.generate-plans-batch]
+verify_jwt = false
+
+# Operations alerts e-mail (pg_cron run_ops_checks): same server secret as the batch
+[functions.ops-alert]
 verify_jwt = false
 
 [functions.generate-review]

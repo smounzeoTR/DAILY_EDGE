@@ -26,6 +26,8 @@ async function onboardedUser(label: string, timezone = 'Europe/Paris'): Promise<
   created.push(data.user.id);
   const client = createClient(url, status.PUBLISHABLE_KEY, { auth: { persistSession: false } });
   const { data: session } = await client.auth.signInWithPassword({ email, password: PASSWORD });
+  // Lot 10b: onboarding requires the 18+ confirmation
+  await client.rpc('confirm_adult_age');
   const { error: onboardError } = await client.rpc('complete_onboarding', {
     p_goal_title: 'Objectif',
     p_program_id: 'PR1',

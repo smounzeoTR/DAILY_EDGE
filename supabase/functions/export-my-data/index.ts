@@ -21,6 +21,7 @@ const USER_TABLES = [
   'assistant_threads',
   'assistant_messages',
   'assistant_actions',
+  'feedback',
 ] as const;
 
 Deno.serve(async (req) => {

@@ -12,5 +12,11 @@ select vault.create_secret(
   'Shared secret checked by generate-plans-batch'
 );
 
+select vault.create_secret(
+  'http://host.docker.internal:54321/functions/v1/ops-alert',
+  'ops_alert_url',
+  'URL of the ops-alert Edge Function'
+);
+
 -- Prototype premium switch shown in the app (false by default, never true in production)
 update public.app_settings set value = 'true' where key = 'allow_plan_toggle';

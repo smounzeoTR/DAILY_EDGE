@@ -4,6 +4,7 @@
 // generates the plan with the same code as generate-plan. At most BATCH_LIMIT users per run.
 // Also generates the weekly reviews due and purges accounts deleted more than 30 days ago.
 // Body: {} or { "now": ISO timestamp } (tests only; requires the secret like any call).
+// Each run is recorded (record_batch_run) for the operations alerts (check_ops_alerts).
 import {
   env,
   generatePlanForUser,
@@ -11,18 +12,11 @@ import {
   loadProfile,
   serviceClient,
 } from '../_shared/plans/generatePlan.ts';
+import type { Json } from '../_shared/database.types.ts';
+import { safeEqual } from '../_shared/ops/secret.ts';
 import { generateReviewForUser } from '../_shared/review/generateReview.ts';
 
 const BATCH_LIMIT = 200;
-
-// Constant-time comparison of two strings
-function safeEqual(a: string, b: string): boolean {
-  const x = new TextEncoder().encode(a);
-  const y = new TextEncoder().encode(b);
-  let diff = x.length ^ y.length;
-  for (let i = 0; i < Math.max(x.length, y.length); i++) diff |= (x[i] ?? 0) ^ (y[i] ?? 0);
-  return diff === 0;
-}
 
 async function parseNow(req: Request): Promise<Date | null> {
   const text = await req.text();
@@ -53,13 +47,23 @@ Deno.serve(async (req) => {
   const now = await parseNow(req);
   if (!now) return json(400, { error: 'invalid_request' });
 
+  const startedAt = new Date().toISOString();
   const db = serviceClient(env('SUPABASE_URL'), env('SUPABASE_SERVICE_ROLE_KEY'));
+  const record = async (ok: boolean, summary: Json) => {
+    const { error: recordError } = await db.rpc('record_batch_run', {
+      p_started_at: startedAt,
+      p_ok: ok,
+      p_summary: summary,
+    });
+    if (recordError) console.error('record_batch_run failed', recordError);
+  };
   const { data: due, error } = await db.rpc('users_due_for_plan', {
     p_now: now.toISOString(),
     p_limit: BATCH_LIMIT,
   });
   if (error) {
     console.error('users_due_for_plan failed', error);
+    await record(false, { error: 'users_due_for_plan' });
     return json(500, { error: 'internal_error' });
   }
 
@@ -108,10 +112,14 @@ Deno.serve(async (req) => {
   });
   if (threadsError) console.error('purge_assistant_history failed', threadsError);
 
-  return json(200, {
+  const result = {
     ...summary,
     reviews,
     purged: purged ?? 0,
     purged_assistant_threads: purgedThreads ?? 0,
-  });
+  };
+  const ok =
+    summary.failed === 0 && reviews.failed === 0 && !reviewError && !purgeError && !threadsError;
+  await record(ok, result);
+  return json(200, result);
 });
