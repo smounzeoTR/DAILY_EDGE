@@ -58,6 +58,41 @@ export async function aiCostDaily(days: number) {
   return data ?? [];
 }
 
+export async function betaMetrics(from: string, to: string) {
+  const { data, error } = await supabase.rpc('admin_metrics', { p_from: from, p_to: to });
+  if (error) throw error;
+  return data as Record<string, number | string | null>;
+}
+
+export async function feedbackList() {
+  const { data, error } = await supabase.rpc('admin_feedback', { p_limit: 100 });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function opsAlerts() {
+  const { data, error } = await supabase.rpc('admin_ops_alerts', { p_limit: 50 });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function premiumList() {
+  const { data, error } = await supabase.rpc('admin_list_premium');
+  if (error) throw error;
+  return data ?? [];
+}
+
+// Errors are returned as their message (user_not_found, invalid_until, forbidden...)
+export async function grantPremium(email: string, until: string): Promise<string | null> {
+  const { error } = await supabase.rpc('admin_grant_premium', { p_email: email, p_until: until });
+  return error ? error.message : null;
+}
+
+export async function revokePremium(email: string): Promise<string | null> {
+  const { error } = await supabase.rpc('admin_revoke_premium', { p_email: email });
+  return error ? error.message : null;
+}
+
 export type ExerciseStat = Awaited<ReturnType<typeof exerciseStats>>[number];
 export type EngineLogRow = Awaited<ReturnType<typeof engineLog>>[number];
 export type AiCostRow = Awaited<ReturnType<typeof aiCostDaily>>[number];

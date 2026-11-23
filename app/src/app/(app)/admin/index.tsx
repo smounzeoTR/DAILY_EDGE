@@ -66,12 +66,19 @@ export default function AdminHome() {
           <AppText variant="title" accessibilityRole="header">
             {t('admin.title')}
           </AppText>
-          <AppText tone="secondary">{t('admin.readOnly')}</AppText>
+          <AppText tone="secondary">{t('admin.readOnlyExceptPremium')}</AppText>
         </View>
         <Card>
           <MenuRow label={t('admin.exercises')} onPress={() => router.push('/admin/exercises')} />
           <MenuRow label={t('admin.engineLog')} onPress={() => router.push('/admin/log')} />
           <MenuRow label={t('admin.aiCost')} onPress={() => router.push('/admin/costs')} />
+          <MenuRow label={t('admin.metrics.title')} onPress={() => router.push('/admin/metrics')} />
+          <MenuRow label={t('admin.premium.title')} onPress={() => router.push('/admin/premium')} />
+          <MenuRow
+            label={t('admin.feedback.title')}
+            onPress={() => router.push('/admin/feedback')}
+          />
+          <MenuRow label={t('admin.alerts.title')} onPress={() => router.push('/admin/alerts')} />
         </Card>
       </Screen>
     );
