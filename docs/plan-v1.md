@@ -106,7 +106,7 @@ Acceptation : sur le téléphone, une journée complète (exercice, habitudes, c
 - [x] (10a) Cache hors ligne du plan du jour, des résultats d'exercice et des coches (cache TanStack persisté et chiffré, file d'actions), synchronisation au retour du réseau ; le serveur fait foi : une action refusée au rejeu est abandonnée et signalée, jamais forcée. Check-in, assistant et Réglages restent en ligne.
 - [x] (10a) Message bienveillant et ressources d'aide (3114, sinon numéro d'urgence local) si humeur ≤ 2 pendant 5 jours, une fois par épisode (`user_guide_state.support_seen`), seulement avec le consentement check-in.
 - [x] (10a) Sentry (UE, sans donnée personnelle, sans consentement) et PostHog (UE, consentement « Mesure d'audience » désactivé par défaut, à l'onboarding et dans Réglages).
-- [x] (10b) Pages légales FR (`legal/`, GitHub Pages, `dailyedge.trasenel.com`) avec les sections du document légal, liens dans l'onboarding et les Réglages. Textes définitifs et version EN à intégrer quand ils seront relus.
+- [x] (10b) Pages légales FR (`legal/`, GitHub Pages, `legal.dailyedge.fr`, anciennement `dailyedge.trasenel.com`) avec les sections du document légal, liens dans l'onboarding et les Réglages. Textes définitifs et version EN à intégrer quand ils seront relus.
 - [x] (10b) Déploiement par étapes (`npm run deploy -- <étape> --env recette|production`) : check, db, functions, secrets, vault, settings, auth, catalog, backup, restore ; recette obligatoire avant la production (`deploy/history.json`). Procédure : `docs/mise-en-ligne.md`.
 - [ ] (10b) Premier déploiement complet en recette, contrôlé ensemble, puis test de restauration noté dans `docs/exploitation.md`.
 - [x] (10b) `eas.json` (development, preview = recette, production), déclaration de chiffrement, `com.trasenel.dailyedge` réservé pour Android (pas d'Android pour la bêta). Réponses App Store : `docs/app-store.md`.
@@ -119,6 +119,13 @@ Acceptation : sur le téléphone, une journée complète (exercice, habitudes, c
 - [x] (10b) Scénario Maestro `lot10b-beta` ; lot 6 indépendant du jour et de l'heure (`DEMO_NOW`, `check-review-window.ts`).
 - [x] (10a) Stockage local chiffré : session, brouillon d'onboarding, file hors ligne et cache persisté chiffrés (AES-CTR, clé aléatoire dans le trousseau via SecureStore) ; les anciennes valeurs en clair sont rechiffrées à la première lecture, sans déconnexion.
 - [x] (10a) Scénario Maestro `lot10a-robustness` (carte de soutien une seule fois, consentement à la mesure d'audience) ; compte `support@daily-edge.local` créé par `npm run seed:demo`.
+
+### À faire après la fusion du lot 10 (domaine dailyedge.fr)
+
+Reportées de la branche `feat/deploy-site`, qui ne touche pas à `app/` pendant le lot 10 :
+
+- [ ] URL par défaut des pages légales dans l'app : `https://legal.dailyedge.fr` à la place de `https://dailyedge.trasenel.com` dans `app/src/features/legal/links.ts`, son test `links.test.ts` et `app/.env.example` (`EXPO_PUBLIC_LEGAL_BASE_URL`, aussi à corriger dans les variables EAS si elle y est définie).
+- [ ] Administration > Alertes : ajouter le type `make_webhook_failed` (webhook Make en échec, migration `20261211090000`) à la liste `KINDS` de `app/src/app/(app)/admin/alerts.tsx`, avec ses libellés FR et EN dans `app/src/i18n/`.
 
 ### Contrôle manuel du hors-ligne (lot 10a)
 
