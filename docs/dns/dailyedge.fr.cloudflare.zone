@@ -1,0 +1,25 @@
+; dailyedge.fr — zone to import into Cloudflare (DNS > Records > Import and Export).
+; Faithful copy of the OVH zone exported on 23 November 2026 (docs/dns-migration.md), so that the
+; migration changes nothing; the site is branched afterwards (phase 2 of the document).
+; On import, UNTICK "Proxy imported DNS records": every record stays "DNS only".
+; SOA and NS are not imported (Cloudflare writes its own).
+$ORIGIN dailyedge.fr.
+$TTL 3600
+
+; Web: OVH welcome / redirect server (kept until the site is branched; the two TXT are the
+; settings OVH's redirect server reads)
+@	3600	IN	A	213.186.33.5
+@	3600	IN	TXT	"1|www.dailyedge.fr"
+www	3600	IN	A	213.186.33.5
+www	3600	IN	TXT	"3|welcome"
+ftp	3600	IN	CNAME	dailyedge.fr.
+
+; Mail of the root domain (OVH): SPF only. No MX in the OVH zone (see the document).
+@	3600	IN	TXT	"v=spf1 include:mx.ovh.com -all"
+_dmarc	300	IN	TXT	"v=DMARC1; p=quarantine; rua=mailto:contact@dailyedge.fr; sp=quarantine; aspf=r"
+
+; Scaleway Transactional Email (auth.dailyedge.fr): bounces, SPF, DKIM, DMARC
+auth	300	IN	MX	10 blackhole.tem.scaleway.com.
+auth	300	IN	TXT	"v=spf1 include:_spf.tem.scaleway.com -all"
+_dmarc.auth	300	IN	TXT	"v=DMARC1; p=none"
+b20000a8-076f-4aab-9d36-c03d2f87e5f9._domainkey.auth	300	IN	TXT	"v=DKIM1; h=sha256; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAzrhk9g17IdRccfGu8RCRka46lfrnWt4W34tnjv/rb8lKl3MZggiGqgzs7XrxR7kuPnTUenMcfxb4GHYnpXXPqkfHu4G7L2QJPdS5J3XanNAX3SrFyo5dtBkruPXlVdmWcjQSOCIbUmBdQcrgurkfIlnSDPBkHbPJLIKmwokOza3bTCLsO2pd72w" "7e9ACY2E2YEDMsCYXTjktc26M4an6eefy7HqkTjI2CP+9VQUZRgfrgyr7bzPz0ueQLp4qOF5hVzEfRNlhVTPSa44NlSpTrvVD3vH5HxVvYipdRfGanqDFm06V5axiiZL6W5mMcENnb1VnDZ4G42rWqBp41d0EjQIDAQAB"

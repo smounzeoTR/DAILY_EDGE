@@ -318,7 +318,7 @@ Comportement : sans choix ou après un refus, mesure anonyme sans cookie (emprei
 
 ## 11. Site dailyedge.fr sur Cloudflare Pages (lot S5)
 
-Prérequis : la zone `dailyedge.fr` est servie par Cloudflare (`docs/dns-migration.md`). Le site est construit et testé par GitHub Actions (`.github/workflows/site.yml`), puis envoyé par `wrangler pages deploy` ; l'intégration Git de Cloudflare n'est pas utilisée.
+Prérequis : la zone `dailyedge.fr` est servie par Cloudflare (`docs/dns-migration.md`, § 1 à 6) ; le branchement du site suit son § 7. Le site est construit et testé par GitHub Actions (`.github/workflows/site.yml`), puis envoyé par `wrangler pages deploy` ; l'intégration Git de Cloudflare n'est pas utilisée.
 
 ### Ce que tu configures une fois
 

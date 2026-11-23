@@ -1,0 +1,23 @@
+# name|type — every record of the OVH zone (23 November 2026) plus names that must stay empty.
+# Used by scripts/dns/dns-compare.sh: the same answer is expected from OVH and from Cloudflare.
+@|A
+@|AAAA
+@|MX
+@|TXT
+@|CAA
+www|A
+www|AAAA
+www|TXT
+ftp|CNAME
+_dmarc|TXT
+auth|MX
+auth|TXT
+auth|A
+_dmarc.auth|TXT
+b20000a8-076f-4aab-9d36-c03d2f87e5f9._domainkey.auth|TXT
+news|TXT
+news|MX
+autodiscover|CNAME
+autoconfig|CNAME
+_autodiscover._tcp|SRV
+recette|CNAME
