@@ -26,6 +26,9 @@
     "supabase/functions/_shared/plans",
     "supabase/functions/generate-review",
     "supabase/functions/export-my-data",
-    "supabase/functions/assistant-chat"
+    "supabase/functions/assistant-chat",
+    "supabase/functions/waitlist-join",
+    "supabase/functions/waitlist-confirm",
+    "supabase/functions/waitlist-status"
   ]
 }

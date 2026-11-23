@@ -427,6 +427,14 @@ LLM_ASSISTANT_PRICE_OUT_EUR_PER_MTOK = "0.50"
 # Operations alerts: no e-mail locally (alerts shown in the administration only)
 OPS_ALERT_EMAIL_PROVIDER = "none"
 OPS_ENV_NAME = "local"
+# dailyedge.fr waitlist (site lot S2): e-mails go to the local Mailpit ("Inbucket", http://127.0.0.1:54324).
+# Production: supabase secrets set MAILER_PROVIDER=scaleway SCW_SECRET_KEY=... SCW_PROJECT_ID=...
+# SCW_TEM_REGION=fr-par SITE_URL=https://dailyedge.fr (see supabase/functions/.env.example)
+MAILER_PROVIDER = "mailpit"
+MAILPIT_URL = "http://supabase_inbucket_daily-edge:8025"
+SITE_URL = "http://localhost:4321"
+# Local only: the site's Playwright preview and 127.0.0.1
+SITE_EXTRA_ORIGINS = "http://localhost:4329,http://127.0.0.1:4321,http://127.0.0.1:4329"
 
 # Plan generation: the user comes from the JWT only
 [functions.generate-plan]
@@ -450,6 +458,16 @@ verify_jwt = true
 # Coach Edge assistant (premium + AI consent), streamed answer (SSE)
 [functions.assistant-chat]
 verify_jwt = true
+
+# dailyedge.fr waitlist: public (no account), origin limited to SITE_URL, service role inside
+[functions.waitlist-join]
+verify_jwt = false
+
+[functions.waitlist-confirm]
+verify_jwt = false
+
+[functions.waitlist-status]
+verify_jwt = false
 
 [analytics]
 enabled = true
