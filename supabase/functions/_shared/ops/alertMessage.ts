@@ -1,6 +1,6 @@
 // Operations alert e-mail (pure): plain French text for the operator, no user data.
 export type OpsAlert = {
-  kind: 'batch_missing' | 'batch_failed' | 'ai_cost' | string;
+  kind: 'batch_missing' | 'batch_failed' | 'ai_cost' | 'make_webhook_failed' | string;
   day: string;
   detail: Record<string, unknown>;
   created_at: string;
@@ -15,6 +15,8 @@ function describe(alert: OpsAlert): string {
       return `Génération de secours en échec (passage du ${String(d.run ?? '?')}). Résumé : ${JSON.stringify(d.summary ?? {})}.`;
     case 'ai_cost':
       return `Coût IA du jour : ${String(d.cost_eur ?? '?')} €, au-dessus du seuil de ${String(d.threshold_eur ?? '?')} €.`;
+    case 'make_webhook_failed':
+      return `Webhook Make en échec : ${String(d.failed ?? '?')} appel(s) sur 24 h (statuts : ${JSON.stringify(d.statuses ?? [])}). Vérifier le scénario Make et la synchronisation Brevo.`;
     default:
       return `Alerte ${alert.kind} : ${JSON.stringify(d)}.`;
   }
