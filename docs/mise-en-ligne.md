@@ -241,3 +241,52 @@ Pour que le premier vrai inscrit ait le rang 1 :
    ```
    (La suppression ne déclenche pas Make : le trigger ne réagit qu'aux mises à jour.)
 2. Dans Brevo : Contacts, rechercher l'adresse de test, la retirer de la liste « Daily Edge – Liste d'attente » puis supprimer le contact.
+
+## 9. Diagnostic du site (lot S3a)
+
+Deux Edge Functions publiques, déployées par l'étape `functions` :
+
+| Fonction                       | Vérification du JWT | Pourquoi                                          |
+| ------------------------------ | ------------------- | ------------------------------------------------- |
+| `diagnostic-submit`            | non                 | appelée par le site, sans session ni compte       |
+| `diagnostic-confirm-marketing` | non                 | lien de l'e-mail de résultat, ouvert sans session |
+
+Valeurs de `.env.<env>` (envoyées par `deploy secrets`) : `APP_STORE_URL` et `PLAY_STORE_URL`, liens https des fiches des apps, **vides tant que les apps ne sont pas publiées** (les boutons sont alors masqués dans l'e-mail). Côté site, les mêmes liens se passent à la construction (`APP_STORE_URL=… PLAY_STORE_URL=… npm run build` dans `site/`). Le webhook Make du diagnostic est `MAKE_HOOK_DIAGNOSTIC` (§ 8), vide en recette.
+
+Le contact ne part vers Brevo qu'après la **confirmation du consentement marketing** : bouton de l'e-mail de résultat (48 h, usage unique), qui renseigne `marketing_confirmed_at` et déclenche le trigger. Un seul e-mail de résultat par adresse et par 24 h.
+
+### Test en recette
+
+```
+cd ~/DAILY_EDGE/site
+SITE_MODE=launch PUBLIC_FUNCTIONS_URL="$(grep '^SUPABASE_URL=' ../.env.recette | cut -d= -f2- | sed 's#/*$##')/functions/v1" npm run build
+npx astro preview --port 4321
+```
+
+1. Dans Safari (Chrome peut forcer le https sur `localhost`), ouvrir http://localhost:4321/diagnostic et répondre aux 7 questions, case des e-mails cochée.
+2. Le résultat s'affiche ; l'e-mail arrive de `bonjour@auth.dailyedge.fr` avec le bouton « Oui, je veux recevoir les e-mails de Daily Edge ».
+3. Cliquer : la page affiche « C'est confirmé ». Un second clic : « Ce lien ne fonctionne plus ».
+4. Refaire le diagnostic avec la même adresse : le résultat s'affiche, mais aucun second e-mail n'arrive (un par 24 h).
+5. Éditeur SQL de la recette : `select profile, recommended_program_id, consent_marketing, marketing_confirmed_at from public.web_diagnostics;` et `select count(*) from public.make_webhook_requests where source_table = 'web_diagnostics';` vaut 0 (rien vers Make en recette).
+
+### Production, puis activation du scénario Make
+
+Le scénario « Daily Edge – Diagnostic web → Brevo » reste **désactivé** pendant le test. Comme pour la liste d'attente, le site n'étant pas encore hébergé (lot S5), le test passe par `curl` :
+
+1. `MAKE_HOOK_DIAGNOSTIC` renseigné dans `.env.production`, puis `npm run deploy -- vault --env production --apply --confirm-production`.
+2. Diagnostic de test :
+   ```
+   curl -sS -X POST https://<ref-production>.supabase.co/functions/v1/diagnostic-submit \
+     -H 'Content-Type: application/json' \
+     -d '{"answers":{"domain":"money_wealth","situation":"employee","blocker":"fear","daily_minutes":15,"chronotype":"evening","authors":["hill"]},"email":"<ton adresse de test>","consent_marketing":true,"utm_source":"test"}'
+   ```
+   Réponse attendue : le profil « Le stratège prudent » et le programme PR4.
+3. Dans l'e-mail, ne pas ouvrir le bouton (la page `dailyedge.fr/diagnostic/confirmer` n'est pas encore en ligne) : copier les 43 caractères après `#t=`, puis
+   ```
+   curl -sS -X POST https://<ref-production>.supabase.co/functions/v1/diagnostic-confirm-marketing \
+     -H 'Content-Type: application/json' -d '{"token":"<jeton>"}'
+   ```
+   Réponse attendue : `{"ok":true}`.
+4. Éditeur SQL : `select r.created_at, r.url_host, h.status_code from public.make_webhook_requests r left join net._http_response h on h.id = r.request_id where r.source_table = 'web_diagnostics';` montre un appel 2xx.
+5. Make : lancer une fois (« Run once ») le scénario « Daily Edge – Diagnostic web → Brevo », vérifier le contact dans la liste Brevo « Daily Edge – Diagnostic web » (`PROFIL`, `PROGRAMME`, UTM), **puis seulement** activer le scénario.
+6. Nettoyage : dans l'éditeur SQL, `delete from public.web_diagnostics where email = '<ton adresse de test>';` (les jetons suivent), puis supprimer le contact de test dans Brevo.

@@ -71,32 +71,38 @@ RLS : aucune lecture ni écriture directe depuis le navigateur ; tout passe par 
 
 ## 7. Mode `launch` : le diagnostic
 
-### Les 6 questions
-Une question par écran, barre de progression, retour possible, réponses enregistrées localement jusqu'à l'envoi.
+Mis à jour le 23 novembre 2026 (lot S3a) : 7 questions, confirmation du consentement marketing, un e-mail de résultat par adresse et par 24 h.
 
-| # | Question | Réponses |
+### Les 7 questions
+Une question par écran, barre de progression, retour possible, réponses enregistrées localement jusqu'à l'envoi (jamais l'e-mail).
+
+| # | Question | Réponses (valeurs de l'app) |
 |---|---|---|
-| 1 | Quel est ton objectif principal pour les 3 prochains mois ? | Reprendre les objectifs de l'onboarding de l'app (mêmes valeurs) |
-| 2 | Qu'est-ce qui te bloque le plus aujourd'hui ? | Motivation · Organisation · Constance · Peur de passer à l'action |
-| 3 | Combien de temps peux-tu y consacrer par jour ? | 5 min · 15 min · 30 min |
-| 4 | Quels auteurs as-tu déjà lus ? | Choix multiple : Hill, Kiyosaki, Clear, Covey, Robbins, Carnegie, aucun |
-| 5 | Quel est ton meilleur moment de la journée ? | Matin · Midi · Soir |
-| 6 | Ton e-mail, pour recevoir ton plan | E-mail + consentement marketing séparé et facultatif |
+| 1 | Quel est ton objectif principal pour les 3 prochains mois ? | Les 7 domaines de l'onboarding (`domain`) : repris comme premier domaine prioritaire |
+| 2 | Ta situation | Les 5 situations de l'onboarding (`situation`) |
+| 3 | Qu'est-ce qui te bloque le plus aujourd'hui ? | Motivation · Organisation · Constance · Peur de passer à l'action |
+| 4 | Combien de temps peux-tu y consacrer par jour ? | 5 min · 15 min · 30 min (`daily_minutes`) |
+| 5 | Quel est ton meilleur moment de la journée ? | Matin · Midi · Soir (`chronotype`) |
+| 6 | Quels auteurs as-tu déjà lus ? | Facultative (bouton « Passer ») ; choix multiple : Hill, Kiyosaki, Clear, Covey, Robbins, Carnegie, aucun. Sert à personnaliser la newsletter |
+| 7 | Ton e-mail, pour recevoir ton plan | E-mail + consentement marketing séparé et facultatif |
 
-Les valeurs des questions 1, 3 et 5 doivent être **strictement identiques** à celles de l'onboarding de l'app, pour permettre le préremplissage.
+Les valeurs des questions 1, 2, 4 et 5 sont **strictement identiques** à celles de l'onboarding de l'app (module partagé `supabase/functions/_shared/diagnostic/values.ts`). Préremplissage des freins de l'app : Motivation → `motivation`, Organisation → `organisation`, Peur → `fear` ; « Constance » n'a pas d'équivalent (aucun préremplissage).
 
 ### Le résultat
-- **Profil** selon la question 2 (libellés à valider) : Motivation → « Le rêveur en attente » ; Organisation → « Le bâtisseur dispersé » ; Constance → « Le sprinteur » ; Peur → « Le stratège prudent ». Deux phrases par profil.
-- **Programme recommandé** : même règle d'attribution que l'écran « Ton programme » de l'onboarding (réutiliser la fonction du moteur, ne pas la réécrire).
-- **Premier principe et premier exercice de 2 minutes** du programme, tirés du catalogue publié.
-- Bouton « Recevoir mon plan et télécharger l'app » → e-mail de résultat via Scaleway TEM avec les liens de téléchargement.
+- **Profil** selon la question 3 : Motivation → « Le rêveur en attente » ; Organisation → « Le bâtisseur dispersé » ; Constance → « Le sprinteur » ; Peur → « Le stratège prudent ». Deux phrases par profil (libellés à valider).
+- **Programme recommandé** : même règle d'attribution que l'écran « Ton programme » de l'onboarding (premier domaine « Argent & patrimoine » → PR4, sinon la situation), partagée dans `supabase/functions/_shared/onboarding/program.ts`.
+- **Premier principe et exercice court** : principe et exercice minimal du jour 1 du programme, tirés du catalogue publié, affichés avec leur durée réelle (2 min pour PR1 et PR2, 5 min pour PR3 et PR4).
+- Le résultat s'affiche à l'écran. L'e-mail de résultat (Scaleway TEM, HTML et texte) part **au plus une fois par adresse et par 24 h** (l'adresse n'est pas vérifiée) ; le message affiché est le même dans tous les cas : « Ton plan part par e-mail (un envoi par adresse et par jour) ». Les boutons App Store et Google Play n'apparaissent que si leurs liens sont renseignés.
 
-### Le préremplissage dans l'app
+### Consentement marketing
+L'adresse n'étant pas vérifiée, le consentement marketing doit être confirmé : quand la case est cochée, l'e-mail de résultat contient un bouton de confirmation (lien valable 48 heures, à usage unique). Le clic renseigne `marketing_confirmed_at` ; c'est seulement à ce moment que le contact part vers Brevo (§ 14). Sans ce clic, la personne ne reçoit que l'e-mail de résultat.
+
+### Le préremplissage dans l'app (lot S3b, après le lot 10)
 On ne crée **pas** de compte depuis le site (les consentements de l'app restent recueillis dans l'app). Les réponses sont stockées avec l'e-mail ; quand un utilisateur se connecte dans l'app avec la même adresse, l'onboarding lui propose : « On a retrouvé ton diagnostic. Reprendre avec ces réponses ? » (Oui / Recommencer). Les réponses non réclamées sont supprimées au bout de 90 jours.
 
 ### Données (Supabase)
-Table `web_diagnostics` : `id`, `email`, `answers` (JSON validé par un schéma zod partagé avec l'app), `profile`, `recommended_program_id`, `consent_marketing`, `utm_*`, `landing_path`, `referral_code`, `claimed_by_user_id` (nul tant que non réclamé), `created_at`, `expires_at`.
-Edge Function `diagnostic-submit` : valide, calcule profil et programme côté serveur, enregistre, envoie l'e-mail de résultat, renvoie le résultat à afficher.
+Table `web_diagnostics` : `id`, `email`, `answers` (JSON validé par un schéma zod partagé avec l'app), `profile`, `recommended_program_id`, `consent_marketing`, `marketing_confirmed_at`, `utm_*`, `landing_path`, `referral_code`, `claimed_by_user_id` (nul tant que non réclamé), `result_email_sent_at`, `locale`, `created_at`, `updated_at`, `expires_at`. Un seul diagnostic non réclamé par adresse : un nouvel envoi le remplace (un consentement déjà confirmé est conservé). Jetons de confirmation dans `web_diagnostic_tokens` (hachés).
+Edge Functions `diagnostic-submit` (valide, calcule profil et programme côté serveur, enregistre, envoie l'e-mail de résultat, renvoie le résultat à afficher) et `diagnostic-confirm-marketing` (confirme le consentement avec le jeton du lien).
 
 ## 8. Événements PostHog
 
@@ -139,7 +145,8 @@ Les valeurs exactes sont fournies par chaque service au moment de la vérificati
 | S0 | Dossier `site/`, Astro, jetons de l'identité visuelle, polices, composants (bouton, carte, champ) | La page vide s'affiche en clair et en sombre avec le logo |
 | S1 | Toutes les sections de la page (mode `waitlist`) et la page `/equipes`, textes en dur | Relecture visuelle validée par Steeven |
 | S2 | Liste d'attente : table, Edge Functions, double opt-in Scaleway, parrainage, page « Ta place est réservée » | Une inscription de test reçoit l'e-mail, se confirme, obtient un rang ; un filleul confirmé fait gagner 10 places |
-| S3 | Diagnostic : table, schéma partagé, Edge Function, écrans, e-mail de résultat ; préremplissage dans l'app | Un diagnostic de test produit le bon programme ; la même adresse dans l'app retrouve les réponses |
+| S3a | Diagnostic, serveur et site : table, schéma et règle d'attribution partagés, Edge Functions, écrans, e-mail de résultat, confirmation du consentement marketing | Un diagnostic de test produit le bon programme ; la confirmation du consentement envoie le contact à Brevo |
+| S3b | Préremplissage dans l'app (après le lot 10) ; suppression de la copie de la règle d'attribution dans l'app | La même adresse dans l'app retrouve les réponses |
 | S4 | PostHog, bandeau de consentement, événements, anti-abus | Tous les événements du § 8 remontent ; aucun cookie avant consentement |
 | S5 | Mise en ligne : hébergement, DNS, HTTPS, pages légales, référencement | dailyedge.fr répond en HTTPS, Lighthouse ≥ 90 |
 
@@ -152,14 +159,14 @@ Dossier Make « Daily Edge » (organisation TRASENEL), deux scénarios créés e
 | Scénario | Webhook Make | Déclencheur Supabase à créer | Liste Brevo |
 |---|---|---|---|
 | « Daily Edge – Liste d'attente confirmée → Brevo » | « Daily Edge – Liste d'attente confirmée (Supabase) » | Trigger `pg_net` sur `waitlist_entries`, événement **UPDATE** | « Daily Edge – Liste d'attente » (id 4) |
-| « Daily Edge – Diagnostic web → Brevo » | « Daily Edge – Diagnostic web (Supabase) » | Trigger `pg_net` sur `web_diagnostics`, événement **INSERT** | « Daily Edge – Diagnostic web » (id 5) |
+| « Daily Edge – Diagnostic web → Brevo » | « Daily Edge – Diagnostic web (Supabase) » | Trigger `pg_net` sur `web_diagnostics`, événement **UPDATE** quand `marketing_confirmed_at` passe de vide à renseignée | « Daily Edge – Diagnostic web » (id 5) |
 
 Contrat d'interface :
 - Format : celui des webhooks de base de Supabase (`type`, `table`, `record`, `old_record`), en POST JSON.
 - Envoi depuis un trigger Postgres avec `pg_net` ; URL et secret lus dans Supabase Vault (`make_hook_waitlist`, `make_hook_diagnostic`, `make_webhook_secret`), jamais dans une migration ni dans le code.
 - Chaque appel porte l'en-tête `x-webhook-secret`. Sa valeur est visible dans le filtre du module Brevo de chaque scénario ; Steeven la copie lui-même dans Vault.
-- Champs lus dans `record` : `email`, `status`, `referral_code`, `rank`, `utm_source`, `utm_medium`, `utm_campaign` (liste d'attente) ; `email`, `consent_marketing`, `profile`, `recommended_program_id`, `utm_*` (diagnostic). Les noms de colonnes du § 6 et du § 7 doivent donc être respectés à l'identique.
-- Le scénario liste d'attente n'agit que si `record.status` vaut `confirmed` et `old_record.status` ne le valait pas ; le scénario diagnostic n'agit que si `consent_marketing` est vrai.
+- Champs lus dans `record` : `email`, `status`, `referral_code`, `rank`, `utm_source`, `utm_medium`, `utm_campaign` (liste d'attente) ; `email`, `consent_marketing`, `marketing_confirmed_at`, `profile`, `recommended_program_id`, `answers.authors`, `utm_*` (diagnostic). Les noms de colonnes du § 6 et du § 7 doivent donc être respectés à l'identique.
+- Le scénario liste d'attente n'agit que si `record.status` vaut `confirmed` et `old_record.status` ne le valait pas ; le scénario diagnostic n'agit que si `consent_marketing` est vrai, `record.marketing_confirmed_at` présent et `old_record.marketing_confirmed_at` absent.
 - Attributs Brevo créés : `SOURCE`, `UTM_SOURCE`, `UTM_MEDIUM`, `UTM_CAMPAIGN`, `REFERRAL_CODE`, `RANK`, `PROFIL`, `PROGRAMME`.
 
 Les URL des webhooks sont visibles dans Make (rubrique Webhooks). Activer les scénarios une fois le lot S2 (puis S3) testé.

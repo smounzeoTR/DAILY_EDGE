@@ -125,6 +125,7 @@ Acceptation : sur le téléphone, une journée complète (exercice, habitudes, c
 Reportées de la branche `feat/deploy-site`, qui ne touche pas à `app/` pendant le lot 10 :
 
 - [ ] URL par défaut des pages légales dans l'app : `https://legal.dailyedge.fr` à la place de `https://dailyedge.trasenel.com` dans `app/src/features/legal/links.ts`, son test `links.test.ts` et `app/.env.example` (`EXPO_PUBLIC_LEGAL_BASE_URL`, aussi à corriger dans les variables EAS si elle y est définie).
+- [ ] Site, lot S3b : préremplissage de l'onboarding avec le diagnostic du site (« On a retrouvé ton diagnostic », Oui / Recommencer, `claimed_by_user_id`), schéma `supabase/functions/_shared/diagnostic/` importé par `@shared`, et suppression de la copie de `assignPersona` / `selectProgram` dans `app/src/features/onboarding/rules.ts` au profit de `supabase/functions/_shared/onboarding/program.ts` (le test de parité tombe avec elle).
 - [ ] Administration > Alertes : ajouter le type `make_webhook_failed` (webhook Make en échec, migration `20261211090000`) à la liste `KINDS` de `app/src/app/(app)/admin/alerts.tsx`, avec ses libellés FR et EN dans `app/src/i18n/`.
 
 ### Contrôle manuel du hors-ligne (lot 10a)
