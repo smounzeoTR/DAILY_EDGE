@@ -1,8 +1,8 @@
 // Catalogue -> deterministic seed SQL (one insert per table, sorted by ID).
 import type { Catalog } from './types.ts';
 
-type SqlValue = string | number | boolean | null | SqlArray;
-type SqlArray = { values: string[]; type: string };
+export type SqlValue = string | number | boolean | null | SqlArray;
+export type SqlArray = { values: string[]; type: string };
 
 export function sqlArray(values: string[], type: string): SqlArray {
   return { values, type };
@@ -29,7 +29,19 @@ function insert(table: string, columns: string[], rows: SqlValue[][]): string {
   return `insert into public.${table} (${columns.join(', ')}) values\n${values};\n`;
 }
 
-export function buildSeedSql(catalog: Catalog, meta: { sourceFile: string }): string {
+// One entry per catalogue table, parents first (seed and upsert share it)
+export type TableData = {
+  table: string;
+  key: string[];
+  columns: string[];
+  rows: SqlValue[][];
+};
+
+function table(name: string, key: string[], columns: string[], rows: SqlValue[][]): TableData {
+  return { table: name, key, columns, rows };
+}
+
+export function catalogTables(catalog: Catalog): TableData[] {
   const sources = [...catalog.sources].sort(byId);
   const principles = [...catalog.principles].sort(byId);
   const exercises = [...catalog.exercises].sort(byId);
@@ -40,20 +52,16 @@ export function buildSeedSql(catalog: Catalog, meta: { sourceFile: string }): st
       a.programId.localeCompare(b.programId, 'en', { numeric: true }) || a.dayIndex - b.dayIndex,
   );
 
-  const parts = [
-    `-- GENERATED FILE, DO NOT EDIT.`,
-    `-- Source: ${meta.sourceFile}`,
-    `-- Regenerate with: npm run import:catalog`,
-    ``,
-    `begin;`,
-    ``,
-    insert(
+  return [
+    table(
       'sources',
+      ['id'],
       ['id', 'author', 'title_fr', 'title_original', 'year'],
       sources.map((s) => [s.id, s.author, s.titleFr, s.titleOriginal, s.year]),
     ),
-    insert(
+    table(
       'principles',
+      ['id'],
       ['id', 'domain', 'title_fr', 'summary_fr', 'title_en', 'summary_en', 'status'],
       principles.map((p) => [
         p.id,
@@ -65,13 +73,15 @@ export function buildSeedSql(catalog: Catalog, meta: { sourceFile: string }): st
         p.status,
       ]),
     ),
-    insert(
+    table(
       'principle_sources',
+      ['principle_id', 'source_id'],
       ['principle_id', 'source_id', 'position'],
       principles.flatMap((p) => p.sourceIds.map((id, i) => [p.id, id, i + 1])),
     ),
-    insert(
+    table(
       'exercises',
+      ['id'],
       [
         'id',
         'title_fr',
@@ -109,18 +119,21 @@ export function buildSeedSql(catalog: Catalog, meta: { sourceFile: string }): st
         e.status,
       ]),
     ),
-    insert(
+    table(
       'exercise_principles',
+      ['exercise_id', 'principle_id'],
       ['exercise_id', 'principle_id', 'position'],
       exercises.flatMap((e) => e.principleIds.map((id, i) => [e.id, id, i + 1])),
     ),
-    insert(
+    table(
       'exercise_prerequisites',
+      ['exercise_id', 'prerequisite_id'],
       ['exercise_id', 'prerequisite_id'],
       exercises.flatMap((e) => e.prerequisiteIds.map((id) => [e.id, id])),
     ),
-    insert(
+    table(
       'habit_templates',
+      ['id'],
       [
         'id',
         'title_fr',
@@ -154,13 +167,15 @@ export function buildSeedSql(catalog: Catalog, meta: { sourceFile: string }): st
         h.status,
       ]),
     ),
-    insert(
+    table(
       'habit_template_principles',
+      ['habit_template_id', 'principle_id'],
       ['habit_template_id', 'principle_id', 'position'],
       habits.flatMap((h) => h.principleIds.map((id, i) => [h.id, id, i + 1])),
     ),
-    insert(
+    table(
       'programs',
+      ['id'],
       [
         'id',
         'name_fr',
@@ -182,8 +197,9 @@ export function buildSeedSql(catalog: Catalog, meta: { sourceFile: string }): st
         p.status,
       ]),
     ),
-    insert(
+    table(
       'program_steps',
+      ['program_id', 'day_index'],
       [
         'program_id',
         'day_index',
@@ -204,6 +220,24 @@ export function buildSeedSql(catalog: Catalog, meta: { sourceFile: string }): st
         s.minimalExerciseId,
         s.introducedHabitId,
       ]),
+    ),
+  ];
+}
+
+export function buildSeedSql(catalog: Catalog, meta: { sourceFile: string }): string {
+  const parts = [
+    `-- GENERATED FILE, DO NOT EDIT.`,
+    `-- Source: ${meta.sourceFile}`,
+    `-- Regenerate with: npm run import:catalog`,
+    ``,
+    `begin;`,
+    ``,
+    ...catalogTables(catalog).map((t) =>
+      insert(
+        t.table,
+        t.columns,
+        t.rows.map((r) => r),
+      ),
     ),
     `commit;`,
     ``,
