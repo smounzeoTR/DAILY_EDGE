@@ -52,6 +52,7 @@ appId: host.exp.Exponent
 - scrollUntilVisible:
     element: 'Version minimale : Apprendre une compétence'
     direction: DOWN
+    centerElement: true
 - tapOn: 'Version minimale : Apprendre une compétence'
 - extendedWaitUntil:
     visible:

@@ -1,4 +1,5 @@
-# iOS shows a one-time "slide to type" keyboard tip that covers the tab bar; close it if present.
+# iOS shows one-time keyboard tips ("slide to type", "Inline Predictions") that cover the screen;
+# close them if present.
 appId: host.exp.Exponent
 ---
 - runFlow:
@@ -6,3 +7,8 @@ appId: host.exp.Exponent
       visible: '.*(Speed up your typing|Tapez plus rapidement|glissant).*'
     commands:
       - tapOn: 'Continue|Continuer'
+- runFlow:
+    when:
+      visible: 'Inline Predictions|Prédictions intégrées'
+    commands:
+      - tapOn: 'Inline Predictions|Prédictions intégrées'

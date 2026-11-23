@@ -28,7 +28,7 @@ appId: host.exp.Exponent
       - tapOn: 'Suivant'
       - assertVisible: 'Un exercice court, adapté à ta journée\.'
       - tapOn: 'Suivant'
-      - assertVisible: 'Trois habitudes minuscules, toujours tenables\.'
+      - assertVisible: 'Trois habitudes minuscules, pensées pour être tenables\.'
       - tapOn: 'Commencer'
 
 # Sign-in with the code read from Mailpit
@@ -40,6 +40,21 @@ appId: host.exp.Exponent
 - assertVisible: 'Entre ton code'
 - runScript: ../scripts/get-otp.js
 - inputText: ${output.code}
+
+# Lot 10b: 18+ confirmation first (Continue disabled until confirmed), with the legal links
+- extendedWaitUntil:
+    visible: 'Avant de commencer'
+    timeout: 20000
+- assertVisible: 'Conditions d.utilisation'
+- assertVisible: 'Politique de confidentialité'
+- assertVisible:
+    text: 'Continuer'
+    enabled: false
+- tapOn: "J'ai 18 ans ou plus"
+- assertVisible:
+    text: "J'ai 18 ans ou plus"
+    checked: true
+- tapOn: 'Continuer'
 
 # Onboarding Q1-Q6
 - extendedWaitUntil:
@@ -63,7 +78,7 @@ appId: host.exp.Exponent
 - tapOn: 'Continuer'
 - assertVisible: 'Tes domaines prioritaires \(3 au maximum\)'
 - tapOn: 'Entreprise & carrière'
-- tapOn: 'Énergie & santé'
+- tapOn: 'Énergie & rythme'
 - assertVisible: '2 sur 3'
 - tapOn: 'Continuer'
 - assertVisible: 'Ce qui te freine le plus'

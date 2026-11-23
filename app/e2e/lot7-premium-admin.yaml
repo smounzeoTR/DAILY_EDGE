@@ -24,10 +24,12 @@ appId: host.exp.Exponent
 - scrollUntilVisible:
     element: 'Personnalisation par IA'
     direction: DOWN
+    centerElement: true
 - tapOn: 'Personnalisation par IA'
 - scrollUntilVisible:
     element: 'Premium \(prototype\)'
     direction: DOWN
+    centerElement: true
 - tapOn: 'Premium \(prototype\)'
 - extendedWaitUntil:
     visible: 'Ton offre : Premium'
@@ -40,8 +42,14 @@ appId: host.exp.Exponent
     visible: 'Voir la consigne d.origine.*'
     timeout: 30000
 - assertVisible: 'Consigne personnalisée pour toi'
+# Lot 10b: AI-written texts are labelled (AI Act, art. 50)
+- assertVisible: 'Rédigé par l.IA'
 - assertVisible: 'Pour ton objectif.*'
 - takeScreenshot: e2e-l7-02-personalized
+- scrollUntilVisible:
+    element: 'Voir la consigne d.origine.*'
+    direction: DOWN
+    centerElement: true
 - tapOn: 'Voir la consigne d.origine.*'
 - assertVisible: 'Consigne d.origine'
 - assertVisible: 'Voir la consigne personnalisée.*'
@@ -117,6 +125,10 @@ appId: host.exp.Exponent
     commands:
       - tapOn: 'Retour'
 
+- scrollUntilVisible:
+    element: 'Coût IA par jour'
+    direction: DOWN
+    centerElement: true
 - tapOn: 'Coût IA par jour'
 - extendedWaitUntil:
     visible: 'Total sur la période.*'

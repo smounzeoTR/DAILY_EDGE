@@ -1,0 +1,138 @@
+# Lot 10b: a new tester (18+ step and legal links in the onboarding subflow) sends feedback from
+# Settings; the admin (two-factor) reads it, grants premium until a date, reads the beta metrics
+# and the operations alerts.
+# Run: npm run seed:demo && maestro test app/e2e/lot10b-beta.yaml -e APP_URL=exp://127.0.0.1:8081
+appId: host.exp.Exponent
+# APP_URL is required on the command line (-e): it is not defined here on purpose
+---
+- runFlow: subflows/sign-in-onboarding.yaml
+- evalScript: ${output.tester = output.email}
+- tapOn: 'Plus tard'
+- runFlow: subflows/dismiss-guide.yaml
+- extendedWaitUntil:
+    visible: 'Jour 1 sur 28.*'
+    timeout: 30000
+
+# Settings: legal links, version, feedback
+- tapOn: 'Réglages.*'
+- scrollUntilVisible:
+    element: 'Informations légales'
+    direction: DOWN
+    centerElement: true
+- assertVisible: 'Mentions légales'
+- assertVisible: 'Version .*'
+- scrollUntilVisible:
+    element: 'Donner mon avis'
+    direction: UP
+    centerElement: true
+- tapOn: 'Donner mon avis'
+- extendedWaitUntil:
+    visible: '.*La version de l.app est jointe.*'
+    timeout: 10000
+- tapOn: 'Écris librement'
+- inputText: 'Bêta e2e : très clair'
+- runFlow: subflows/dismiss-keyboard-tip.yaml
+- tapOn: 'Envoyer'
+- extendedWaitUntil:
+    visible: 'Merci ! Ton avis est bien arrivé.'
+    timeout: 10000
+- takeScreenshot: e2e-l10b-01-feedback
+
+# ---- Admin: two-factor, feedback, premium grant, metrics, alerts --------------------------
+- runFlow:
+    file: subflows/sign-in-existing.yaml
+    env:
+      EMAIL: admin@daily-edge.local
+- extendedWaitUntil:
+    visible: 'Un petit rappel, matin et soir \?'
+    timeout: 30000
+- tapOn: 'Plus tard'
+- runFlow: subflows/dismiss-guide.yaml
+- extendedWaitUntil:
+    visible: 'Jour 1 sur 28.*'
+    timeout: 30000
+- tapOn: 'Réglages.*'
+- scrollUntilVisible:
+    element: 'Ouvrir l.administration'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Ouvrir l.administration'
+- extendedWaitUntil:
+    visible: 'Activer la double authentification'
+    timeout: 15000
+- tapOn: 'Activer la double authentification'
+- extendedWaitUntil:
+    visible: 'Clé secrète'
+    timeout: 15000
+- copyTextFrom:
+    id: 'totp-secret'
+- runScript: scripts/totp.js
+- tapOn:
+    id: 'totp-code'
+- inputText: ${output.totp}
+- extendedWaitUntil:
+    visible: 'Statistiques par exercice'
+    timeout: 15000
+
+- scrollUntilVisible:
+    element: 'Avis des bêta-testeurs'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Avis des bêta-testeurs'
+- extendedWaitUntil:
+    visible: 'Bêta e2e : très clair'
+    timeout: 15000
+- takeScreenshot: e2e-l10b-02-admin-feedback
+- tapOn: 'Retour'
+
+- scrollUntilVisible:
+    element: 'Premium des bêta-testeurs'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Premium des bêta-testeurs'
+- extendedWaitUntil:
+    visible: 'E-mail du compte.*'
+    timeout: 15000
+- tapOn: 'prenom@exemple.fr'
+- inputText: ${output.tester}
+- runFlow: subflows/dismiss-keyboard-tip.yaml
+# The grant button sits right under the field, above the keyboard
+- tapOn: 'Accorder jusqu.au .*'
+- extendedWaitUntil:
+    visible: 'Premium accordé.'
+    timeout: 10000
+# Local runs accumulate premium testers: scroll to this one
+- scrollUntilVisible:
+    element: ${output.tester}
+    direction: DOWN
+- takeScreenshot: e2e-l10b-03-premium-granted
+- tapOn: 'Retour'
+# The e-mail field may keep the keyboard open: the first tap then only closes it
+- runFlow:
+    when:
+      visible: 'Accorder jusqu.au .*'
+    commands:
+      - tapOn: 'Retour'
+
+- scrollUntilVisible:
+    element: 'Indicateurs de la bêta'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Indicateurs de la bêta'
+- extendedWaitUntil:
+    visible: 'Onboarding terminé'
+    timeout: 15000
+- assertVisible: 'Rétention J7'
+- assertVisible: 'Cible : 80.*ou plus.*'
+- takeScreenshot: e2e-l10b-04-metrics
+- tapOn: 'Retour'
+
+- scrollUntilVisible:
+    element: 'Alertes d.exploitation'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Alertes d.exploitation'
+- extendedWaitUntil:
+    visible: '.*Une alerte par type et par jour.*'
+    timeout: 15000
+- takeScreenshot: e2e-l10b-05-alerts

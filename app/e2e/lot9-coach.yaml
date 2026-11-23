@@ -39,6 +39,10 @@ appId: host.exp.Exponent
 
 # ---- "Only 5 minutes" -> action card -> Apply -------------------------------------
 - tapOn: 'Nouvelle conversation'
+# Lot 10b: every conversation starts with the AI notice (AI Act, art. 50)
+- extendedWaitUntil:
+    visible: 'Coach Edge est une IA.*'
+    timeout: 10000
 - tapOn:
     id: 'coach-input'
 - inputText: "Je n'ai que 5 minutes aujourd'hui"
