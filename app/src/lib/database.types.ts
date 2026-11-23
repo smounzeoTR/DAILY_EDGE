@@ -809,6 +809,28 @@ export type Database = {
           },
         ];
       };
+      make_webhook_requests: {
+        Row: {
+          created_at: string;
+          request_id: number;
+          source_table: string;
+          url_host: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          request_id: number;
+          source_table: string;
+          url_host: string;
+        };
+        Update: {
+          created_at?: string;
+          request_id?: number;
+          source_table?: string;
+          url_host?: string;
+        };
+        Relationships: [];
+      };
       notes: {
         Row: {
           body: string;
@@ -1415,6 +1437,100 @@ export type Database = {
           },
         ];
       };
+      waitlist_entries: {
+        Row: {
+          confirmed_at: string | null;
+          confirmed_referrals: number;
+          consent_at: string | null;
+          consent_marketing: boolean;
+          created_at: string;
+          email: string;
+          id: string;
+          landing_path: string | null;
+          locale: string;
+          rank: number | null;
+          referral_code: string;
+          referred_by: string | null;
+          status: Database['public']['Enums']['waitlist_status'];
+          utm_campaign: string | null;
+          utm_medium: string | null;
+          utm_source: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          confirmed_at?: string | null;
+          confirmed_referrals?: number;
+          consent_at?: string | null;
+          consent_marketing?: boolean;
+          created_at?: string;
+          email: string;
+          id?: string;
+          landing_path?: string | null;
+          locale?: string;
+          rank?: number | null;
+          referral_code: string;
+          referred_by?: string | null;
+          status?: Database['public']['Enums']['waitlist_status'];
+          utm_campaign?: string | null;
+          utm_medium?: string | null;
+          utm_source?: string | null;
+        };
+        Update: {
+          confirmed_at?: string | null;
+          confirmed_referrals?: number;
+          consent_at?: string | null;
+          consent_marketing?: boolean;
+          created_at?: string;
+          email?: string;
+          id?: string;
+          landing_path?: string | null;
+          locale?: string;
+          rank?: number | null;
+          referral_code?: string;
+          referred_by?: string | null;
+          status?: Database['public']['Enums']['waitlist_status'];
+          utm_campaign?: string | null;
+          utm_medium?: string | null;
+          utm_source?: string | null;
+        };
+        Relationships: [];
+      };
+      waitlist_tokens: {
+        Row: {
+          created_at: string;
+          entry_id: string;
+          expires_at: string;
+          kind: string;
+          token_hash: string;
+          used_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          entry_id: string;
+          expires_at: string;
+          kind: string;
+          token_hash: string;
+          used_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          entry_id?: string;
+          expires_at?: string;
+          kind?: string;
+          token_hash?: string;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'waitlist_tokens_entry_id_fkey';
+            columns: ['entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'waitlist_entries';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       weekly_reviews: {
         Row: {
           accepted: NonNullable<Json>;
@@ -1593,6 +1709,33 @@ export type Database = {
       };
       confirm_adult_age: { Args: Record<PropertyKey, never>; Returns: string };
       confirm_assistant_action: { Args: { p_action_id: string }; Returns: Json };
+      confirm_waitlist_entry: {
+        Args: { p_token_hash: string };
+        Returns: {
+          confirmed_at: string | null;
+          confirmed_referrals: number;
+          consent_at: string | null;
+          consent_marketing: boolean;
+          created_at: string;
+          email: string;
+          id: string;
+          landing_path: string | null;
+          locale: string;
+          rank: number | null;
+          referral_code: string;
+          referred_by: string | null;
+          status: Database['public']['Enums']['waitlist_status'];
+          utm_campaign: string | null;
+          utm_medium: string | null;
+          utm_source: string | null;
+        }[];
+        SetofOptions: {
+          from: '*';
+          to: 'waitlist_entries';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
       current_user_local_date: { Args: Record<PropertyKey, never>; Returns: string };
       delete_assistant_history: { Args: Record<PropertyKey, never>; Returns: undefined };
       delete_assistant_thread: { Args: { p_thread_id: string }; Returns: undefined };
@@ -1646,6 +1789,7 @@ export type Database = {
       my_done_days: { Args: Record<PropertyKey, never>; Returns: string[] };
       purge_assistant_history: { Args: { p_now?: string }; Returns: number };
       purge_deleted_accounts: { Args: { p_now: string }; Returns: number };
+      recompute_waitlist_ranks: { Args: Record<PropertyKey, never>; Returns: undefined };
       record_batch_run: {
         Args: { p_ok: boolean; p_started_at: string; p_summary: Json };
         Returns: undefined;
@@ -1714,6 +1858,10 @@ export type Database = {
           week_start: string;
         }[];
       };
+      waitlist_rank: {
+        Args: { p_confirmed_referrals: number; p_position: number };
+        Returns: number;
+      };
     };
     Enums: {
       blocker:
@@ -1746,6 +1894,7 @@ export type Database = {
       time_of_day: 'morning' | 'daytime' | 'evening' | 'any';
       user_level: 'beginner' | 'intermediate' | 'advanced';
       user_role: 'user' | 'admin';
+      waitlist_status: 'pending' | 'confirmed' | 'unsubscribed';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -1890,6 +2039,7 @@ export const Constants = {
       time_of_day: ['morning', 'daytime', 'evening', 'any'],
       user_level: ['beginner', 'intermediate', 'advanced'],
       user_role: ['user', 'admin'],
+      waitlist_status: ['pending', 'confirmed', 'unsubscribed'],
     },
   },
 } as const;

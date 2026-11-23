@@ -1,0 +1,14 @@
+{
+  "recette": {
+    "db": {
+      "fingerprint": "65cb9e486263a221",
+      "at": "2026-11-23T18:17:09.489Z",
+      "commit": "97965d9"
+    },
+    "functions": {
+      "fingerprint": "d06bfe502ea4a6f5",
+      "at": "2026-11-23T18:17:39.505Z",
+      "commit": "97965d9"
+    }
+  }
+}
