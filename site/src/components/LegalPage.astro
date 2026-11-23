@@ -1,0 +1,121 @@
+---
+// Legal page (CGU, privacy, legal notice), French at the root, English under /en.
+// Content: site/src/legal/<lang>/<slug>.html (reviewed text, versioned, rendered as is).
+import BaseLayout from '../layouts/BaseLayout.astro';
+import SiteFooter from './SiteFooter.astro';
+import SiteHeader from './SiteHeader.astro';
+
+type Page = 'terms' | 'privacy' | 'notice';
+
+interface Props {
+  lang: 'fr' | 'en';
+  page: Page;
+}
+
+const { lang, page } = Astro.props;
+
+const PAGES: Record<'fr' | 'en', Record<Page, { path: string; title: string }>> = {
+  fr: {
+    terms: { path: '/cgu', title: "Conditions générales d'utilisation" },
+    privacy: { path: '/confidentialite', title: 'Politique de confidentialité' },
+    notice: { path: '/mentions-legales', title: 'Mentions légales' },
+  },
+  en: {
+    terms: { path: '/en/terms', title: 'Terms of use' },
+    privacy: { path: '/en/privacy', title: 'Privacy policy' },
+    notice: { path: '/en/legal-notice', title: 'Legal notice' },
+  },
+};
+
+const files = import.meta.glob<string>('../legal/*/*.html', {
+  query: '?raw',
+  import: 'default',
+  eager: true,
+});
+const slug = PAGES[lang][page].path.split('/').pop();
+const html = files[`../legal/${lang}/${slug}.html`];
+if (!html) throw new Error(`missing legal page ${lang}/${slug}`);
+const other = lang === 'fr' ? 'en' : 'fr';
+---
+
+<BaseLayout title={`${PAGES[lang][page].title} — Daily Edge`} lang={lang}>
+  <SiteHeader />
+  <main id="contenu" class="container legal">
+    <p class="lang">
+      <a href={PAGES[other][page].path} hreflang={other} lang={other}>
+        {other === 'en' ? 'English' : 'Français'}
+      </a>
+    </p>
+    <article class="content" set:html={html} />
+    <nav aria-label={lang === 'fr' ? 'Pages légales' : 'Legal pages'}>
+      <ul class="pages">
+        {(Object.keys(PAGES[lang]) as Page[]).map((p) => (
+          <li>
+            <a href={PAGES[lang][p].path} aria-current={p === page ? 'page' : undefined}>
+              {PAGES[lang][p].title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .legal {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    max-width: 48rem;
+    padding-block: var(--space-6) var(--space-8);
+  }
+
+  .lang {
+    align-self: flex-end;
+  }
+
+  .lang a,
+  .pages a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-min);
+  }
+
+  .content :global(h1) {
+    margin-bottom: var(--space-5);
+  }
+
+  .content :global(h2) {
+    margin: var(--space-6) 0 var(--space-3);
+    font-size: var(--text-xl);
+  }
+
+  .content :global(p),
+  .content :global(li) {
+    margin-bottom: var(--space-3);
+    color: var(--color-text-long);
+  }
+
+  .content :global(.todo) {
+    padding: var(--space-3) var(--space-4);
+    border-left: 4px solid var(--color-accent);
+    border-radius: var(--radius-chip);
+    background: var(--color-surface);
+  }
+
+  .content :global(.version) {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .pages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-5);
+    margin: 0;
+    padding: var(--space-4) 0 0;
+    border-top: 1px solid var(--color-border);
+    list-style: none;
+  }
+</style>
