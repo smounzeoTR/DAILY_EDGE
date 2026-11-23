@@ -315,3 +315,65 @@ Comportement : sans choix ou après un refus, mesure anonyme sans cookie (emprei
 - Secret `ALTCHA_HMAC_KEY` dans `.env.<env>` (`openssl rand -hex 32`, différent par environnement), envoyé par `deploy secrets`. Nouvelle fonction `altcha-challenge` (sans JWT), déployée par `deploy functions`.
 - Après le déploiement en recette : le contrôle de l'IP du client de `docs/exploitation.md` § 8 (31 requêtes, la dernière en 429) **avant** la production.
 - Limites, sel quotidien et purges : `docs/exploitation.md` § 8.
+
+## 11. Site dailyedge.fr sur Cloudflare Pages (lot S5)
+
+Prérequis : la zone `dailyedge.fr` est servie par Cloudflare (`docs/dns-migration.md`). Le site est construit et testé par GitHub Actions (`.github/workflows/site.yml`), puis envoyé par `wrangler pages deploy` ; l'intégration Git de Cloudflare n'est pas utilisée.
+
+### Ce que tu configures une fois
+
+**Cloudflare**
+
+1. Workers & Pages > Create > Pages > **Direct Upload**, deux projets : `dailyedge-site` (production) et `dailyedge-site-recette`. Branche de production : `main` pour les deux.
+2. Domaines personnalisés : `dailyedge.fr` sur `dailyedge-site`, `recette.dailyedge.fr` sur `dailyedge-site-recette`. Ajouter `www` en enregistrement proxifié (`CNAME www → dailyedge.fr`, nuage orange).
+3. Rules > Redirect Rules : `www.dailyedge.fr/*` → `https://dailyedge.fr/${1}`, 301, chaîne de requête conservée.
+4. SSL/TLS > Edge Certificates : **Always Use HTTPS** activé ; HSTS **désactivé ici** (il est envoyé par le site, sans `includeSubDomains`).
+5. Désactiver toute injection de script : Analytics & Logs > **Web Analytics** (aucun site), **Zaraz** désactivé, Speed > **Rocket Loader** désactivé, Scrape Shield > **Email Address Obfuscation** désactivé, Security > Bots : **Bot Fight Mode** désactivé (ses détections JavaScript injectent un script). Le contrôle à distance échoue si une injection apparaît.
+6. Zero Trust > Access > Applications : une application « self-hosted » pour `recette.dailyedge.fr` et `*.dailyedge-site-recette.pages.dev`, politique « Allow » limitée à vos adresses e-mail ; Service Auth > un **jeton de service** (Client ID et Secret) autorisé par une politique « Service Auth » de la même application.
+7. My Profile > API Tokens : jeton personnalisé avec la seule permission **Account > Cloudflare Pages > Edit** sur le compte ; relever aussi l'Account ID.
+
+**GitHub** (Settings du dépôt)
+
+- Secrets du dépôt : `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SITE_VARIABLES_TOKEN` (jeton « fine-grained » limité à ce dépôt, permissions **Environments** et **Variables** en écriture : il sert au passage de mode en un clic).
+- Environnement `recette` : secrets `CF_ACCESS_CLIENT_ID`, `CF_ACCESS_CLIENT_SECRET` ; variables ci-dessous.
+- Environnement `production` : variables ci-dessous. **Pas d'approbation manuelle** (la construction planifiée du 4 janvier ne doit pas attendre).
+
+| Variable                                         | Recette                                                 | Production                                          |
+| ------------------------------------------------ | ------------------------------------------------------- | --------------------------------------------------- |
+| `PAGES_PROJECT`                                  | `dailyedge-site-recette`                                | `dailyedge-site`                                    |
+| `SITE_ORIGIN`                                    | `https://recette.dailyedge.fr`                          | `https://dailyedge.fr`                              |
+| `PUBLIC_FUNCTIONS_URL`                           | `https://<ref-recette>.supabase.co/functions/v1`        | `https://<ref-production>.supabase.co/functions/v1` |
+| `PUBLIC_POSTHOG_KEY`                             | vide (pas de mesure en recette)                         | `phc_…`                                             |
+| `SITE_LAUNCH_AT`                                 | `2027-01-04T00:00:00+01:00` (ou une date de répétition) | `2027-01-04T00:00:00+01:00`                         |
+| `SITE_MODE_OVERRIDE`                             | vide                                                    | vide                                                |
+| `MEETING_URL`, `APP_STORE_URL`, `PLAY_STORE_URL` | selon le besoin                                         | selon le besoin                                     |
+| `HSTS_MAX_AGE`                                   | `86400`                                                 | `86400` la première semaine, puis `31536000`        |
+
+**Supabase recette** : dans `.env.recette`, `SITE_URL=https://recette.dailyedge.fr`, puis `npm run deploy -- secrets --env recette --apply` (liens des e-mails et origine autorisée).
+
+### Publication
+
+Chaque push sur `main` qui touche le site lance : tests (types, lint, format, Vitest, intégration des fonctions du site, Playwright avec axe et CSP, poids des pages, Lighthouse mobile ≥ 90) → construction et déploiement de la recette → **contrôles à distance de la recette en ligne** (`site/scripts/remote-check.mjs` : pages clés, en-têtes, aucun script tiers ni injection, `noindex`) → construction et déploiement de la production → contrôles à distance de `dailyedge.fr` (dont la redirection `www`, `robots.txt`, `sitemap.xml` et le `noindex` de `*.pages.dev`). Un échec arrête la chaîne : rien n'est publié après lui.
+
+Lancement manuel (Actions > Site > Run workflow) :
+
+| Action               | Effet                                                                               |
+| -------------------- | ----------------------------------------------------------------------------------- |
+| `publish`            | même chaîne qu'un push                                                              |
+| `force-launch`       | `SITE_MODE_OVERRIDE=launch` dans les deux environnements, puis publication          |
+| `back-to-waitlist`   | `SITE_MODE_OVERRIDE=waitlist`, puis publication (retour en un clic)                 |
+| `republish-previous` | republie la version de production précédente (API Cloudflare Pages), puis contrôles |
+
+### Après le premier déploiement en recette
+
+1. Ouvrir https://recette.dailyedge.fr (connexion Cloudflare Access), faire une inscription et un diagnostic complets : la console du navigateur ne doit montrer aucune violation de CSP.
+2. Refaire le **contrôle de l'IP fiable** (`docs/exploitation.md` § 8) : le site est derrière Cloudflare, mais ses appels vont directement à `<ref>.supabase.co`, donc `cf-connecting-ip` reste la bonne source ; le contrôle doit toujours finir en 429.
+3. Une semaine après la mise en ligne sans incident : `HSTS_MAX_AGE=31536000` dans l'environnement `production`, puis `publish`. `includeSubDomains` et `preload` attendent la vérification HTTPS de chaque sous-domaine (`docs/dns-migration.md`).
+
+### Passage en mode `launch` (4 janvier 2027)
+
+- Le mode se décide à chaque construction : `launch` dès `SITE_LAUNCH_AT`, sauf `SITE_MODE_OVERRIDE`. Toute publication après minuit le 4 janvier sort donc en mode `launch`.
+- La construction planifiée part le 3 janvier à 23 h 05 UTC (minuit 5 à Paris). GitHub peut la retarder : vérifier vers 0 h 30 que `dailyedge.fr` affiche « Faire mon diagnostic (2 min) » ; sinon lancer `force-launch`.
+- Retour arrière : `back-to-waitlist` (le mode reste `waitlist` pour les publications suivantes, jusqu'à ce que `SITE_MODE_OVERRIDE` soit vidé) ou `republish-previous`.
+
+**Répétition en recette avant le jour J** : dans l'environnement `recette`, régler `SITE_LAUNCH_AT` quelques minutes dans le futur, attendre l'heure, lancer `publish` : la recette passe en mode `launch` alors que la production reste en `waitlist` (sa propre date). Faire un diagnostic de bout en bout sur la recette, puis `back-to-waitlist` (ce qui règle aussi la production en `waitlist` : vider ensuite `SITE_MODE_OVERRIDE` des deux environnements) et remettre `SITE_LAUNCH_AT` à la date réelle.
