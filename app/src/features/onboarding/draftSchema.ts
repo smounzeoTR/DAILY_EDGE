@@ -1,7 +1,8 @@
 // Pure draft (de)serialization: ignores drafts from another version or with bad data.
 import { emptyAnswers, STEPS, type Answers } from './types';
 
-export const DRAFT_VERSION = 1;
+// 2: the 18+ step was added first (older drafts would resume on a shifted step)
+export const DRAFT_VERSION = 2;
 
 export type Draft = { version: typeof DRAFT_VERSION; stepIndex: number; answers: Answers };
 

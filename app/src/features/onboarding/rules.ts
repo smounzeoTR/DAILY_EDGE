@@ -92,6 +92,8 @@ export function parseTargetValue(raw: string): number | null | 'invalid' {
 
 export function canContinue(step: Step, answers: Answers, today: string): boolean {
   switch (step) {
+    case 'adult':
+      return answers.adultConfirmed;
     case 'goalTitle':
       return answers.goalTitle.trim().length > 0;
     case 'goalMeasure':

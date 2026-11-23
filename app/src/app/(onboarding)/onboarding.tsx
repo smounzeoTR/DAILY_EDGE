@@ -41,6 +41,7 @@ import { supabase } from '@/lib/supabase';
 import { spacing } from '@/theme';
 
 const TITLE_KEYS = {
+  adult: 'onboarding.adult.title',
   goalTitle: 'onboarding.q.goalTitle',
   goalMeasure: 'onboarding.q.goalMeasure',
   goalDeadline: 'onboarding.q.goalDeadline',
@@ -61,12 +62,13 @@ const TITLE_KEYS = {
 // complete_onboarding error messages with a dedicated text
 const ERROR_KEYS: Record<
   string,
-  `onboarding.errors.${'invalid_goal_deadline' | 'invalid_habits' | 'invalid_program' | 'invalid_goal_title'}`
+  `onboarding.errors.${'invalid_goal_deadline' | 'invalid_habits' | 'invalid_program' | 'invalid_goal_title' | 'adult_confirmation_required'}`
 > = {
   invalid_goal_deadline: 'onboarding.errors.invalid_goal_deadline',
   invalid_habits: 'onboarding.errors.invalid_habits',
   invalid_program: 'onboarding.errors.invalid_program',
   invalid_goal_title: 'onboarding.errors.invalid_goal_title',
+  adult_confirmation_required: 'onboarding.errors.adult_confirmation_required',
 };
 
 export default function Onboarding() {
@@ -138,6 +140,8 @@ export default function Onboarding() {
       templateRows.map((tpl) => [tpl.id, localized(tpl, 'default_cue', language)]),
     );
     const timezone = getCalendars()[0]?.timeZone ?? 'Europe/Paris';
+    // 18+ confirmation first (required by the server to complete the onboarding)
+    if (answers.adultConfirmed) await supabase.rpc('confirm_adult_age');
     const { error: rpcError } = await supabase.rpc(
       'complete_onboarding',
       buildCompleteOnboardingArgs(answers, program.id, defaultCues, { locale: language, timezone }),

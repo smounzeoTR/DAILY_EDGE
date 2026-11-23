@@ -205,11 +205,18 @@ describe('draft', () => {
     expect(parseDraft(JSON.parse(JSON.stringify(draft)))).toEqual(draft);
     expect(parseDraft({ ...draft, version: 99 })).toBeNull();
     expect(parseDraft('nope')).toBeNull();
+    // Drafts saved before the 18+ step resume nowhere (their step index is shifted)
+    expect(parseDraft({ ...draft, version: 1 })).toBeNull();
+  });
+
+  it('the 18+ step must be confirmed to continue', () => {
+    expect(canContinue('adult', answers({}), '2026-12-01')).toBe(false);
+    expect(canContinue('adult', answers({ adultConfirmed: true }), '2026-12-01')).toBe(true);
   });
 
   it('clamps the step and fills missing fields', () => {
-    const parsed = parseDraft({ version: 1, stepIndex: 99, answers: { goalTitle: 'X' } });
-    expect(parsed?.stepIndex).toBe(14);
+    const parsed = parseDraft({ version: 2, stepIndex: 99, answers: { goalTitle: 'X' } });
+    expect(parsed?.stepIndex).toBe(15);
     expect(parsed?.answers.notifyMorning).toBe('07:30');
   });
 });

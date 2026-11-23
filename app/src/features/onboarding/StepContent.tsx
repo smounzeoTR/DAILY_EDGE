@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Switch, View } from 'react-native';
 
 import { DateField, TimeField } from '@/components/DateTimeField';
 import { AppText, Card, Chip, TextField } from '@/components/ui';
+import { LegalLinks } from '@/features/legal/LegalLinks';
 import { resolveLanguage } from '@/i18n/language';
 import { localized } from '@/i18n/localize';
 import type { useHabitTemplates, usePrograms, useProgramSteps } from '@/lib/queries';
@@ -260,6 +261,8 @@ export function StepContent(props: StepProps) {
           />
         </View>
       );
+    case 'adult':
+      return <AdultStep {...props} />;
     case 'consent':
       return <ConsentStep {...props} />;
     case 'program':
@@ -308,6 +311,22 @@ function ConsentRow({
         </View>
       </Card>
     </Pressable>
+  );
+}
+
+function AdultStep({ answers, update }: StepProps) {
+  const { t } = useTranslation();
+  return (
+    <View style={styles.stack}>
+      <AppText tone="body">{t('onboarding.adult.body')}</AppText>
+      <ConsentRow
+        title={t('onboarding.adult.confirm')}
+        body={t('onboarding.adult.confirmBody')}
+        value={answers.adultConfirmed}
+        onChange={(adultConfirmed) => update({ adultConfirmed })}
+      />
+      <LegalLinks />
+    </View>
   );
 }
 

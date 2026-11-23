@@ -33,6 +33,8 @@ export type Answers = {
   // HH:MM
   notifyMorning: string;
   notifyEvening: string;
+  // Lot 10b: 18 or older, required (confirmed server side before complete_onboarding)
+  adultConfirmed: boolean;
   consentCheckin: boolean;
   consentAi: boolean;
   // Audience measurement (PostHog), off by default
@@ -57,6 +59,7 @@ export const emptyAnswers: Answers = {
   level: null,
   notifyMorning: '07:30',
   notifyEvening: '21:00',
+  adultConfirmed: false,
   consentCheckin: false,
   consentAi: false,
   consentAnalytics: false,
@@ -65,6 +68,7 @@ export const emptyAnswers: Answers = {
 };
 
 export const STEPS = [
+  'adult',
   'goalTitle',
   'goalMeasure',
   'goalDeadline',
