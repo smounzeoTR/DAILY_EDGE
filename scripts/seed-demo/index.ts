@@ -76,7 +76,10 @@ const REFLECTIONS = [
 ];
 
 async function main() {
-  const today = localClock(new Date(), TIMEZONE).date;
+  // DEMO_NOW (ISO date-time, local tests only) simulates the seeding time, e.g. a Sunday evening
+  const now = process.env.DEMO_NOW ? new Date(process.env.DEMO_NOW) : new Date();
+  if (Number.isNaN(now.getTime())) throw new Error(`invalid DEMO_NOW: ${process.env.DEMO_NOW}`);
+  const today = localClock(now, TIMEZONE).date;
   const start = addDays(today, -11);
 
   // Recreate the demo and admin users (the admin's TOTP factor goes with it)
@@ -352,7 +355,7 @@ async function main() {
     await db.from('profiles').select('*').eq('user_id', userId).single(),
     'profile',
   );
-  const clock = localClock(new Date(), TIMEZONE);
+  const clock = localClock(now, TIMEZONE);
   const weekStarts = [addDays(mondayOf(today), -7)];
   if (clock.isoDay === 7) weekStarts.push(mondayOf(today));
   const reviews: { weekStart: string; status: string; types: string[] }[] = [];
