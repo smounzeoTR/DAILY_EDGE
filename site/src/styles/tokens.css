@@ -1,0 +1,86 @@
+/*
+ * Daily Edge design tokens (docs/identite-visuelle.md).
+ * Light theme in the first :root block, dark theme in the prefers-color-scheme block.
+ * Colour pairs are checked for WCAG AA contrast by tests/site/contrast.test.ts.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Colours: light (day) */
+  --color-bg: #f3f5fb;
+  --color-surface: #ffffff;
+  --color-border: #d5dbec;
+  --color-field-border: #6e7896;
+  --color-primary: #2f5bff;
+  --color-primary-hover: #1c3fd1;
+  --color-link: #2f5bff;
+  --color-accent: #ff5a1f;
+  --color-text: #0b1b3f;
+  --color-text-muted: #4a5578;
+  --color-text-long: #0b1b3f;
+  --color-logo-edge: #2f5bff;
+  --color-logo-lines: #2f5bff;
+  --color-focus: #2f5bff;
+  --color-danger: #c42b1c;
+  /* Main button stays electric blue with white text in both themes */
+  --color-button-bg: #2f5bff;
+  --color-button-bg-hover: #1c3fd1;
+  --color-button-text: #ffffff;
+
+  /* Typography */
+  --font-heading: 'Space Grotesk', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --tracking-heading: -0.02em;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.375rem;
+  --text-2xl: clamp(1.625rem, 1.2rem + 1.6vw, 2.25rem);
+  --text-3xl: clamp(2.125rem, 1.4rem + 3vw, 3.5rem);
+  --leading-tight: 1.15;
+  --leading-body: 1.6;
+
+  /* Shapes */
+  --radius-card: 20px;
+  --radius-pill: 28px;
+  --radius-chip: 12px;
+  --radius-field: 14px;
+  --button-height: 56px;
+  --touch-min: 44px;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 3rem;
+  --space-8: 4.5rem;
+  --gutter: 1rem;
+  --content-max: 72rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Colours: dark (evening) */
+    --color-bg: #0a1230;
+    --color-surface: #131c40;
+    --color-border: #26315c;
+    --color-field-border: #6b78a8;
+    --color-primary: #5b7cff;
+    --color-primary-hover: #8fa6ff;
+    --color-link: #8fa6ff;
+    --color-accent: #ff5a1f;
+    --color-text: #f3f5fb;
+    --color-text-muted: #a9b3d1;
+    --color-text-long: #cdd4ea;
+    --color-logo-edge: #8fa6ff;
+    --color-logo-lines: #5b7cff;
+    --color-focus: #8fa6ff;
+    --color-danger: #ff8a80;
+    --color-button-bg: #2f5bff;
+    --color-button-bg-hover: #1c3fd1;
+    --color-button-text: #ffffff;
+  }
+}

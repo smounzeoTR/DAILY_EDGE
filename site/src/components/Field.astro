@@ -1,0 +1,122 @@
+---
+// Form field with a visible label, optional hint and error (linked by aria-describedby).
+// type="checkbox" renders a consent-style checkbox with its label beside it.
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = {
+  id: string;
+  label: string;
+  hint?: string;
+  error?: string;
+} & HTMLAttributes<'input'>;
+
+const { id, label, hint, error, type = 'text', class: extra, ...rest } = Astro.props;
+const hintId = hint ? `${id}-hint` : undefined;
+const errorId = `${id}-error`;
+const describedBy = [hintId, error ? errorId : undefined].filter(Boolean).join(' ') || undefined;
+const isCheckbox = type === 'checkbox';
+---
+
+<div class:list={['field', isCheckbox && 'checkbox', extra]}>
+  {isCheckbox ? (
+    <>
+      <input
+        id={id}
+        type="checkbox"
+        aria-describedby={describedBy}
+        aria-invalid={error ? 'true' : undefined}
+        {...rest}
+      />
+      <label for={id}>
+        {label}
+        <slot name="label-extra" />
+      </label>
+    </>
+  ) : (
+    <>
+      <label for={id}>{label}</label>
+      <input
+        id={id}
+        type={type}
+        aria-describedby={describedBy}
+        aria-invalid={error ? 'true' : undefined}
+        {...rest}
+      />
+    </>
+  )}
+  {hint && (
+    <p id={hintId} class="hint">
+      {hint}
+    </p>
+  )}
+  <p id={errorId} class="error" data-field-error hidden={!error}>
+    {error}
+  </p>
+</div>
+
+<style>
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  label {
+    font-weight: 600;
+  }
+
+  input:not([type='checkbox']) {
+    min-height: var(--button-height);
+    width: 100%;
+    padding: 0 var(--space-4);
+    border: 1.5px solid var(--color-field-border);
+    border-radius: var(--radius-field);
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  input:not([type='checkbox'])::placeholder {
+    color: var(--color-text-muted);
+  }
+
+  input[aria-invalid='true'] {
+    border-color: var(--color-danger);
+  }
+
+  .checkbox {
+    display: grid;
+    grid-template-columns: var(--touch-min) 1fr;
+    align-items: start;
+    column-gap: var(--space-2);
+  }
+
+  .checkbox label {
+    font-weight: 400;
+    padding-top: 0.6rem;
+  }
+
+  .checkbox input {
+    width: 24px;
+    height: 24px;
+    margin: 10px;
+    accent-color: var(--color-button-bg);
+    cursor: pointer;
+  }
+
+  .checkbox .hint,
+  .checkbox .error {
+    grid-column: 2;
+  }
+
+  .hint {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .error {
+    color: var(--color-danger);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+</style>
