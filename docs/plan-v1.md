@@ -100,14 +100,23 @@ Acceptation : sur le téléphone, une journée complète (exercice, habitudes, c
 
 ## Lot 10 — Finitions et bêta
 
-- [ ] Import du catalogue en production par mise à jour (upsert) depuis le Sheet, et pas seulement via `seed.sql` (qui recrée la base locale).
-- [ ] Revérifier sur la grille officielle les prix des modèles (`claude-haiku-5-5` pour le plan et le bilan, `claude-sonnet-5-5` pour l'assistant) indiqués dans `supabase/functions/.env.example` avant la production, Décision du 22 novembre 2026 : Sonnet pour l'assistant pendant la bêta, Haiku pour le plan et le bilan ; réévaluer pour le lancement avec l'usage réel (coût mesuré, cache compris).
-- [ ] Vérifier les tarifs du cache (lecture et écriture) dans `.env.example` et le plafond mensuel de l'assistant (2 € par utilisateur) avec l'usage de la bêta.
+- [x] (10b) Import du catalogue par mise à jour : `npm run deploy -- catalog --env <env>` (simulation par défaut, `--apply` en une transaction, idempotent, contenu absent passé en `retired`, jamais supprimé).
+- [x] (10b, prix relevés le 23 novembre 2026) Revérifier sur la grille officielle les prix des modèles (`claude-haiku-5-5` pour le plan et le bilan, `claude-sonnet-5-5` pour l'assistant) indiqués dans `supabase/functions/.env.example` avant la production, Décision du 22 novembre 2026 : Sonnet pour l'assistant pendant la bêta, Haiku pour le plan et le bilan ; réévaluer pour le lancement avec l'usage réel (coût mesuré, cache compris).
+- [x] (10b) Tarifs du cache vérifiés et reportés (Sonnet 5.5 : lecture à 0,05 × l'entrée). Plafond mensuel de l'assistant (2 € par utilisateur) à réévaluer avec l'usage de la bêta.
 - [x] (10a) Cache hors ligne du plan du jour, des résultats d'exercice et des coches (cache TanStack persisté et chiffré, file d'actions), synchronisation au retour du réseau ; le serveur fait foi : une action refusée au rejeu est abandonnée et signalée, jamais forcée. Check-in, assistant et Réglages restent en ligne.
 - [x] (10a) Message bienveillant et ressources d'aide (3114, sinon numéro d'urgence local) si humeur ≤ 2 pendant 5 jours, une fois par épisode (`user_guide_state.support_seen`), seulement avec le consentement check-in.
 - [x] (10a) Sentry (UE, sans donnée personnelle, sans consentement) et PostHog (UE, consentement « Mesure d'audience » désactivé par défaut, à l'onboarding et dans Réglages).
-- [ ] Politique de confidentialité (Sentry, PostHog, consentements) et lien depuis l'onboarding.
-- [ ] Projet Supabase de recette (région UE), builds EAS, TestFlight et test interne Android.
+- [x] (10b) Pages légales FR (`legal/`, GitHub Pages, `dailyedge.trasenel.com`) avec les sections du document légal, liens dans l'onboarding et les Réglages. Textes définitifs et version EN à intégrer quand ils seront relus.
+- [x] (10b) Déploiement par étapes (`npm run deploy -- <étape> --env recette|production`) : check, db, functions, secrets, vault, settings, auth, catalog, backup, restore ; recette obligatoire avant la production (`deploy/history.json`). Procédure : `docs/mise-en-ligne.md`.
+- [ ] (10b) Premier déploiement complet en recette, contrôlé ensemble, puis test de restauration noté dans `docs/exploitation.md`.
+- [x] (10b) `eas.json` (development, preview = recette, production), déclaration de chiffrement, `com.trasenel.dailyedge` réservé pour Android (pas d'Android pour la bêta). Réponses App Store : `docs/app-store.md`.
+- [ ] (10b) Build EAS iOS de recette et TestFlight en test interne (comptes Apple et Expo à créer).
+- [x] (10b) Âge minimum : case « J'ai 18 ans ou plus » en première étape de l'onboarding, imposée par le serveur (`confirm_adult_age`, `adult_confirmed_at`).
+- [x] (10b) AI Act, art. 50 : mention « Coach Edge est une IA » en tête de chaque conversation et « Rédigé par l'IA » sur la consigne personnalisée et le « pourquoi aujourd'hui ».
+- [x] (10b) Relecture des textes FR/EN (vocabulaire de santé et promesses de résultat retirés).
+- [x] (10b) « Donner mon avis » (table `feedback`, RLS, version de l'app), premium accordé par l'admin (`admin_grant_premium`, aal2, journal `admin_audit`), indicateurs du § 9 (`admin_metrics`), alertes d'exploitation (`ops_alerts`, e-mail Scaleway par `ops-alert`).
+- [x] (10b) Exploitation : `docs/exploitation.md` (déploiement, retour arrière, rotation des secrets, sauvegardes et restauration, incident, purge).
+- [x] (10b) Scénario Maestro `lot10b-beta` ; lot 6 indépendant du jour et de l'heure (`DEMO_NOW`, `check-review-window.ts`).
 - [x] (10a) Stockage local chiffré : session, brouillon d'onboarding, file hors ligne et cache persisté chiffrés (AES-CTR, clé aléatoire dans le trousseau via SecureStore) ; les anciennes valeurs en clair sont rechiffrées à la première lecture, sans déconnexion.
 - [x] (10a) Scénario Maestro `lot10a-robustness` (carte de soutien une seule fois, consentement à la mesure d'audience) ; compte `support@daily-edge.local` créé par `npm run seed:demo`.
 

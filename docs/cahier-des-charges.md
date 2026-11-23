@@ -468,6 +468,10 @@ Dates utilisateur stockées en date locale, calculées avec `profiles.timezone`.
 ## 7. RGPD et sécurité
 
 - Consentements explicites et séparés (check-in ; IA ; mesure d'audience, désactivée par défaut) ; l'app fonctionne sans.
+- Service réservé aux personnes de 18 ans ou plus : confirmation obligatoire en première étape de l'onboarding, enregistrée (`profiles.adult_confirmed_at`) et exigée par le serveur.
+- Transparence de l'IA (AI Act, art. 50) : « Coach Edge est une IA » en tête de chaque conversation, et « Rédigé par l'IA » sur toute consigne personnalisée et tout « pourquoi aujourd'hui » écrit par l'IA.
+- CGU, politique de confidentialité et mentions légales hébergées sur `dailyedge.trasenel.com` (pages statiques, sans cookie ni script), accessibles depuis l'onboarding et les Réglages.
+- Retours de la bêta (« Donner mon avis ») : texte libre avec la version de l'app, visible par l'administration seulement ; actions d'administration qui modifient un compte (premium accordé ou retiré) journalisées.
 - Suivi des erreurs : Sentry (région UE), sans consentement car sans donnée personnelle (ni utilisateur, ni corps de requête, ni texte saisi ; e-mails, jetons et identifiants retirés des messages ; pas de capture d'écran).
 - Mesure d'audience : PostHog (instance UE) seulement avec le consentement `profiles.consent_analytics` ; identifiant anonyme par installation (jamais d'`identify`), sans profil de personne, géolocalisation ni rejeu de session ; liste fermée d'événements sans texte. Le retrait du consentement coupe l'envoi et oublie l'identifiant local.
 - Stockage local chiffré (AES, clé dans le trousseau de l'appareil) : session, brouillon d'onboarding, cache hors ligne et actions en attente.
@@ -492,5 +496,7 @@ Mise en œuvre (lot 6) : `npm run seed:demo` (`scripts/seed-demo/`), qui refuse 
 ## 9. Indicateurs (cibles bêta)
 
 Onboarding terminé 80 % · rétention J7 40 % · J30 25 % · check-in les jours actifs 50 % · réalisation des exercices 60 % · note moyenne ≥ 3,8 · ajustements acceptés 50 % · coût IA < 0,30 € par utilisateur actif et par mois.
+
+Mise en œuvre (lot 10b) : écran « Indicateurs de la bêta » de l'administration (`admin_metrics`). Jour actif = un exercice fait, une habitude cochée ou un check-in ; rétention J7 (J30) = personnes ayant terminé l'onboarding dans la période et actives au moins un jour entre J+7 et J+13 (J+30 et J+36) ; coût IA ramené à 30 jours par utilisateur actif.
 
 Calendrier indicatif : V1 publique en juin 2027, conditionnée aux résultats de la bêta.
