@@ -2,6 +2,7 @@
   "version": "5",
   "specifiers": {
     "npm:@supabase/supabase-js@2.119.0": "2.119.0",
+    "npm:altcha-lib@2.10.0": "2.10.0",
     "npm:zod@4.6.7": "4.6.7"
   },
   "npm": {
@@ -50,6 +51,10 @@
         "@supabase/storage-js"
       ]
     },
+    "altcha-lib@2.10.0": {
+      "integrity": "sha512-g0XjY95BVYGbXlgbX32jH7uraoKr/ZA5ePf5mWdX8KJXX+8p5mZiEmvzaSUSE3DBv1AZxNqhE9hCz8xEAyc/oQ==",
+      "bin": true
+    },
     "iceberg-js@0.8.1": {
       "integrity": "sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA=="
     },
@@ -63,6 +68,7 @@
   "workspace": {
     "dependencies": [
       "npm:@supabase/supabase-js@2.119.0",
+      "npm:altcha-lib@2.10.0",
       "npm:zod@4.6.7"
     ]
   }

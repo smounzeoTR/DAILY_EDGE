@@ -82,6 +82,13 @@ async function insertEntry(db: Db, input: JoinInput, now: Date) {
   throw new Error('no free referral code');
 }
 
+/** At most 3 waitlist e-mails per address per 24 h (silent above: same answer to the caller). */
+async function reserveEmail(db: Db, entryId: string): Promise<boolean> {
+  const { data, error } = await db.rpc('waitlist_reserve_email', { p_entry_id: entryId });
+  if (error) throw new Error(`e-mail reservation failed: ${error.message}`);
+  return data === true;
+}
+
 /**
  * Sign-up. The caller always answers the same way, whatever the address's state:
  * new or pending → confirmation e-mail; unsubscribed → back to pending, confirmation e-mail;
@@ -117,6 +124,7 @@ export async function joinWaitlist(
   }
 
   if (entry.status === 'confirmed') {
+    if (!(await reserveEmail(db, entry.id))) return;
     const token = await issueToken(db, entry.id, 'status', now);
     const mail = alreadyConfirmedEmail(statusUrl(siteUrl, token));
     await mailer.send({ to: input.email, ...mail });
@@ -130,6 +138,8 @@ export async function joinWaitlist(
     .eq('id', entry.id)
     .neq('status', 'confirmed');
   if (updateError) throw new Error(`entry update failed: ${updateError.message}`);
+  // Above the limit the previous link stays valid and nothing is sent
+  if (!(await reserveEmail(db, entry.id))) return;
   const token = await renewConfirmToken(db, entry.id, now);
   const mail = confirmEmail(confirmUrl(siteUrl, token));
   await mailer.send({ to: input.email, ...mail });

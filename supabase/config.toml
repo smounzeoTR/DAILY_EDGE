@@ -434,6 +434,14 @@ MAILER_PROVIDER = "mailpit"
 MAILPIT_URL = "http://supabase_inbucket_daily-edge:8025"
 SITE_URL = "http://localhost:4321"
 # Local only: the site's Playwright preview and 127.0.0.1
+# Site anti-abuse (S4). Local only: a known ALTCHA key, an easy challenge (tests), and the client IP
+# taken from the right-most x-forwarded-for entry (local Kong). Production: CLIENT_IP_SOURCE unset
+# (cf-connecting-ip) and ALTCHA_HMAC_KEY from `supabase secrets set` (docs/exploitation.md).
+ALTCHA_HMAC_KEY = "local-dev-altcha-hmac-key"
+ALTCHA_COST = "50"
+ALTCHA_COUNTER_MIN = "20"
+ALTCHA_COUNTER_MAX = "60"
+CLIENT_IP_SOURCE = "xff-rightmost"
 # Store links of the result e-mail (buttons hidden while empty)
 APP_STORE_URL = ""
 PLAY_STORE_URL = ""
@@ -477,6 +485,10 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.diagnostic-confirm-marketing]
+verify_jwt = false
+
+# ALTCHA challenges of the site forms (self-hosted proof-of-work)
+[functions.altcha-challenge]
 verify_jwt = false
 
 [analytics]

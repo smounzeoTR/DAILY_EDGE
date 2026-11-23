@@ -24,6 +24,9 @@ export function corsHeaders(
   return headers;
 }
 
+export const tooManyRequests = (headers: Record<string, string>) =>
+  jsonResponse(429, { error: 'rate_limited' }, { ...headers, 'Retry-After': '600' });
+
 export function jsonResponse(status: number, body: unknown, headers: Record<string, string>) {
   return new Response(JSON.stringify(body), {
     status,
@@ -38,7 +41,7 @@ export function jsonResponse(status: number, body: unknown, headers: Record<stri
 export async function handlePublicPost(
   req: Request,
   allowed: readonly string[],
-  handler: (body: unknown, headers: Record<string, string>) => Promise<Response>,
+  handler: (body: unknown, headers: Record<string, string>, req: Request) => Promise<Response>,
 ): Promise<Response> {
   const origin = req.headers.get('Origin');
   const headers = corsHeaders(origin, allowed);
@@ -53,7 +56,7 @@ export async function handlePublicPost(
     return jsonResponse(400, { error: 'invalid_json' }, headers);
   }
   try {
-    return await handler(body, headers);
+    return await handler(body, headers, req);
   } catch (err) {
     console.error('public function failed', err instanceof Error ? err.message : err);
     return jsonResponse(500, { error: 'internal_error' }, headers);

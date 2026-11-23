@@ -4,8 +4,9 @@ import { execSync } from 'node:child_process';
 import { request } from 'node:http';
 
 import { createClient } from '@supabase/supabase-js';
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
+import { altchaPayload } from './altcha.ts';
 import { assertMockProviders } from './guard.ts';
 import { latestMail } from './mailpit.ts';
 
@@ -38,8 +39,13 @@ async function post(name: string, body: unknown) {
   return { status: res.status, body: (await res.json().catch(() => null)) as any };
 }
 
-const submit = (email: string, extra: Record<string, unknown> = {}) =>
-  post('diagnostic-submit', { answers, email, ...extra });
+const submit = async (email: string, extra: Record<string, unknown> = {}) =>
+  post('diagnostic-submit', { answers, email, altcha: await altchaPayload(fn), ...extra });
+
+// Locally every request comes from the same IP: start each test with empty rate limit counters
+beforeEach(async () => {
+  await admin.from('rate_limit_hits').delete().gte('id', 0);
+});
 
 async function mailCount(to: string): Promise<number> {
   const res = await fetch(

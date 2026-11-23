@@ -35,6 +35,7 @@
     "supabase/functions/waitlist-confirm",
     "supabase/functions/waitlist-status",
     "supabase/functions/diagnostic-submit",
-    "supabase/functions/diagnostic-confirm-marketing"
+    "supabase/functions/diagnostic-confirm-marketing",
+    "supabase/functions/altcha-challenge"
   ]
 }

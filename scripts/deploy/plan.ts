@@ -224,6 +224,7 @@ export const EXPECTED_VERIFY_JWT: Record<string, boolean> = {
   'waitlist-status': false,
   'diagnostic-submit': false,
   'diagnostic-confirm-marketing': false,
+  'altcha-challenge': false,
 };
 
 /** verify_jwt of each [functions.<name>] block of config.toml. */

@@ -5,12 +5,13 @@ import { execSync } from 'node:child_process';
 import { request } from 'node:http';
 
 import { createClient } from '@supabase/supabase-js';
-import { afterAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 import {
   computeRanks,
   type WaitlistModelEntry,
 } from '../../supabase/functions/_shared/waitlist/rank.ts';
+import { altchaPayload } from './altcha.ts';
 import { assertMockProviders } from './guard.ts';
 import { latestMail } from './mailpit.ts';
 
@@ -54,8 +55,18 @@ function postWithOrigin(name: string, body: unknown, origin: string): Promise<nu
   });
 }
 
-const join = (email: string, extra: Record<string, unknown> = {}) =>
-  post('waitlist-join', { email, consent_marketing: true, ...extra });
+const join = async (email: string, extra: Record<string, unknown> = {}) =>
+  post('waitlist-join', {
+    email,
+    consent_marketing: true,
+    altcha: await altchaPayload(fn),
+    ...extra,
+  });
+
+// Locally every request comes from the same IP: start each test with empty rate limit counters
+beforeEach(async () => {
+  await admin.from('rate_limit_hits').delete().gte('id', 0);
+});
 
 function tokenFrom(text: string, marker: 'confirmer#t=' | 'ma-place#s='): string {
   const match = text.match(new RegExp(`http://localhost:4321/${marker}([A-Za-z0-9_-]{43})`));
@@ -183,14 +194,14 @@ describe('waitlist-join', () => {
     expect(
       await postWithOrigin(
         'waitlist-join',
-        { ...payload, email: address('origin') },
+        { ...payload, email: address('origin'), altcha: await altchaPayload(fn) },
         'http://localhost:4321',
       ),
     ).toBe(202);
     expect(
       await postWithOrigin(
         'waitlist-join',
-        { ...payload, email: address('origin-evil') },
+        { ...payload, email: address('origin-evil'), altcha: await altchaPayload(fn) },
         'https://evil.example',
       ),
     ).toBe(403);
