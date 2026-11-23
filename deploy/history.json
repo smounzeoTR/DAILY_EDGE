@@ -10,5 +10,17 @@
       "at": "2026-11-23T18:17:39.505Z",
       "commit": "97965d9"
     }
+  },
+  "production": {
+    "db": {
+      "fingerprint": "65cb9e486263a221",
+      "at": "2026-11-23T18:58:46.563Z",
+      "commit": "c69b80d"
+    },
+    "functions": {
+      "fingerprint": "d06bfe502ea4a6f5",
+      "at": "2026-11-23T18:59:27.841Z",
+      "commit": "c69b80d"
+    }
   }
 }
