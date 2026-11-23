@@ -35,7 +35,7 @@ const good = {
   OPS_ALERT_FROM: 'alertes@auth.dailyedge.fr',
   OPS_ALERT_TO: 'ops@example.test',
   SCW_SECRET_KEY: 'scw',
-  SCW_PROJECT_ID: 'p',
+  SCW_PROJECT_ID: '11111111-2222-3333-4444-555555555555',
   SCW_TEM_REGION: 'fr-par',
   MAILER_PROVIDER: 'scaleway',
   SITE_URL: 'http://localhost:4321',
@@ -58,6 +58,15 @@ describe('deployment rules', () => {
     expect(errors).toContain('LLM_PROVIDER=mock interdit hors local');
     expect(errors.some((e) => e.startsWith('PLANS_BATCH_SECRET'))).toBe(true);
     expect(errors).toContain('OPS_ENV_NAME doit valoir production');
+  });
+
+  it('Scaleway project ID must be a UUID', () => {
+    const message =
+      'SCW_PROJECT_ID doit être l’identifiant du projet Scaleway, au format UUID (console > projet > Settings > Project ID)';
+    expect(checkFunctionSecrets({ ...good, SCW_PROJECT_ID: 'daily-edge' }, 'recette')).toContain(
+      message,
+    );
+    expect(checkFunctionSecrets(good, 'recette')).not.toContain(message);
   });
 
   it('requires the Scaleway keys when alerts are e-mailed', () => {
