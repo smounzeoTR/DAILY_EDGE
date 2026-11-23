@@ -26,6 +26,7 @@ import {
 import { LanguageToggle } from '@/components/LanguageToggle';
 import { Logo } from '@/components/Logo';
 import { SplashView } from '@/components/SplashView';
+import { AiWrittenLabel } from '@/components/AiLabel';
 import { AppText, Button, Card, Screen } from '@/components/ui';
 import { addDays, type HabitFrequency } from '@shared/habits/schedule.ts';
 import {
@@ -561,6 +562,7 @@ export default function Today() {
                 <HelpButton topic="why" />
               </View>
               <AppText tone="body">{data.why_today}</AppText>
+              {data.ai_status === 'enriched' ? <AiWrittenLabel /> : null}
               {isAiPending(data) ? (
                 <AppText variant="caption" tone="secondary">
                   {t('today.aiPending')}

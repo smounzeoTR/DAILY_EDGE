@@ -10,6 +10,7 @@ import { TimeField } from '@/components/DateTimeField';
 import { SplashView } from '@/components/SplashView';
 import { AppText, Button, Card, Chip, Screen } from '@/components/ui';
 import { scheduleReminders } from '@/features/reminders/reminders';
+import { LegalLinks } from '@/features/legal/LegalLinks';
 import { exportAndShare } from '@/features/settings/exportData';
 import { setLanguage } from '@/i18n';
 import { resolveLanguage, type Language } from '@/i18n/language';
@@ -26,6 +27,7 @@ import {
   usePrograms,
 } from '@/lib/queries';
 import { track } from '@/lib/analytics';
+import { appVersion } from '@/lib/appVersion';
 import { supabase } from '@/lib/supabase';
 import { spacing, useTheme, type ThemePreference } from '@/theme';
 
@@ -92,6 +94,7 @@ function ConsentSwitch({
 }
 
 export default function Settings() {
+  const version = appVersion();
   const { t, i18n } = useTranslation();
   const language = resolveLanguage(i18n.language);
   const { preference, setPreference } = useTheme();
@@ -275,6 +278,7 @@ export default function Settings() {
           label={t('guide.howItWorks.title')}
           onPress={() => router.push('/settings/how-it-works')}
         />
+        <Row label={t('feedback.open')} onPress={() => router.push('/settings/feedback')} />
       </Card>
 
       <Card>
@@ -367,6 +371,17 @@ export default function Settings() {
           }
         />
         <Button label={t('settings.delete')} variant="ghost" onPress={requestDeletion} />
+      </Card>
+
+      <Card>
+        <AppText variant="bodyStrong">{t('legal.title')}</AppText>
+        <LegalLinks />
+        <AppText variant="caption" tone="secondary">
+          {t('settings.version', {
+            version: version.version,
+            build: version.build ?? '–',
+          })}
+        </AppText>
       </Card>
 
       <Button label={t('today.signOut')} variant="ghost" onPress={() => void signOut()} />

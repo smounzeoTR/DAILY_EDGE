@@ -26,7 +26,7 @@
     "exerciseTitle": "Just start",
     "lowEnergy": "low energy",
     "markDone": "Mark as done",
-    "slide3Title": "Three tiny habits, always doable.",
+    "slide3Title": "Three tiny habits, designed to be doable.",
     "slide3Body": "Each habit has its cue and its two-minute version for the hard days.",
     "habit1": "One page read",
     "habit1Cue": "After coffee…",
@@ -62,7 +62,7 @@
     "business_career": "Business & career",
     "mindset_beliefs": "Mindset & beliefs",
     "relationships_network": "Relationships & network",
-    "energy_health": "Energy & health"
+    "energy_health": "Energy & rhythm"
   },
   "onboarding": {
     "stepOf": "Step {{current}} of {{total}}",
@@ -158,7 +158,14 @@
       "invalid_goal_deadline": "Your goal date must be in the future.",
       "invalid_habits": "Pick 3 different habits.",
       "invalid_program": "This program is no longer available. Please pick another one.",
-      "invalid_goal_title": "Please enter your main goal."
+      "invalid_goal_title": "Please enter your main goal.",
+      "adult_confirmation_required": "Confirm that you are 18 or older (first step) to continue."
+    },
+    "adult": {
+      "title": "Before you start",
+      "body": "Daily Edge is for people aged 18 or over.",
+      "confirm": "I am 18 or older",
+      "confirmBody": "By continuing, I accept the terms of use and the privacy policy."
     }
   },
   "today": {
@@ -427,7 +434,8 @@
     "premiumPerks": "Premium: instructions personalized for your goal, a \"why today\" written for you, exercise choice refined by AI after the program and a written weekly review. The Coach Edge assistant is coming soon.",
     "premiumSwitch": "Premium (prototype)",
     "premiumSwitchHint": "Demo switch: no payment in V1.",
-    "premiumNeedsConsent": "To enjoy personalization, turn on \"AI personalization\" in the consents."
+    "premiumNeedsConsent": "To enjoy personalization, turn on \"AI personalization\" in the consents.",
+    "version": "Version {{version}} (build {{build}})"
   },
   "deletion": {
     "title": "Your account will be deleted on {{date}}",
@@ -451,7 +459,23 @@
       "done_rate": "Completion",
       "avg_rating": "Average rating",
       "too_hard_rate": "Too hard",
-      "skip_rate": "Skipped"
+      "skip_rate": "Skipped",
+      "title": "Beta metrics",
+      "intro": "The targets of the specification (§ 9), over the chosen period.",
+      "onboarding": "Onboarding completed",
+      "d7": "Day 7 retention",
+      "d30": "Day 30 retention",
+      "checkin": "Check-in on active days",
+      "completion": "Exercises completed",
+      "rating": "Average rating",
+      "adjustments": "Adjustments accepted",
+      "aiCost": "AI cost per active user per month",
+      "targetMin": "Target: {{target}} or more",
+      "targetMax": "Target: under {{target}}",
+      "sample_one": "{{count}} case",
+      "sample_other": "{{count}} cases",
+      "noData": "no data yet",
+      "definitions": "Active day: an exercise done, a habit checked or a check-in. Day 7 (30) retention: people who completed onboarding in the period and were active at least one day between D+7 and D+13 (D+30 and D+36). Completion: program exercises of past days. Adjustments: review proposals accepted. AI cost: cost of the period per active user, scaled to 30 days."
     },
     "count_one": "{{count}} exercise",
     "count_other": "{{count}} exercises",
@@ -482,6 +506,43 @@
       "code": "6-digit code",
       "verify": "Check the code",
       "invalidCode": "Wrong or expired code. Try again with the code shown."
+    },
+    "readOnlyExceptPremium": "Read only, except granting premium to beta testers (logged). Content is edited in the Sheet, then imported.",
+    "feedback": {
+      "title": "Beta tester feedback",
+      "none": "No feedback yet.",
+      "meta": "{{date}} · {{email}} · v{{version}} ({{build}}) · {{platform}} · {{locale}}"
+    },
+    "alerts": {
+      "title": "Operations alerts",
+      "intro": "Fallback generation missing or failing, daily AI cost above the threshold. One alert per kind and day, sent by e-mail.",
+      "none": "No alert.",
+      "notified": "Sent by e-mail",
+      "pending": "Not sent yet",
+      "kinds": {
+        "batch_missing": "Fallback generation missing",
+        "batch_failed": "Fallback generation failed",
+        "ai_cost": "High AI cost today"
+      }
+    },
+    "premium": {
+      "title": "Beta testers premium",
+      "intro": "Grant premium until a date to an existing account. Every action is logged.",
+      "email": "Account e-mail",
+      "duration_one": "{{count}} day",
+      "duration_other": "{{count}} days",
+      "grant": "Grant until {{date}}",
+      "revoke": "Remove premium",
+      "granted": "Premium granted.",
+      "revoked": "Premium removed.",
+      "list_one": "{{count}} premium account",
+      "list_other": "{{count}} premium accounts",
+      "until": "Until {{date}} · {{provider}}",
+      "noEnd": "no end date",
+      "errors": {
+        "user_not_found": "No account with this e-mail: the person must sign up first.",
+        "invalid_until": "Invalid end date."
+      }
     }
   },
   "notes": {
@@ -525,7 +586,7 @@
       "label": "Help: {{title}}",
       "principle": {
         "title": "Principle of the day",
-        "body": "A key idea from the great books on success, summed up in one sentence. It gives meaning to today's exercise."
+        "body": "A key idea from the great personal development books, summed up in one sentence. It gives meaning to today's exercise."
       },
       "exercise": {
         "title": "Exercise of the day",
@@ -622,7 +683,7 @@
       "intro": "Every day, a simple 4-step journey, adapted to your energy and your time.",
       "principle": {
         "title": "1. The principle",
-        "body": "A key idea from the great books on success. It counts as read when you open its sheet or tap \"I've read it\"."
+        "body": "A key idea from the great personal development books. It counts as read when you open its sheet or tap \"I've read it\"."
       },
       "exercise": {
         "title": "2. The exercise",
@@ -752,5 +813,27 @@
     "callLabel": "Call 3114, the French national suicide prevention line, free, 24/7",
     "elsewhere": "Outside France: call your local emergency number. In immediate danger: 112.",
     "seen": "Thanks, I've seen it"
+  },
+  "legal": {
+    "title": "Legal information",
+    "terms": "Terms of use",
+    "privacy": "Privacy policy",
+    "notice": "Legal notice"
+  },
+  "feedback": {
+    "open": "Give feedback",
+    "title": "Give feedback",
+    "intro": "An idea, a bug, a nice or frustrating moment: everything helps during the beta. The app version is attached to your message.",
+    "label": "Your feedback",
+    "placeholder": "Write freely",
+    "send": "Send",
+    "thanks": "Thank you! Your feedback has arrived.",
+    "offline": "Sending needs a connection. Your text stays on screen.",
+    "limit": "You have already sent a lot of feedback today. Try again tomorrow."
+  },
+  "ai": {
+    "written": "Written by AI",
+    "coachIsAi": "Coach Edge is an AI",
+    "coachMayErr": "Its answers may contain mistakes: check any important information."
   }
 }

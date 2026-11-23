@@ -26,7 +26,7 @@
     "exerciseTitle": "Juste commencer",
     "lowEnergy": "énergie basse",
     "markDone": "Marquer comme fait",
-    "slide3Title": "Trois habitudes minuscules, toujours tenables.",
+    "slide3Title": "Trois habitudes minuscules, pensées pour être tenables.",
     "slide3Body": "Chaque habitude a son déclencheur et sa version de deux minutes pour les jours difficiles.",
     "habit1": "Une page lue",
     "habit1Cue": "Après le café…",
@@ -60,9 +60,9 @@
     "discipline_habits": "Discipline & habitudes",
     "money_wealth": "Argent & patrimoine",
     "business_career": "Entreprise & carrière",
-    "mindset_beliefs": "Mental & croyances",
+    "mindset_beliefs": "État d'esprit & croyances",
     "relationships_network": "Relations & réseau",
-    "energy_health": "Énergie & santé"
+    "energy_health": "Énergie & rythme"
   },
   "onboarding": {
     "stepOf": "Étape {{current}} sur {{total}}",
@@ -158,7 +158,14 @@
       "invalid_goal_deadline": "La date de ton objectif doit être à venir.",
       "invalid_habits": "Choisis 3 habitudes différentes.",
       "invalid_program": "Ce programme n'est plus disponible. Choisis-en un autre.",
-      "invalid_goal_title": "Indique ton objectif principal."
+      "invalid_goal_title": "Indique ton objectif principal.",
+      "adult_confirmation_required": "Confirme que tu as 18 ans ou plus (première étape) pour continuer."
+    },
+    "adult": {
+      "title": "Avant de commencer",
+      "body": "Daily Edge est réservé aux personnes de 18 ans ou plus.",
+      "confirm": "J'ai 18 ans ou plus",
+      "confirmBody": "En continuant, j'accepte les conditions d'utilisation et la politique de confidentialité."
     }
   },
   "today": {
@@ -427,7 +434,8 @@
     "premiumPerks": "Premium : consignes personnalisées selon ton objectif, « pourquoi aujourd'hui » rédigé pour toi, choix des exercices affiné par l'IA après le programme et bilan de la semaine rédigé. L'assistant Coach Edge arrive bientôt.",
     "premiumSwitch": "Premium (prototype)",
     "premiumSwitchHint": "Interrupteur de démonstration : aucun paiement en V1.",
-    "premiumNeedsConsent": "Pour profiter de la personnalisation, active « Personnalisation par IA » dans les consentements."
+    "premiumNeedsConsent": "Pour profiter de la personnalisation, active « Personnalisation par IA » dans les consentements.",
+    "version": "Version {{version}} (build {{build}})"
   },
   "deletion": {
     "title": "Ton compte sera supprimé le {{date}}",
@@ -451,7 +459,23 @@
       "done_rate": "Réalisation",
       "avg_rating": "Note moyenne",
       "too_hard_rate": "Trop dur",
-      "skip_rate": "Sautés"
+      "skip_rate": "Sautés",
+      "title": "Indicateurs de la bêta",
+      "intro": "Les cibles du cahier des charges (§ 9), sur la période choisie.",
+      "onboarding": "Onboarding terminé",
+      "d7": "Rétention J7",
+      "d30": "Rétention J30",
+      "checkin": "Check-in les jours actifs",
+      "completion": "Réalisation des exercices",
+      "rating": "Note moyenne",
+      "adjustments": "Ajustements acceptés",
+      "aiCost": "Coût IA par utilisateur actif et par mois",
+      "targetMin": "Cible : {{target}} ou plus",
+      "targetMax": "Cible : moins de {{target}}",
+      "sample_one": "{{count}} cas",
+      "sample_other": "{{count}} cas",
+      "noData": "pas encore de données",
+      "definitions": "Jour actif : un exercice fait, une habitude cochée ou un check-in. Rétention J7 (J30) : personnes ayant terminé l'onboarding dans la période et actives au moins un jour entre J+7 et J+13 (J+30 et J+36). Réalisation : exercices du programme des jours passés. Ajustements : propositions des bilans acceptées. Coût IA : coût de la période par utilisateur actif, ramené à 30 jours."
     },
     "count_one": "{{count}} exercice",
     "count_other": "{{count}} exercices",
@@ -482,6 +506,43 @@
       "code": "Code à 6 chiffres",
       "verify": "Valider le code",
       "invalidCode": "Code incorrect ou expiré. Réessaie avec le code affiché."
+    },
+    "readOnlyExceptPremium": "Lecture seule, sauf l'attribution du premium aux bêta-testeurs (journalisée). Le contenu s'édite dans le Sheet puis s'importe.",
+    "feedback": {
+      "title": "Avis des bêta-testeurs",
+      "none": "Aucun avis pour l'instant.",
+      "meta": "{{date}} · {{email}} · v{{version}} ({{build}}) · {{platform}} · {{locale}}"
+    },
+    "alerts": {
+      "title": "Alertes d'exploitation",
+      "intro": "Génération de secours absente ou en échec, coût IA du jour au-dessus du seuil. Une alerte par type et par jour, envoyée par e-mail.",
+      "none": "Aucune alerte.",
+      "notified": "Envoyée par e-mail",
+      "pending": "Pas encore envoyée",
+      "kinds": {
+        "batch_missing": "Génération de secours absente",
+        "batch_failed": "Génération de secours en échec",
+        "ai_cost": "Coût IA du jour élevé"
+      }
+    },
+    "premium": {
+      "title": "Premium des bêta-testeurs",
+      "intro": "Accorde le premium jusqu'à une date à un compte existant. Chaque action est journalisée.",
+      "email": "E-mail du compte",
+      "duration_one": "{{count}} jour",
+      "duration_other": "{{count}} jours",
+      "grant": "Accorder jusqu'au {{date}}",
+      "revoke": "Retirer le premium",
+      "granted": "Premium accordé.",
+      "revoked": "Premium retiré.",
+      "list_one": "{{count}} compte premium",
+      "list_other": "{{count}} comptes premium",
+      "until": "Jusqu'au {{date}} · {{provider}}",
+      "noEnd": "sans date de fin",
+      "errors": {
+        "user_not_found": "Aucun compte avec cet e-mail : la personne doit d'abord s'inscrire.",
+        "invalid_until": "Date de fin invalide."
+      }
     }
   },
   "notes": {
@@ -525,7 +586,7 @@
       "label": "Aide : {{title}}",
       "principle": {
         "title": "Principe du jour",
-        "body": "Une idée clé tirée des grands livres de réussite, résumée en une phrase. Elle donne le sens de l'exercice du jour."
+        "body": "Une idée clé tirée des grands livres de développement personnel, résumée en une phrase. Elle donne le sens de l'exercice du jour."
       },
       "exercise": {
         "title": "Exercice du jour",
@@ -622,7 +683,7 @@
       "intro": "Chaque jour, un parcours simple en 4 étapes, adapté à ton énergie et à ton temps.",
       "principle": {
         "title": "1. Le principe",
-        "body": "Une idée clé tirée des grands livres de réussite. Elle compte comme lue quand tu ouvres sa fiche ou touches « J'ai lu »."
+        "body": "Une idée clé tirée des grands livres de développement personnel. Elle compte comme lue quand tu ouvres sa fiche ou touches « J'ai lu »."
       },
       "exercise": {
         "title": "2. L'exercice",
@@ -752,5 +813,27 @@
     "callLabel": "Appeler le 3114, numéro national de prévention du suicide, gratuit, 24 h sur 24",
     "elsewhere": "Hors de France : appelle le numéro d'urgence local. En cas de danger immédiat : 112.",
     "seen": "Merci, j'ai vu"
+  },
+  "legal": {
+    "title": "Informations légales",
+    "terms": "Conditions d'utilisation",
+    "privacy": "Politique de confidentialité",
+    "notice": "Mentions légales"
+  },
+  "feedback": {
+    "open": "Donner mon avis",
+    "title": "Donner mon avis",
+    "intro": "Une idée, un bug, un moment agréable ou frustrant : tout nous aide pendant la bêta. La version de l'app est jointe à ton message.",
+    "label": "Ton avis",
+    "placeholder": "Écris librement",
+    "send": "Envoyer",
+    "thanks": "Merci ! Ton avis est bien arrivé.",
+    "offline": "L'envoi demande une connexion. Ton texte reste à l'écran.",
+    "limit": "Tu as déjà envoyé beaucoup d'avis aujourd'hui. Réessaie demain."
+  },
+  "ai": {
+    "written": "Rédigé par l'IA",
+    "coachIsAi": "Coach Edge est une IA",
+    "coachMayErr": "Ses réponses peuvent contenir des erreurs : vérifie toute information importante."
   }
 }
