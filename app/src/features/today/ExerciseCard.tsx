@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
+import { AiWrittenLabel } from '@/components/AiLabel';
 import { AppText, Button, Card, TextField } from '@/components/ui';
 import { resolveLanguage } from '@/i18n/language';
 import { localized } from '@/i18n/localize';
@@ -111,6 +112,7 @@ export function ExerciseCard({
       </View>
       <AppText variant="subtitle">{title}</AppText>
       <AppText tone="body">{personalized && !showOriginal ? personalized : original}</AppText>
+      {personalized && !showOriginal ? <AiWrittenLabel /> : null}
       {personalized ? (
         <View style={styles.personalized}>
           <AppText variant="caption" tone="secondary">

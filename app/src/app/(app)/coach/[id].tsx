@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, StyleSheet, View, type ScrollView } from 'react-native';
 
 import { SplashView } from '@/components/SplashView';
+import { AiNotice } from '@/components/AiLabel';
 import { AppText, Button, Screen, TextField } from '@/components/ui';
 import { ActionCard } from '@/features/coach/ActionCard';
 import {
@@ -180,6 +181,7 @@ export default function CoachConversation() {
             {t('coach.guardrails')}
           </AppText>
         </View>
+        <AiNotice />
         {messages.length === 0 && !live ? (
           <AppText tone="secondary">{t('coach.empty')}</AppText>
         ) : null}
