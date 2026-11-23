@@ -7,7 +7,8 @@ export const siteMode: SiteMode = SITE_MODE;
 
 export const contactEmail = 'contact@dailyedge.fr';
 
-const legalRoot = 'https://dailyedge.trasenel.com/fr';
+// Legal pages on GitHub Pages until they move to the site (lot S5)
+const legalRoot = 'https://legal.dailyedge.fr/fr';
 
 export const legalLinks = {
   notice: `${legalRoot}/mentions-legales.html`,

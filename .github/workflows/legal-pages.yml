@@ -1,5 +1,6 @@
-# Publishes the static legal pages (legal/) on GitHub Pages, custom domain dailyedge.trasenel.com.
-# Settings > Pages > Source: "GitHub Actions". DNS: CNAME dailyedge -> <owner>.github.io.
+# Publishes the static legal pages (legal/) on GitHub Pages, custom domain legal.dailyedge.fr
+# (until they move to the site, lot S5).
+# Settings > Pages > Source: "GitHub Actions". DNS (zone dailyedge.fr): CNAME legal -> <owner>.github.io.
 name: Legal pages
 on:
   push:

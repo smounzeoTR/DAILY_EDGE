@@ -277,6 +277,19 @@ describe('mailer', () => {
     expect(lines[0]).not.toContain('camille@');
   });
 
+  it('uses WAITLIST_FROM as sender', async () => {
+    const calls: string[] = [];
+    const fake = ((_url: string, init: RequestInit) => {
+      calls.push(init.body as string);
+      return Promise.resolve(new Response('{}', { status: 200 }));
+    }) as unknown as typeof fetch;
+    await mailpitMailer('http://mailpit:8025', fake, {
+      email: 'liste@auth.dailyedge.fr',
+      name: 'Daily Edge',
+    }).send(message);
+    expect(JSON.parse(calls[0]!)).toMatchObject({ From: { Email: 'liste@auth.dailyedge.fr' } });
+  });
+
   it('chooses the provider from the environment, log by default', () => {
     expect(mailerFromEnv(() => undefined).provider).toBe('log');
     const env: Record<string, string> = { MAILER_PROVIDER: 'scaleway', SCW_SECRET_KEY: 'k' };

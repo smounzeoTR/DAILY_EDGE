@@ -29,4 +29,20 @@ describe('operations alert e-mail', () => {
     );
     expect(subject).toBe("[Daily Edge production] 1 alerte d'exploitation");
   });
+
+  it('describes a failed Make webhook', () => {
+    const { text } = buildAlertEmail(
+      [
+        {
+          kind: 'make_webhook_failed',
+          day: '2026-12-01',
+          detail: { failed: 2, statuses: ['401', 'erreur'] },
+          created_at: '',
+        },
+      ],
+      'production',
+    );
+    expect(text).toContain('Webhook Make en échec : 2 appel(s) sur 24 h');
+    expect(text).toContain('["401","erreur"]');
+  });
 });

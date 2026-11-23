@@ -25,15 +25,25 @@ import { parseArgs } from 'node:util';
 
 import postgres from 'postgres';
 
+import { waitlistDbChecks } from './dbChecks.ts';
+
 import {
   AUTH_KEYS,
   authConfig,
   authDiff,
   checkFunctionSecrets,
+  checkMakeValues,
+  checkSenders,
   checkSettings,
+  checkVerifyJwt,
+  describeMakeValues,
+  EXPECTED_VERIFY_JWT,
   functionSecrets,
   isEuRegion,
+  MAKE_KEYS,
+  makeVaultSecrets,
   missingKeys,
+  parseVerifyJwt,
   PROJECT_KEYS,
   settingsSql,
   vaultSecrets,
@@ -162,6 +172,17 @@ function settingsFile(): Settings {
   ) as Settings;
 }
 
+function functionNames(): string[] {
+  return readdirSync(resolve(root, 'supabase/functions')).filter(
+    (n) =>
+      !n.startsWith('_') &&
+      !n.startsWith('.') &&
+      existsSync(resolve(root, 'supabase/functions', n, 'index.ts')),
+  );
+}
+
+const verifyJwt = () => parseVerifyJwt(readFileSync(resolve(root, 'supabase/config.toml'), 'utf8'));
+
 const dryRunNote = () => {
   if (!apply)
     console.log('\nSimulation : rien n’a été écrit. Relancer avec --apply pour appliquer.');
@@ -192,6 +213,22 @@ if (step === 'check') {
     secretErrors.length === 0,
     `secrets des fonctions complets${secretErrors.length ? ` : ${secretErrors.join(' ; ')}` : ''}`,
   );
+  const senderErrors = checkSenders(env);
+  report(
+    senderErrors.length === 0,
+    `expéditeurs @auth.dailyedge.fr${senderErrors.length ? ` : ${senderErrors.join(' ; ')}` : ''}`,
+  );
+  const make = checkMakeValues(env, target);
+  report(
+    make.errors.length === 0,
+    `valeurs Make (${describeMakeValues(env).join(', ')})${make.errors.length ? ` : ${make.errors.join(' ; ')}` : ''}`,
+  );
+  for (const warning of make.warnings) console.log(`⚠️  ${warning}`);
+  const jwtErrors = checkVerifyJwt(verifyJwt(), functionNames());
+  report(
+    jwtErrors.length === 0,
+    `vérification du JWT des fonctions (config.toml)${jwtErrors.length ? ` : ${jwtErrors.join(' ; ')}` : ''}`,
+  );
   const settingErrors = checkSettings(settingsFile());
   report(
     settingErrors.length === 0,
@@ -203,11 +240,18 @@ if (step === 'check') {
     const extensions = (await sql`select extname from pg_extension`).map(
       (r) => r.extname as string,
     );
+    // pg_net and Vault are needed by the waitlist webhook; pg_cron is created by the migrations
     for (const name of ['pg_cron', 'pg_net', 'supabase_vault']) {
       report(
-        extensions.includes(name) || name !== 'supabase_vault',
-        `extension ${name} ${extensions.includes(name) ? 'présente' : 'absente (créée par les migrations)'}`,
+        extensions.includes(name) || name === 'pg_cron',
+        `extension ${name} ${extensions.includes(name) ? 'présente' : name === 'pg_cron' ? 'absente (créée par les migrations)' : 'absente'}`,
       );
+    }
+
+    // Waitlist: closed tables and Make trigger; recette: no Make secret in Vault
+    for (const check of await waitlistDbChecks(sql, target)) {
+      if ('info' in check) console.log(`⏳ ${check.info}`);
+      else report(check.ok, check.text);
     }
     const demoRows =
       await sql`select count(*)::int as demo from auth.users where email like '%@daily-edge.local'`;
@@ -243,13 +287,18 @@ if (step === 'db') {
 if (step === 'functions') {
   const print = fingerprint('supabase/functions');
   requireRecette('functions', print);
-  const names = readdirSync(resolve(root, 'supabase/functions')).filter(
-    (n) =>
-      !n.startsWith('_') &&
-      !n.startsWith('.') &&
-      existsSync(resolve(root, 'supabase/functions', n, 'index.ts')),
+  const names = functionNames();
+  const configured = verifyJwt();
+  const jwtErrors = checkVerifyJwt(configured, names);
+  if (jwtErrors.length > 0) fail(jwtErrors.join(' ; '));
+  console.log(
+    `Fonctions (empreinte ${print}) — vérification du JWT lue dans supabase/config.toml :`,
   );
-  console.log(`Fonctions : ${names.join(', ')} (empreinte ${print})`);
+  for (const name of names) {
+    console.log(
+      `  ${name.padEnd(22)} ${EXPECTED_VERIFY_JWT[name] ? 'avec JWT (app connectée)' : 'sans JWT (site public ou secret serveur)'}`,
+    );
+  }
   if (apply) {
     supabase(['functions', 'deploy', `--remote=${ref}`, '--use-api', '--yes']);
     record('functions', print);
@@ -288,13 +337,24 @@ if (step === 'vault') {
   console.log(`Vault : plans_batch_url = ${wanted.plans_batch_url}`);
   console.log(`Vault : ops_alert_url = ${wanted.ops_alert_url}`);
   console.log('Vault : plans_batch_secret = (secret, identique à PLANS_BATCH_SECRET)');
+  // Make (Brevo synchronisation): values never shown, production only
+  const make = checkMakeValues(env, target);
+  if (make.errors.length > 0) fail(make.errors.join(' ; '));
+  for (const line of describeMakeValues(env)) console.log(`Vault : ${line}`);
+  for (const warning of make.warnings) console.log(`⚠️  ${warning}`);
+  const makeSecrets = makeVaultSecrets(env);
+  if (target === 'recette')
+    console.log('Recette : tout secret Make présent dans le Vault sera supprimé.');
   if (apply) {
     const sql = db();
     try {
-      for (const [name, value] of Object.entries(wanted)) {
+      for (const [name, value] of Object.entries({ ...wanted, ...makeSecrets })) {
         const [existing] = await sql`select id from vault.secrets where name = ${name}`;
         if (existing) await sql`select vault.update_secret(${existing.id}, ${value})`;
         else await sql`select vault.create_secret(${value}, ${name})`;
+      }
+      if (target === 'recette') {
+        await sql`delete from vault.secrets where name = any(${Object.values(MAKE_KEYS)})`;
       }
       console.log('✅ Vault à jour.');
     } finally {

@@ -45,7 +45,16 @@ export const FUNCTION_SECRET_KEYS = [
   'SCW_SECRET_KEY',
   'SCW_PROJECT_ID',
   'SCW_REGION',
+  // dailyedge.fr waitlist (waitlist-join, waitlist-confirm, waitlist-status)
+  'MAILER_PROVIDER',
+  'SCW_TEM_REGION',
+  'SITE_URL',
+  'WAITLIST_FROM',
 ] as const;
+
+// Every sender of the app and of the site uses this domain (Scaleway TEM)
+export const SENDER_DOMAIN = 'auth.dailyedge.fr';
+export const PRODUCTION_SITE_URL = 'https://dailyedge.fr';
 
 const filled = (env: Env, key: string) => (env[key] ?? '').trim() !== '';
 
@@ -81,6 +90,150 @@ export function checkFunctionSecrets(env: Env, target: Target): string[] {
   }
   if (filled(env, 'OPS_ENV_NAME') && env.OPS_ENV_NAME !== target) {
     errors.push(`OPS_ENV_NAME doit valoir ${target}`);
+  }
+  errors.push(...checkWaitlistSecrets(env, target));
+  return errors;
+}
+
+// Waitlist functions: real e-mails through Scaleway, site URL used in links and as CORS origin
+export function checkWaitlistSecrets(env: Env, target: Target): string[] {
+  const errors = missingKeys(env, ['MAILER_PROVIDER', 'SITE_URL', 'WAITLIST_FROM']).map(
+    (k) => `${k} manquant (liste d'attente)`,
+  );
+  if (filled(env, 'MAILER_PROVIDER') && env.MAILER_PROVIDER !== 'scaleway') {
+    errors.push('MAILER_PROVIDER doit valoir scaleway hors local');
+  }
+  if (env.MAILER_PROVIDER === 'scaleway') {
+    for (const k of ['SCW_SECRET_KEY', 'SCW_PROJECT_ID', 'SCW_TEM_REGION']) {
+      if (!filled(env, k)) errors.push(`${k} manquant (e-mails de la liste d'attente)`);
+    }
+  }
+  const site = (env.SITE_URL ?? '').trim();
+  if (site) {
+    if (target === 'production' && site !== PRODUCTION_SITE_URL) {
+      errors.push(`SITE_URL doit valoir ${PRODUCTION_SITE_URL} en production`);
+    }
+    // Recette: the site is built on the Mac (localhost) until it is hosted (lot S5)
+    const recetteOk =
+      /^https:\/\/[^/]+$/.test(site) || /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(site);
+    if (target === 'recette' && !recetteOk) {
+      errors.push('SITE_URL : https://<domaine> ou http://localhost:<port>, sans chemin');
+    }
+  }
+  return errors;
+}
+
+/** Senders (connexion, alerts, waitlist) must all be addresses of auth.dailyedge.fr. */
+export function checkSenders(env: Env): string[] {
+  const errors: string[] = [];
+  for (const k of ['SMTP_ADMIN_EMAIL', 'OPS_ALERT_FROM', 'WAITLIST_FROM']) {
+    const value = (env[k] ?? '').trim();
+    if (value && !value.toLowerCase().endsWith(`@${SENDER_DOMAIN}`)) {
+      errors.push(`${k} doit être une adresse @${SENDER_DOMAIN}`);
+    }
+  }
+  return errors;
+}
+
+// ---- Make (Brevo synchronisation): Vault values, production only ------------------------
+export const MAKE_KEYS = {
+  MAKE_HOOK_WAITLIST: 'make_hook_waitlist',
+  MAKE_HOOK_DIAGNOSTIC: 'make_hook_diagnostic',
+  MAKE_WEBHOOK_SECRET: 'make_webhook_secret',
+} as const;
+
+const MAKE_HOOK_PATTERN = /^https:\/\/hook\.[a-z0-9]+\.make\.com\/[A-Za-z0-9]+$/;
+
+/**
+ * Only production feeds Brevo: in recette the three values must stay empty.
+ * Production: the waitlist hook and the secret are required; the diagnostic hook (lot S3)
+ * may stay empty for now (warning).
+ */
+export function checkMakeValues(
+  env: Env,
+  target: Target,
+): { errors: string[]; warnings: string[] } {
+  const errors: string[] = [];
+  const warnings: string[] = [];
+  if (target === 'recette') {
+    for (const k of Object.keys(MAKE_KEYS)) {
+      if (filled(env, k))
+        errors.push(`${k} doit rester vide en recette (seule la production alimente Brevo)`);
+    }
+    return { errors, warnings };
+  }
+  for (const k of ['MAKE_HOOK_WAITLIST', 'MAKE_WEBHOOK_SECRET']) {
+    if (!filled(env, k)) errors.push(`${k} manquant`);
+  }
+  for (const k of ['MAKE_HOOK_WAITLIST', 'MAKE_HOOK_DIAGNOSTIC']) {
+    if (filled(env, k) && !MAKE_HOOK_PATTERN.test((env[k] ?? '').trim())) {
+      errors.push(`${k} : URL de webhook Make attendue (https://hook.<région>.make.com/…)`);
+    }
+  }
+  if (!filled(env, 'MAKE_HOOK_DIAGNOSTIC')) {
+    warnings.push('MAKE_HOOK_DIAGNOSTIC vide : diagnostic (lot S3) non relié à Brevo');
+  }
+  return { errors, warnings };
+}
+
+/** Name and state of each Make value, never the value itself. */
+export function describeMakeValues(env: Env): string[] {
+  return Object.entries(MAKE_KEYS).map(
+    ([k, vault]) => `${vault} (${k}) : ${filled(env, k) ? 'défini' : 'vide'}`,
+  );
+}
+
+/** Make values to write to Vault (filled ones only; an empty value is never written). */
+export function makeVaultSecrets(env: Env): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [k, vault] of Object.entries(MAKE_KEYS)) {
+    if (filled(env, k)) out[vault] = (env[k] ?? '').trim();
+  }
+  return out;
+}
+
+// ---- Edge Functions: JWT verification at deployment (supabase/config.toml) ---------------
+// Without JWT: called by the site without a session (waitlist) or protected by a server
+// secret (batch, alerts). With JWT: called by the signed-in app.
+export const EXPECTED_VERIFY_JWT: Record<string, boolean> = {
+  'generate-plan': true,
+  'generate-review': true,
+  'export-my-data': true,
+  'assistant-chat': true,
+  'generate-plans-batch': false,
+  'ops-alert': false,
+  'waitlist-join': false,
+  'waitlist-confirm': false,
+  'waitlist-status': false,
+};
+
+/** verify_jwt of each [functions.<name>] block of config.toml. */
+export function parseVerifyJwt(configToml: string): Record<string, boolean> {
+  const out: Record<string, boolean> = {};
+  let current: string | null = null;
+  for (const line of configToml.split('\n')) {
+    const header = line.match(/^\s*\[functions\.([A-Za-z0-9_-]+)\]\s*$/);
+    if (header) {
+      current = header[1] ?? null;
+      continue;
+    }
+    if (/^\s*\[/.test(line)) current = null;
+    const setting = line.match(/^\s*verify_jwt\s*=\s*(true|false)\s*$/);
+    if (current && setting) out[current] = setting[1] === 'true';
+  }
+  return out;
+}
+
+/** Deployed functions without an expected setting, or configured differently. */
+export function checkVerifyJwt(configured: Record<string, boolean>, deployed: string[]): string[] {
+  const errors: string[] = [];
+  for (const name of deployed) {
+    const expected = EXPECTED_VERIFY_JWT[name];
+    if (expected === undefined) {
+      errors.push(`${name} : mode JWT attendu non défini (scripts/deploy/plan.ts)`);
+    } else if (configured[name] !== expected) {
+      errors.push(`${name} : verify_jwt doit valoir ${expected} dans supabase/config.toml`);
+    }
   }
   return errors;
 }
