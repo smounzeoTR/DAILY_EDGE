@@ -213,6 +213,8 @@ export const EXPECTED_VERIFY_JWT: Record<string, boolean> = {
   'waitlist-join': false,
   'waitlist-confirm': false,
   'waitlist-status': false,
+  'diagnostic-submit': false,
+  'diagnostic-confirm-marketing': false,
 };
 
 /** verify_jwt of each [functions.<name>] block of config.toml. */

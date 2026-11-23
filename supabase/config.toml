@@ -434,6 +434,9 @@ MAILER_PROVIDER = "mailpit"
 MAILPIT_URL = "http://supabase_inbucket_daily-edge:8025"
 SITE_URL = "http://localhost:4321"
 # Local only: the site's Playwright preview and 127.0.0.1
+# Store links of the result e-mail (buttons hidden while empty)
+APP_STORE_URL = ""
+PLAY_STORE_URL = ""
 SITE_EXTRA_ORIGINS = "http://localhost:4329,http://127.0.0.1:4321,http://127.0.0.1:4329"
 
 # Plan generation: the user comes from the JWT only
@@ -467,6 +470,13 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.waitlist-status]
+verify_jwt = false
+
+# dailyedge.fr web diagnostic (launch mode): public, origin limited to SITE_URL
+[functions.diagnostic-submit]
+verify_jwt = false
+
+[functions.diagnostic-confirm-marketing]
 verify_jwt = false
 
 [analytics]

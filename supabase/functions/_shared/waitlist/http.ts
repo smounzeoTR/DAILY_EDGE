@@ -55,7 +55,7 @@ export async function handlePublicPost(
   try {
     return await handler(body, headers);
   } catch (err) {
-    console.error('waitlist function failed', err instanceof Error ? err.message : err);
+    console.error('public function failed', err instanceof Error ? err.message : err);
     return jsonResponse(500, { error: 'internal_error' }, headers);
   }
 }

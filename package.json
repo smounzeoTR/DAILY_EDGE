@@ -13,7 +13,7 @@
     "test:db": "supabase test db",
     "gen:types": "supabase gen types typescript --local > app/src/lib/database.types.ts && cp app/src/lib/database.types.ts supabase/functions/_shared/database.types.ts && prettier --write app/src/lib/database.types.ts supabase/functions/_shared/database.types.ts",
     "test:integration": "vitest run --config vitest.integration.config.ts",
-    "check:functions": "cd supabase/functions && for f in generate-plan generate-plans-batch generate-review export-my-data assistant-chat waitlist-join waitlist-confirm waitlist-status; do (cd $f && deno check index.ts) || exit 1; done && deno lint generate-plan generate-plans-batch generate-review export-my-data assistant-chat waitlist-join waitlist-confirm waitlist-status _shared/engine _shared/plans _shared/habits _shared/review _shared/llm _shared/ai _shared/assistant _shared/waitlist _shared/mailer",
+    "check:functions": "cd supabase/functions && for f in generate-plan generate-plans-batch generate-review export-my-data assistant-chat waitlist-join waitlist-confirm waitlist-status diagnostic-submit diagnostic-confirm-marketing; do (cd $f && deno check index.ts) || exit 1; done && deno lint generate-plan generate-plans-batch generate-review export-my-data assistant-chat waitlist-join waitlist-confirm waitlist-status diagnostic-submit diagnostic-confirm-marketing _shared/engine _shared/plans _shared/habits _shared/review _shared/llm _shared/ai _shared/assistant _shared/waitlist _shared/mailer _shared/diagnostic _shared/onboarding",
     "seed:demo": "node scripts/seed-demo/index.ts",
     "llm:smoke": "node --env-file-if-exists=.env.llm scripts/llm-smoke/index.ts",
     "assistant:eval": "node --env-file-if-exists=.env.llm scripts/assistant-eval/index.ts",
