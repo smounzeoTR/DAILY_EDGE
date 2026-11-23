@@ -11,7 +11,11 @@
     "skipLibCheck": true,
     "types": [
       "node"
-    ]
+    ],
+    // Type imports of the app onboarding copy (parity test of the shared program rule)
+    "paths": {
+      "@/*": ["./app/src/*"]
+    }
   },
   "include": [
     "vitest.config.ts",
@@ -29,6 +33,8 @@
     "supabase/functions/assistant-chat",
     "supabase/functions/waitlist-join",
     "supabase/functions/waitlist-confirm",
-    "supabase/functions/waitlist-status"
+    "supabase/functions/waitlist-status",
+    "supabase/functions/diagnostic-submit",
+    "supabase/functions/diagnostic-confirm-marketing"
   ]
 }
