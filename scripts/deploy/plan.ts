@@ -91,9 +91,17 @@ export function checkFunctionSecrets(env: Env, target: Target): string[] {
   if (filled(env, 'OPS_ENV_NAME') && env.OPS_ENV_NAME !== target) {
     errors.push(`OPS_ENV_NAME doit valoir ${target}`);
   }
+  // Scaleway expects the project ID (a UUID), not the project or organization name
+  if (filled(env, 'SCW_PROJECT_ID') && !UUID_PATTERN.test((env.SCW_PROJECT_ID ?? '').trim())) {
+    errors.push(
+      'SCW_PROJECT_ID doit être l’identifiant du projet Scaleway, au format UUID (console > projet > Settings > Project ID)',
+    );
+  }
   errors.push(...checkWaitlistSecrets(env, target));
   return errors;
 }
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 // Waitlist functions: real e-mails through Scaleway, site URL used in links and as CORS origin
 export function checkWaitlistSecrets(env: Env, target: Target): string[] {
