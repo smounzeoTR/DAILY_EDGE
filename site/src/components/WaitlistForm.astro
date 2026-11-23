@@ -4,6 +4,7 @@
 import { legalLinks } from '../config';
 import { defaultUtm, type LandingSource } from '../data/sources';
 import Button from './Button.astro';
+import AltchaWidget from './AltchaWidget.astro';
 import Field from './Field.astro';
 
 interface Props {
@@ -22,6 +23,7 @@ const landingPath = source ? `/${source.slug}` : '/';
   <input type="hidden" name="utm_campaign" value={utm.campaign} />
   <input type="hidden" name="landing_path" value={landingPath} />
   <input type="hidden" name="ref" value="" />
+  <AltchaWidget />
   <Field
     id={`${idPrefix}-email`}
     name="email"
@@ -44,7 +46,7 @@ const landingPath = source ? `/${source.slug}` : '/';
       <a href={legalLinks.privacy}>Politique de confidentialité</a>
     </p>
   </div>
-  <Button type="submit" block>
+  <Button type="submit" block data-cta={`waitlist-${idPrefix}`}>
     Réserver ma place
   </Button>
   <p class="status" role="status" aria-live="polite" data-waitlist-status></p>

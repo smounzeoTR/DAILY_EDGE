@@ -1,6 +1,6 @@
 // WCAG 2.1 AA (axe) on every public page, light and dark themes, mobile viewport.
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 const pages = ['/', '/equipes', '/gdiy', '/martingale', '/linkedin', '/diagnostic'];
 

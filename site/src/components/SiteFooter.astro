@@ -26,6 +26,11 @@ import Logo from './Logo.astro';
         <li>
           <a href="/equipes">Daily Edge Équipes</a>
         </li>
+        <li>
+          <button type="button" class="link-button" data-consent-open hidden>
+            Gérer mes cookies
+          </button>
+        </li>
         {socialLinks.map((link) => (
           <li>
             <a href={link.href} rel="me noopener">
@@ -78,6 +83,26 @@ import Logo from './Logo.astro';
     font-size: var(--text-sm);
   }
 
+  .link-button {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-min);
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--color-text-muted);
+    font: inherit;
+    font-size: var(--text-sm);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+
+  .link-button[hidden] {
+    display: none;
+  }
+
+  .link-button:hover,
   .links a:hover {
     color: var(--color-link);
   }

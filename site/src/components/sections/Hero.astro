@@ -42,7 +42,9 @@ const headlineParts = headline.split(/(\S+-\S+)/);
         </>
       ) : (
         <>
-          <Button href="/diagnostic">Faire mon diagnostic (2 min)</Button>
+          <Button href="/diagnostic" data-cta="hero-diagnostic">
+            Faire mon diagnostic (2 min)
+          </Button>
           <StoreLinks />
         </>
       )}

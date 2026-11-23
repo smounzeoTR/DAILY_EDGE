@@ -1,6 +1,7 @@
 ---
 // Web diagnostic (launch mode, site § 7): one question per screen, progress bar, back button,
 // answers kept in this browser until sent (never the e-mail), result shown on the page.
+import AltchaWidget from '../components/AltchaWidget.astro';
 import Button from '../components/Button.astro';
 import Card from '../components/Card.astro';
 import Field from '../components/Field.astro';
@@ -73,6 +74,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 
       <section class="step" data-step={questions.length} data-key="email" hidden>
         <form class="email-form" method="post" novalidate data-diagnostic-form>
+          <AltchaWidget />
           <h1 class="question" tabindex="-1" data-step-title>
             Ton e-mail, pour recevoir ton plan
           </h1>

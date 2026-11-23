@@ -1,4 +1,6 @@
 // Waitlist form: UTM and ?ref from the URL, inline validation, POST to waitlist-join.
+import { altchaPayload, resetAltcha } from './altcha';
+import { track } from './analytics';
 import { callFunction } from './api';
 
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign'] as const;
@@ -70,7 +72,9 @@ function setup(form: HTMLFormElement) {
     submit.disabled = true;
     submit.textContent = 'Envoi…';
     try {
+      const altcha = await altchaPayload(form);
       const { status: code, data } = await callFunction('waitlist-join', {
+        altcha,
         email: emailValue,
         consent_marketing: true,
         ref: value(form, 'ref'),
@@ -81,6 +85,11 @@ function setup(form: HTMLFormElement) {
         locale: 'fr',
       });
       if (code === 202) {
+        track('waitlist_joined', {
+          landing_path: value(form, 'landing_path'),
+          utm_source: value(form, 'utm_source'),
+          referred: Boolean(value(form, 'ref')),
+        });
         const done = document.createElement('div');
         done.className = 'waitlist-done';
         done.setAttribute('role', 'status');
@@ -93,9 +102,15 @@ function setup(form: HTMLFormElement) {
         done.focus();
         return;
       }
+      resetAltcha(form);
       if (code === 400 && data?.field === 'email') {
         setError(form, email, 'Indique une adresse e-mail valide, par exemple prenom@exemple.fr.');
         email.focus();
+      } else if (code === 429) {
+        status.textContent =
+          'Trop de tentatives depuis ta connexion. Réessaie dans quelques minutes.';
+      } else if (code === 400 && data?.error === 'altcha') {
+        status.textContent = 'La vérification anti-robot n’a pas abouti. Réessaie.';
       } else {
         status.textContent = 'L’envoi n’a pas abouti. Réessaie dans un instant.';
       }

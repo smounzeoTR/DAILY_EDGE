@@ -30,6 +30,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 </BaseLayout>
 
 <script>
+  import { track } from '../scripts/analytics';
   import { callFunction, type Place } from '../scripts/api';
   import { showPlace } from '../scripts/place';
   import { readStatusToken, takeFragment, writeStatusToken } from '../scripts/storage';
@@ -56,6 +57,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       .then(({ status, data }) => {
         if (status !== 200 || !data) return fail();
         writeStatusToken(String(data.status_token));
+        track('waitlist_confirmed');
         pending.hidden = true;
         showPlace(data as unknown as Place);
       })

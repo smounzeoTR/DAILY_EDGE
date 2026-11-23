@@ -41,7 +41,9 @@ const minimumYearly = `${pricing.teamsPerUserYearEur * pricing.teamsMinimumUsers
             Le coach quotidien Daily Edge pour chaque collaborateur, et une vue d’ensemble
             anonymisée pour toi.
           </p>
-          <Button href={meetingUrl}>Prendre rendez-vous</Button>
+          <Button href={meetingUrl} data-meeting>
+            Prendre rendez-vous
+          </Button>
         </div>
         <Placeholder label="Visuel du tableau de bord anonymisé — à fournir" ratio={16 / 10} />
       </div>
@@ -66,12 +68,20 @@ const minimumYearly = `${pricing.teamsPerUserYearEur * pricing.teamsMinimumUsers
         <p class="text">
           À partir de {pricing.teamsMinimumUsers} utilisateurs, soit {minimumYearly} HT par an.
         </p>
-        <Button href={meetingUrl}>Prendre rendez-vous</Button>
+        <Button href={meetingUrl} data-meeting>
+          Prendre rendez-vous
+        </Button>
       </Card>
     </Section>
   </main>
   <SiteFooter />
 </BaseLayout>
+
+<script>
+  import { track } from '../scripts/analytics';
+
+  track('equipes_view');
+</script>
 
 <style>
   .hero {

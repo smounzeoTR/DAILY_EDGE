@@ -1,0 +1,25 @@
+---
+// ALTCHA proof-of-work (anti-robot), invisible: computed in the background from page load, sent
+// with the form in the hidden field "altcha". Challenges come from our altcha-challenge function.
+import { PUBLIC_FUNCTIONS_URL } from 'astro:env/client';
+
+const challenge = `${PUBLIC_FUNCTIONS_URL.replace(/\/+$/, '')}/altcha-challenge`;
+---
+
+<altcha-widget
+  challenge={challenge}
+  name="altcha"
+  display="invisible"
+  auto="onload"
+  language="fr"
+  configuration={JSON.stringify({
+    humanInteractionSignature: false,
+    hideFooter: true,
+    hideLogo: true,
+  })}
+  data-altcha
+></altcha-widget>
+
+<script>
+  import 'altcha';
+</script>

@@ -1,5 +1,6 @@
 // Fails when a built page weighs 500 KB or more, fonts excluded (spec § 10).
-// Counts the HTML plus every local stylesheet, script and image it references.
+// Counts the HTML plus every local stylesheet, script and image it references, and the scripts
+// those scripts import (statically or on demand).
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -19,6 +20,24 @@ for (const page of pages) {
       .map((m) => m[1])
       .filter((ref) => !fontExt.test(ref)),
   );
+  // Scripts also count what they import, statically or on demand (e.g. PostHog, loaded later)
+  const queue = [...refs];
+  for (let i = 0; i < queue.length; i++) {
+    const ref = queue[i];
+    if (!ref.endsWith('.js')) continue;
+    try {
+      const code = readFileSync(join(dist, ref), 'utf8');
+      for (const m of code.matchAll(/["'`]\.\/([\w.\-]+\.js)["'`]/g)) {
+        const child = join(ref, '..', m[1]);
+        if (!refs.has(child)) {
+          refs.add(child);
+          queue.push(child);
+        }
+      }
+    } catch {
+      // Not a local file
+    }
+  }
   let total = Buffer.byteLength(html);
   for (const ref of refs) {
     try {

@@ -1,5 +1,7 @@
 // Web diagnostic: steps, progress, back and skip, draft kept in this browser (never the e-mail),
 // POST to diagnostic-submit, result shown on the page.
+import { altchaPayload, resetAltcha } from './altcha';
+import { track } from './analytics';
 import { callFunction } from './api';
 
 const DRAFT_KEY = 'dailyedge.diagnostic.draft';
@@ -80,8 +82,14 @@ function setup(quiz: HTMLElement) {
     if (next) next.disabled = choiceValue(step.dataset.key!) === null;
   };
 
+  let started = false;
   const show = (index: number, focus = true) => {
     current = Math.max(0, Math.min(index, total - 1));
+    if (!started) {
+      started = true;
+      track('quiz_started', { resumed: current > 0 });
+    }
+    track('quiz_step', { step: current + 1 });
     steps.forEach((s, i) => (s.hidden = i !== current));
     label.textContent = `Question ${current + 1} sur ${total}`;
     progress.setAttribute('aria-valuenow', String(current + 1));
@@ -152,7 +160,10 @@ function setupForm(quiz: HTMLElement, answers: () => Record<string, string | str
       return;
     }
     const raw = answers();
+    submit.disabled = true;
+    const altcha = await altchaPayload(form);
     const payload = {
+      altcha,
       answers: {
         ...raw,
         daily_minutes: Number(raw.daily_minutes),
@@ -167,17 +178,25 @@ function setupForm(quiz: HTMLElement, answers: () => Record<string, string | str
       landing_path: window.location.pathname,
       locale: 'fr',
     };
-    submit.disabled = true;
     const label = submit.textContent;
     submit.textContent = 'Envoi…';
     try {
       const { status: code, data } = await callFunction('diagnostic-submit', payload);
       if (code === 200 && data) {
         clearDraft();
-        showResult(data as unknown as DiagnosticResult);
+        const result = data as unknown as DiagnosticResult;
+        track('email_captured', { source: 'diagnostic', consent_marketing: consent.checked });
+        track('quiz_completed', { profile: result.profile.id, program: result.program.id });
+        showResult(result);
         return;
       }
-      if (code === 400 && data?.field === 'email') {
+      resetAltcha(form);
+      if (code === 429) {
+        status.textContent =
+          'Trop de tentatives depuis ta connexion. Réessaie dans quelques minutes.';
+      } else if (code === 400 && data?.error === 'altcha') {
+        status.textContent = 'La vérification anti-robot n’a pas abouti. Réessaie.';
+      } else if (code === 400 && data?.field === 'email') {
         setError(form, email, invalidEmail);
         email.focus();
       } else {
@@ -193,8 +212,8 @@ function setupForm(quiz: HTMLElement, answers: () => Record<string, string | str
 }
 
 interface DiagnosticResult {
-  profile: { title: string; text: string };
-  program: { name: string; description: string };
+  profile: { id: string; title: string; text: string };
+  program: { id: string; name: string; description: string };
   principle: { title: string; summary: string };
   exercise: { title: string; instructions: string; duration_min: number };
   email_notice: string;

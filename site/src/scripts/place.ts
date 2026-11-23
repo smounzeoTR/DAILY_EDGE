@@ -1,4 +1,5 @@
 // Fills the "Ta place est réservée" view and its share buttons.
+import { track } from './analytics';
 import type { Place } from './api';
 
 export function showPlace(place: Place) {
@@ -35,8 +36,14 @@ export function showPlace(place: Place) {
       document.execCommand('copy');
     }
     status.textContent = 'Lien copié.';
+    track('referral_shared', { channel: 'copy' });
   });
 
+  for (const channel of ['linkedin', 'whatsapp'] as const) {
+    root
+      .querySelector(`[data-share="${channel}"]`)!
+      .addEventListener('click', () => track('referral_shared', { channel }));
+  }
   root.hidden = false;
   root.querySelector<HTMLElement>('[data-place-title]')!.focus();
 }

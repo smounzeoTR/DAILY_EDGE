@@ -1,7 +1,8 @@
 // Web diagnostic on the local stack (supabase start): 7 questions, back and skip, draft kept on
 // reload, result shown, result e-mail in Mailpit, marketing consent confirmed by its link.
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, test } from './fixtures';
 
 import { latestMailText } from './mailpit';
 

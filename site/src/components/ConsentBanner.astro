@@ -1,0 +1,120 @@
+---
+// Audience measurement banner (CNIL): "Refuser" exactly as visible as "Accepter".
+// Shown at every visit while no choice is stored ("pending"); reopened by "Gérer mes cookies".
+import { PUBLIC_POSTHOG_KEY } from 'astro:env/client';
+
+import { legalLinks } from '../config';
+---
+
+{PUBLIC_POSTHOG_KEY && (
+  <section class="consent" aria-labelledby="consent-title" data-consent-banner hidden>
+    <div class="inner">
+      <h2 id="consent-title" class="title">
+        Mesure d’audience
+      </h2>
+      <p class="text">
+        Nous mesurons l’audience de ce site avec PostHog, hébergé dans l’Union européenne.
+        <strong>Sans ton accord, seule une mesure anonyme, sans cookie, est faite.</strong> Avec ton
+        accord, un cookie nous aide à mieux comprendre les visites, sans jamais ton e-mail.{' '}
+        <a href={legalLinks.privacy}>En savoir plus</a>
+      </p>
+      <div class="actions">
+        <button type="button" class="choice" data-consent="denied">
+          Refuser
+        </button>
+        <button type="button" class="choice" data-consent="granted">
+          Accepter
+        </button>
+      </div>
+    </div>
+  </section>
+)}
+
+<script>
+  import { analyticsEnabled, setConsent, startAnalytics } from '../scripts/analytics';
+  import { readConsent } from '../scripts/consent';
+
+  const banner = document.querySelector<HTMLElement>('[data-consent-banner]');
+  if (analyticsEnabled && banner) {
+    startAnalytics();
+    if (readConsent() === 'pending') banner.hidden = false;
+    banner.addEventListener('click', (event) => {
+      const button = (event.target as Element).closest<HTMLButtonElement>('[data-consent]');
+      if (!button) return;
+      setConsent(button.dataset.consent === 'granted' ? 'granted' : 'denied');
+      banner.hidden = true;
+    });
+    for (const open of document.querySelectorAll<HTMLButtonElement>('[data-consent-open]')) {
+      open.hidden = false;
+      open.addEventListener('click', () => {
+        banner.hidden = false;
+        banner.querySelector<HTMLButtonElement>('[data-consent="denied"]')!.focus();
+      });
+    }
+  }
+</script>
+
+<style>
+  .consent {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 20;
+    padding: var(--space-4) var(--gutter);
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-field-border);
+  }
+
+  .consent[hidden] {
+    display: none;
+  }
+
+  .inner {
+    display: grid;
+    gap: var(--space-3);
+    max-width: var(--content-max);
+    margin-inline: auto;
+  }
+
+  @media (min-width: 56rem) {
+    .inner {
+      grid-template-columns: 1fr auto;
+      align-items: center;
+    }
+
+    .title {
+      grid-column: 1 / -1;
+    }
+  }
+
+  .title {
+    font-size: var(--text-lg);
+  }
+
+  .text {
+    color: var(--color-text-long);
+    font-size: var(--text-sm);
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-3);
+  }
+
+  /* Same look for both choices: refusing is as easy as accepting */
+  .choice {
+    min-height: var(--button-height);
+    padding: 0 var(--space-5);
+    border: 2px solid var(--color-button-bg);
+    border-radius: var(--radius-pill);
+    background: var(--color-button-bg);
+    color: var(--color-button-text);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .choice:hover {
+    background: var(--color-button-bg-hover);
+  }
+</style>

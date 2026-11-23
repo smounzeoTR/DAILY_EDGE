@@ -1,7 +1,8 @@
 // Waitlist journey on the local stack (supabase start): sign-up, link received in Mailpit,
 // confirmation, rank shown, referral confirmed, sponsor's rank improved by 10 places.
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
+import { expect, prepareContext, test } from './fixtures';
 
 import { confirmPath, latestMailText } from './mailpit';
 
@@ -24,7 +25,9 @@ async function confirmFromMail(page: Page, email: string): Promise<number> {
 }
 
 test('sign-up, confirmation, rank, referral', async ({ browser }) => {
-  const sponsorPage = await (await browser.newContext()).newPage();
+  const sponsorContext = await browser.newContext();
+  await prepareContext(sponsorContext);
+  const sponsorPage = await sponsorContext.newPage();
   const sponsorEmail = `e2e-sponsor-${run}@example.test`;
 
   // Validation: e-mail and consent are required
@@ -48,7 +51,9 @@ test('sign-up, confirmation, rank, referral', async ({ browser }) => {
   expect(axe.violations.map((v) => v.id)).toEqual([]);
 
   // A friend signs up with the sponsor's link and confirms
-  const friendPage = await (await browser.newContext()).newPage();
+  const friendContext = await browser.newContext();
+  await prepareContext(friendContext);
+  const friendPage = await friendContext.newPage();
   const friendEmail = `e2e-friend-${run}@example.test`;
   await friendPage.goto(new URL(link).pathname + new URL(link).search);
   await signUp(friendPage, friendEmail);
