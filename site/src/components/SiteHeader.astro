@@ -1,0 +1,56 @@
+---
+import Logo from './Logo.astro';
+
+interface Props {
+  /** Page the discreet link points to: the teams offer, or back to the main page */
+  secondary?: 'teams' | 'home';
+}
+
+const { secondary = 'teams' } = Astro.props;
+---
+
+<header class="container header">
+  <a href="/" class="home">
+    <Logo />
+  </a>
+  {secondary === 'teams' ? (
+    <a href="/equipes" class="secondary">
+      Daily Edge Équipes
+    </a>
+  ) : (
+    <a href="/" class="secondary">
+      Daily Edge pour toi
+    </a>
+  )}
+</header>
+
+<style>
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-block: var(--space-4);
+  }
+
+  .home,
+  .secondary {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-min);
+  }
+
+  .home {
+    text-decoration: none;
+  }
+
+  .secondary {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: 500;
+  }
+
+  .secondary:hover {
+    color: var(--color-link);
+  }
+</style>

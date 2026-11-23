@@ -1,0 +1,48 @@
+---
+import Card from '../Card.astro';
+import Section from '../Section.astro';
+
+const items = [
+  {
+    title: 'Tes données restent en Europe',
+    text: 'Hébergement et traitement dans l’Union européenne. Aucune donnée revendue.',
+  },
+  {
+    title: 'Tes notes ne sont jamais lues par l’IA',
+    text: 'Ni par le plan, ni par le bilan, ni par Coach Edge. Ce que tu écris reste à toi.',
+  },
+  {
+    title: 'Résiliation en deux gestes',
+    text: 'Depuis les réglages d’abonnement de ton téléphone, sans formulaire ni appel.',
+  },
+];
+---
+
+<Section id="confiance" eyebrow="Confiance" title="Ce qui est à toi reste à toi" tone="surface">
+  <ul class="items">
+    {items.map((item) => (
+      <Card as="li">
+        <h3>{item.title}</h3>
+        <p class="text">{item.text}</p>
+      </Card>
+    ))}
+  </ul>
+</Section>
+
+<style>
+  .items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+  }
+
+  .items :global(.card) {
+    background: var(--color-bg);
+  }
+
+  .text {
+    color: var(--color-text-muted);
+  }
+</style>

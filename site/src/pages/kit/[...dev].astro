@@ -1,0 +1,159 @@
+---
+// Component showcase, built only in development (never in the production output).
+import Button from '../../components/Button.astro';
+import Card from '../../components/Card.astro';
+import Field from '../../components/Field.astro';
+import Logo from '../../components/Logo.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export function getStaticPaths() {
+  return import.meta.env.DEV ? [{ params: { dev: undefined } }] : [];
+}
+
+const swatches = [
+  'bg',
+  'surface',
+  'border',
+  'field-border',
+  'primary',
+  'link',
+  'accent',
+  'text',
+  'text-muted',
+  'button-bg',
+];
+---
+
+<BaseLayout title="Kit — Daily Edge" noindex>
+  <main id="contenu" class="container kit">
+    <h1>Kit de composants</h1>
+
+    <section>
+      <h2>Logo</h2>
+      <div class="row">
+        <Logo size={48} />
+        <Logo variant="symbol" size={48} />
+        <Logo size={28} />
+      </div>
+    </section>
+
+    <section>
+      <h2>Couleurs</h2>
+      <ul class="swatches">
+        {swatches.map((name) => (
+          <li>
+            <span class="swatch" style={`background: var(--color-${name})`} />
+            <code>--color-{name}</code>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <section>
+      <h2>Boutons</h2>
+      <div class="row">
+        <Button>Réserver ma place</Button>
+        <Button variant="secondary">Comment ça marche</Button>
+        <Button href="#contenu">Lien en bouton</Button>
+        <Button disabled>Désactivé</Button>
+      </div>
+      <Button block>Bouton pleine largeur</Button>
+    </section>
+
+    <section>
+      <h2>Cartes</h2>
+      <div class="grid">
+        <Card as="article">
+          <h3>Un principe</h3>
+          <p>Tiré des grands livres de réussite, expliqué simplement.</p>
+        </Card>
+        <Card as="article" padding="lg">
+          <h3>Un exercice</h3>
+          <p>Concret, ajusté à ton temps disponible.</p>
+        </Card>
+      </div>
+    </section>
+
+    <section>
+      <h2>Champs</h2>
+      <form class="form" novalidate>
+        <Field
+          id="kit-email"
+          label="Ton e-mail"
+          type="email"
+          autocomplete="email"
+          placeholder="prenom@exemple.fr"
+          hint="Jamais partagé, jamais revendu."
+        />
+        <Field
+          id="kit-email-error"
+          label="Ton e-mail"
+          type="email"
+          value="pas-un-email"
+          error="Cette adresse ne semble pas valide."
+        />
+        <Field
+          id="kit-consent"
+          type="checkbox"
+          label="J'accepte de recevoir les e-mails de Daily Edge (lancement, principe de la semaine). Désinscription en un clic."
+        />
+      </form>
+    </section>
+  </main>
+</BaseLayout>
+
+<style>
+  .kit {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-7);
+    padding-block: var(--space-7);
+  }
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--space-4);
+  }
+
+  .swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: var(--space-3);
+    padding: 0;
+    list-style: none;
+  }
+
+  .swatches li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+
+  .swatch {
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-chip);
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    max-width: 32rem;
+  }
+</style>

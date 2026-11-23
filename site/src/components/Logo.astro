@@ -1,0 +1,54 @@
+---
+// Rising sun symbol + "dailyedge" wordmark (docs/identite-visuelle.md).
+interface Props {
+  variant?: 'full' | 'symbol';
+  size?: number;
+  /** Accessible name of the symbol variant (the full variant reads its wordmark) */
+  label?: string;
+}
+
+const { variant = 'full', size = 36, label = 'Daily Edge' } = Astro.props;
+const symbolOnly = variant === 'symbol';
+---
+
+<span
+  class:list={['logo', variant]}
+  style={`--logo-size: ${size}px`}
+  role={symbolOnly ? 'img' : undefined}
+  aria-label={symbolOnly ? label : undefined}
+>
+  <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true" focusable="false">
+    <path d="M14 40 A18 18 0 0 1 50 40 Z" fill="var(--color-accent)"></path>
+    <g stroke="var(--color-logo-lines)" stroke-width="4" stroke-linecap="round">
+      <line x1="6" y1="40" x2="58" y2="40"></line>
+      <line x1="16" y1="48" x2="48" y2="48" opacity="0.55"></line>
+      <line x1="25" y1="56" x2="39" y2="56" opacity="0.3"></line>
+    </g>
+  </svg>
+  {variant === 'full' && (
+    <span class="wordmark">
+      daily<span class="edge">edge</span>
+    </span>
+  )}
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: calc(var(--logo-size) * 0.22);
+    color: var(--color-text);
+  }
+
+  .wordmark {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: calc(var(--logo-size) * 0.66);
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .edge {
+    color: var(--color-logo-edge);
+  }
+</style>

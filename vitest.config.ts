@@ -10,7 +10,12 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['supabase/functions/**/*.test.ts', 'app/src/**/*.test.ts', 'scripts/**/*.test.ts'],
+    include: [
+      'supabase/functions/**/*.test.ts',
+      'app/src/**/*.test.ts',
+      'scripts/**/*.test.ts',
+      'tests/site/**/*.test.ts',
+    ],
     environment: 'node',
   },
 });

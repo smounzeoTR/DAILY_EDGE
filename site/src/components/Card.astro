@@ -1,0 +1,35 @@
+---
+// Flat card: thin border, generous padding, no heavy shadow.
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = {
+  as?: 'div' | 'article' | 'section' | 'aside' | 'li';
+  padding?: 'md' | 'lg';
+} & HTMLAttributes<'div'>;
+
+const { as: Tag = 'div', padding = 'md', class: extra, ...rest } = Astro.props;
+---
+
+<Tag class:list={['card', padding, extra]} {...rest}>
+  <slot />
+</Tag>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    list-style: none;
+  }
+
+  .md {
+    padding: var(--space-5);
+  }
+
+  .lg {
+    padding: var(--space-6);
+  }
+</style>

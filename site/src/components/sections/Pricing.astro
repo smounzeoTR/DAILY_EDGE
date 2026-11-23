@@ -1,0 +1,132 @@
+---
+import { pricing, siteMode } from '../../config';
+import Card from '../Card.astro';
+import Section from '../Section.astro';
+
+interface Props {
+  /** Real remaining Founders seats (launch mode); the counter is hidden without it */
+  foundersRemaining?: number | undefined;
+}
+
+const { foundersRemaining } = Astro.props;
+
+const free = [
+  'Le programme de 28 jours adapté à ta situation',
+  'Le principe, l’exercice et les habitudes du jour',
+  'Le plan ajusté chaque soir selon ton énergie et ton temps',
+  'La bibliothèque complète et ton suivi de progression',
+];
+
+const premium = [
+  'Tout le gratuit',
+  'Le plan personnalisé par l’IA et le « pourquoi aujourd’hui » rédigé pour toi',
+  'Le bilan de ta semaine, rédigé',
+  'Coach Edge, ton assistant IA',
+];
+---
+
+<Section id="prix" eyebrow="Prix" title="Commence gratuitement">
+  <div class="plans">
+    <Card as="article" padding="lg">
+      <h3>Gratuit</h3>
+      <p class="price">
+        <span class="amount">0 €</span>
+      </p>
+      <ul class="features">
+        {free.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    </Card>
+    <Card as="article" padding="lg" class="premium">
+      <h3>Premium</h3>
+      <p class="price">
+        <span class="amount">{pricing.yearly}</span> par an
+        <span class="alt">ou {pricing.monthly} par mois</span>
+      </p>
+      <p class="trial">{pricing.trialDays} jours de Premium offerts, sans carte bancaire</p>
+      <ul class="features">
+        {premium.map((item) => (
+          <li>{item}</li>
+        ))}
+      </ul>
+    </Card>
+  </div>
+  {siteMode === 'launch' ? (
+    <Card as="aside" padding="lg" class="founders" aria-labelledby="fondateurs-titre">
+      <h3 id="fondateurs-titre">Offre Fondateurs</h3>
+      <p>
+        Premium à vie pour <strong>{pricing.founders.price}</strong>, réservé aux{' '}
+        {pricing.founders.seats} premiers.
+      </p>
+      {foundersRemaining !== undefined && (
+        <p class="remaining">
+          {foundersRemaining} places restantes sur {pricing.founders.seats}
+        </p>
+      )}
+    </Card>
+  ) : (
+    <p class="teaser">
+      Les 100 premiers de la liste d’attente recevront l’offre Fondateurs 48 heures avant tout le
+      monde.
+    </p>
+  )}
+</Section>
+
+<style>
+  .plans {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+    gap: var(--space-4);
+  }
+
+  .plans :global(.premium) {
+    border: 2px solid var(--color-primary);
+  }
+
+  .price {
+    color: var(--color-text-muted);
+  }
+
+  .amount {
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-size: var(--text-2xl);
+    font-weight: 700;
+  }
+
+  .alt {
+    display: block;
+  }
+
+  /* Offers use the dawn orange as a graphic accent, never as text colour */
+  .trial {
+    align-self: flex-start;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-chip);
+    background: var(--color-accent);
+    color: var(--color-ink-on-accent);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .features {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding-left: var(--space-5);
+  }
+
+  #prix :global(.founders) {
+    border-left: 6px solid var(--color-accent);
+  }
+
+  .remaining {
+    font-weight: 600;
+  }
+
+  .teaser {
+    color: var(--color-text-muted);
+  }
+</style>

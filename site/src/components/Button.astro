@@ -1,0 +1,85 @@
+---
+// Pill button (56 px). Renders a link when `href` is given, a <button> otherwise.
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = {
+  variant?: 'primary' | 'secondary';
+  href?: string;
+  type?: 'button' | 'submit';
+  block?: boolean;
+} & Omit<HTMLAttributes<'button'>, 'type'> &
+  Omit<HTMLAttributes<'a'>, 'type'>;
+
+const {
+  variant = 'primary',
+  href,
+  type = 'button',
+  block = false,
+  class: extra,
+  ...rest
+} = Astro.props;
+const classes = ['button', variant, block && 'block', extra];
+---
+
+{href ? (
+  <a href={href} class:list={classes} {...rest}>
+    <slot />
+  </a>
+) : (
+  <button type={type} class:list={classes} {...rest}>
+    <slot />
+  </button>
+)}
+
+<style>
+  .button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-height: var(--button-height);
+    padding: 0 var(--space-6);
+    border: 2px solid transparent;
+    border-radius: var(--radius-pill);
+    font-family: var(--font-body);
+    font-size: var(--text-base);
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition:
+      background-color 0.15s ease,
+      border-color 0.15s ease;
+  }
+
+  .block {
+    display: flex;
+    width: 100%;
+  }
+
+  .primary {
+    background: var(--color-button-bg);
+    color: var(--color-button-text);
+  }
+
+  .primary:hover {
+    background: var(--color-button-bg-hover);
+  }
+
+  .secondary {
+    background: transparent;
+    border-color: var(--color-field-border);
+    color: var(--color-text);
+  }
+
+  .secondary:hover {
+    border-color: var(--color-primary);
+  }
+
+  .button:disabled,
+  .button[aria-disabled='true'] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+</style>
