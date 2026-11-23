@@ -17,3 +17,6 @@ coverage/
 /build/
 # Manual assistant evaluation reports (review only)
 scripts/assistant-eval/results/
+
+# Database backups (personal data): never committed
+backups/

@@ -1,6 +1,8 @@
 // Deployment to the recette and production Supabase projects, one step per command:
 //   npm run deploy -- <step> --env recette|production [--apply] [--confirm-production]
-// Steps: check, db, functions, secrets, vault, settings, auth, catalog.
+// Steps: check, db, functions, secrets, vault, settings, auth, catalog, backup, restore.
+// backup: logical dump (roles, schema, data of public and auth) into backups/<env>/<date>/
+// (ignored by git, holds personal data). restore: recette only, from --from <backup dir>.
 // Without --apply every step only shows what it would do. Production writes need
 // --confirm-production, and db / functions refuse a version not deployed to recette first
 // (fingerprints recorded in deploy/history.json, versioned).
@@ -41,13 +43,25 @@ import {
 } from './plan.ts';
 
 const root = resolve(import.meta.dirname, '../..');
-const STEPS = ['check', 'db', 'functions', 'secrets', 'vault', 'settings', 'auth', 'catalog'];
+const STEPS = [
+  'check',
+  'db',
+  'functions',
+  'secrets',
+  'vault',
+  'settings',
+  'auth',
+  'catalog',
+  'backup',
+  'restore',
+];
 const { values, positionals } = parseArgs({
   allowPositionals: true,
   options: {
     env: { type: 'string' },
     apply: { type: 'boolean', default: false },
     'confirm-production': { type: 'boolean', default: false },
+    from: { type: 'string' },
   },
 });
 
@@ -338,4 +352,70 @@ if (step === 'catalog') {
   if (values['confirm-production']) args.push('--confirm-production');
   const result = spawnSync('node', args, { cwd: root, stdio: 'inherit' });
   process.exit(result.status ?? 1);
+}
+
+if (step === 'backup') {
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const dir = resolve(root, 'backups', target, stamp);
+  spawnSync('mkdir', ['-p', dir]);
+  const remote = `--remote=${env.SUPABASE_DB_URL ?? ''}`;
+  supabase(['db', 'dump', remote, '--role-only', '-f', join(dir, 'roles.sql')]);
+  supabase(['db', 'dump', remote, '-f', join(dir, 'schema.sql')]);
+  supabase([
+    'db',
+    'dump',
+    remote,
+    '--data-only',
+    '--use-copy',
+    '--schema',
+    'public,auth',
+    '-f',
+    join(dir, 'data.sql'),
+  ]);
+  console.log(
+    `✅ Sauvegarde écrite dans ${relative(root, dir)} (données personnelles : à garder chiffrée, hors Git).`,
+  );
+}
+
+if (step === 'restore') {
+  // Restoring overwrites a database: recette only, from an explicit backup directory
+  if (target !== 'recette')
+    fail('restauration autorisée en recette seulement (test de restauration)');
+  const from = values.from ? resolve(root, values.from) : '';
+  if (!from || !existsSync(join(from, 'schema.sql'))) fail('--from <dossier de sauvegarde> requis');
+  console.log(`Restauration de ${relative(root, from)} vers le projet ${ref}.`);
+  console.log('La base de recette doit être vide (nouveau projet ou base réinitialisée).');
+  if (apply) {
+    // psql from the official Postgres image (psql is not installed on the Mac)
+    const result = spawnSync(
+      'docker',
+      [
+        'run',
+        '--rm',
+        '-v',
+        `${from}:/backup:ro`,
+        'postgres:17',
+        'psql',
+        '--single-transaction',
+        '--variable',
+        'ON_ERROR_STOP=1',
+        '--file',
+        '/backup/roles.sql',
+        '--file',
+        '/backup/schema.sql',
+        '--command',
+        'SET session_replication_role = replica',
+        '--file',
+        '/backup/data.sql',
+        '--dbname',
+        env.SUPABASE_DB_URL ?? '',
+      ],
+      { stdio: 'inherit' },
+    );
+    if (result.status !== 0) fail('restauration échouée (rien n’a été écrit : transaction unique)');
+    console.log(
+      '✅ Restauration terminée. Noter la date et le résultat dans docs/exploitation.md.',
+    );
+  }
+  dryRunNote();
 }
