@@ -1,0 +1,121 @@
+---
+// "Ta place est réservée": rank, personal referral link, share buttons, first principle.
+// Filled in by src/scripts/place.ts; hidden until a place is known.
+import { firstPrinciple } from '../data/firstPrinciple';
+import Button from './Button.astro';
+import Card from './Card.astro';
+---
+
+<div class="place" data-place hidden>
+  <header class="head">
+    <p class="eyebrow">Liste d’attente</p>
+    <h1 tabindex="-1" data-place-title>
+      Ta place est réservée
+    </h1>
+    <p class="rank">
+      Tu es n<sup>o</sup>&nbsp;<strong data-place-rank></strong> sur la liste d’attente.
+    </p>
+    <p class="detail" data-place-detail></p>
+  </header>
+
+  <Card as="section" padding="lg" aria-labelledby="parrainage-titre">
+    <h2 id="parrainage-titre">Gagne des places</h2>
+    <p class="muted">
+      Partage ton lien personnel : chaque ami qui confirme son inscription te fait gagner 10 places.{' '}
+      <span data-place-referrals></span>
+    </p>
+    <label class="link-label" for="lien-parrainage">
+      Ton lien personnel
+    </label>
+    <input id="lien-parrainage" class="link" type="text" readonly data-place-link />
+    <div class="share">
+      <Button data-share="copy">Copier le lien</Button>
+      <Button variant="secondary" href="#" data-share="linkedin" target="_blank" rel="noopener">
+        Partager sur LinkedIn
+      </Button>
+      <Button variant="secondary" href="#" data-share="whatsapp" target="_blank" rel="noopener">
+        Partager sur WhatsApp
+      </Button>
+    </div>
+    <p class="copied" role="status" aria-live="polite" data-share-status></p>
+  </Card>
+
+  <Card as="section" padding="lg" aria-labelledby="principe-titre">
+    <p class="eyebrow">Ton premier principe, offert</p>
+    <h2 id="principe-titre">{firstPrinciple.title}</h2>
+    <p>{firstPrinciple.summary}</p>
+    <p class="muted source">{firstPrinciple.source}</p>
+    <h3>À essayer aujourd’hui : {firstPrinciple.exerciseTitle}</h3>
+    <p>{firstPrinciple.exercise}</p>
+  </Card>
+</div>
+
+<style>
+  .place {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    max-width: 40rem;
+  }
+
+  .place[hidden] {
+    display: none;
+  }
+
+  .head {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .eyebrow {
+    color: var(--color-link);
+    font-weight: 600;
+    font-size: var(--text-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .rank {
+    font-size: var(--text-xl);
+  }
+
+  .rank strong {
+    font-family: var(--font-heading);
+    font-size: var(--text-2xl);
+  }
+
+  .detail,
+  .muted {
+    color: var(--color-text-muted);
+  }
+
+  .source {
+    font-size: var(--text-sm);
+  }
+
+  .link-label {
+    font-weight: 600;
+  }
+
+  .link {
+    min-height: var(--button-height);
+    width: 100%;
+    padding: 0 var(--space-4);
+    border: 1.5px solid var(--color-field-border);
+    border-radius: var(--radius-field);
+    background: var(--color-bg);
+    color: var(--color-text);
+    font: inherit;
+  }
+
+  .share {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .copied:empty {
+    display: none;
+  }
+</style>

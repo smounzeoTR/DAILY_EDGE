@@ -1,0 +1,89 @@
+---
+// "Ta place est réservée", revisited: status token from this browser, or #s=<token> from the
+// "déjà réservée" e-mail.
+import PlaceView from '../components/PlaceView.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Ma place — Daily Edge" noindex>
+  <SiteHeader />
+  <main id="contenu" class="container page">
+    <p class="pending" role="status" data-status-pending>
+      Chargement de ta place…
+    </p>
+    <div class="missing" data-status-missing hidden>
+      <h1 tabindex="-1">Retrouve ta place</h1>
+      <p>
+        Ta place n’est pas enregistrée sur cet appareil. Indique ton e-mail sur la page d’accueil :
+        si ta place est déjà réservée, tu recevras un lien pour la revoir.
+      </p>
+      <p>
+        <a href="/#reserver">Revenir à l’inscription</a>
+      </p>
+    </div>
+    <PlaceView />
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<script>
+  import { callFunction, type Place } from '../scripts/api';
+  import { showPlace } from '../scripts/place';
+  import {
+    clearStatusToken,
+    readStatusToken,
+    takeFragment,
+    writeStatusToken,
+  } from '../scripts/storage';
+
+  const pending = document.querySelector<HTMLElement>('[data-status-pending]')!;
+  const missing = document.querySelector<HTMLElement>('[data-status-missing]')!;
+
+  function notFound() {
+    pending.hidden = true;
+    missing.hidden = false;
+    missing.querySelector<HTMLElement>('h1')!.focus();
+  }
+
+  // A link pasted while already on this page only changes the fragment: start over
+  window.addEventListener('hashchange', () => window.location.reload());
+
+  const fromLink = takeFragment('s');
+  if (fromLink) writeStatusToken(fromLink);
+  const token = fromLink ?? readStatusToken();
+  if (!token) {
+    notFound();
+  } else {
+    callFunction('waitlist-status', { status_token: token })
+      .then(({ status, data }) => {
+        if (status === 404) clearStatusToken();
+        if (status !== 200 || !data) return notFound();
+        pending.hidden = true;
+        showPlace(data as unknown as Place);
+      })
+      .catch(notFound);
+  }
+</script>
+
+<style>
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding-block: var(--space-7);
+  }
+
+  .missing {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 40rem;
+  }
+
+  .missing[hidden],
+  .pending[hidden] {
+    display: none;
+  }
+</style>
