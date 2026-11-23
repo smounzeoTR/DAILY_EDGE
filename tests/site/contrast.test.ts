@@ -54,6 +54,7 @@ const pairs: [string, string, number][] = [
   ['danger', 'surface', 4.5],
   ['button-text', 'button-bg', 4.5],
   ['button-text', 'button-bg-hover', 4.5],
+  ['ink-on-accent', 'accent', 4.5],
   ['field-border', 'surface', 3],
   ['field-border', 'bg', 3],
   ['focus', 'bg', 3],

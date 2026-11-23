@@ -1,13 +1,13 @@
 ---
 // Component showcase, built only in development (never in the production output).
-import Button from '../components/Button.astro';
-import Card from '../components/Card.astro';
-import Field from '../components/Field.astro';
-import Logo from '../components/Logo.astro';
-import BaseLayout from '../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import Card from '../../components/Card.astro';
+import Field from '../../components/Field.astro';
+import Logo from '../../components/Logo.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
 
 export function getStaticPaths() {
-  return import.meta.env.DEV ? [{ params: { kit: 'kit' } }] : [];
+  return import.meta.env.DEV ? [{ params: { dev: undefined } }] : [];
 }
 
 const swatches = [

@@ -1,0 +1,84 @@
+---
+import { contactEmail, legalLinks, socialLinks } from '../config';
+import Logo from './Logo.astro';
+---
+
+<footer class="footer">
+  <div class="container inner">
+    <div class="brand">
+      <Logo size={32} />
+      <p class="signature">1 % de mieux, chaque jour.</p>
+    </div>
+    <nav aria-label="Liens du pied de page">
+      <ul class="links">
+        <li>
+          <a href={legalLinks.notice}>Mentions légales</a>
+        </li>
+        <li>
+          <a href={legalLinks.terms}>CGU</a>
+        </li>
+        <li>
+          <a href={legalLinks.privacy}>Politique de confidentialité</a>
+        </li>
+        <li>
+          <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+        </li>
+        <li>
+          <a href="/equipes">Daily Edge Équipes</a>
+        </li>
+        {socialLinks.map((link) => (
+          <li>
+            <a href={link.href} rel="me noopener">
+              {link.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    padding-block: var(--space-7);
+    border-top: 1px solid var(--color-border);
+  }
+
+  .inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-6);
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .signature {
+    color: var(--color-text-muted);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-min);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .links a:hover {
+    color: var(--color-link);
+  }
+</style>

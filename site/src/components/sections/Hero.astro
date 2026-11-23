@@ -1,0 +1,111 @@
+---
+import { launchDate, siteMode } from '../../config';
+import type { LandingSource } from '../../data/sources';
+import Button from '../Button.astro';
+import Placeholder from '../Placeholder.astro';
+import WaitlistForm from '../WaitlistForm.astro';
+
+interface Props {
+  source?: LandingSource | undefined;
+}
+
+const { source } = Astro.props;
+const headline = source?.headline ?? 'Tu as lu les livres. Maintenant, applique-les.';
+const subheadline =
+  source?.subheadline ??
+  'Un principe, un exercice, trois habitudes. 10 minutes par jour, ajustées chaque soir.';
+// Hyphenated words ("applique-les") never break at the hyphen
+const headlineParts = headline.split(/(\S+-\S+)/);
+---
+
+<section class="hero" aria-labelledby="accroche">
+  <div class="container inner">
+    <div class="copy">
+      {source && <p class="eyebrow">{source.eyebrow}</p>}
+      <h1 id="accroche">
+        {headlineParts.map((part) => (/-/.test(part) ? <span class="nowrap">{part}</span> : part))}
+      </h1>
+      <p class="sub">{subheadline}</p>
+      {siteMode === 'waitlist' ? (
+        <>
+          <WaitlistForm idPrefix="hero" source={source} />
+          <p class="note">
+            Lancement le {launchDate}. Les 100 premiers inscrits accèdent à la bêta en priorité.
+            {source && (
+              <>
+                {' '}
+                Code <strong>{source.code}</strong> appliqué.
+              </>
+            )}
+          </p>
+        </>
+      ) : (
+        <>
+          <Button href="#diagnostic">Faire mon diagnostic (2 min)</Button>
+          <div class="stores">
+            <Placeholder label="Badge App Store — à fournir" ratio={120 / 40} maxWidth="10rem" />
+            <Placeholder label="Badge Google Play — à fournir" ratio={135 / 40} maxWidth="11rem" />
+          </div>
+        </>
+      )}
+    </div>
+    <div class="visual">
+      <Placeholder label="Visuel principal — à fournir" ratio={1290 / 2796} maxWidth="20rem" />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    padding-block: var(--space-6) var(--space-8);
+  }
+
+  .inner {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+
+  @media (min-width: 56rem) {
+    .inner {
+      grid-template-columns: 1.2fr 1fr;
+    }
+  }
+
+  .copy {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  .eyebrow {
+    color: var(--color-link);
+    font-weight: 600;
+  }
+
+  h1 {
+    text-wrap: balance;
+  }
+
+  .nowrap {
+    white-space: nowrap;
+  }
+
+  .sub {
+    max-width: 36rem;
+    color: var(--color-text-muted);
+    font-size: var(--text-xl);
+    line-height: 1.45;
+  }
+
+  .note {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .stores {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+</style>

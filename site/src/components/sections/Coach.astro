@@ -1,0 +1,51 @@
+---
+import Placeholder from '../Placeholder.astro';
+import Section from '../Section.astro';
+
+const points = [
+  'Pose une question sur un principe, demande un exemple adapté à ta situation.',
+  'Pas le temps aujourd’hui ? Il propose une version de ta journée qui tient en 5 minutes.',
+  'Il propose, tu décides : rien ne change dans ton plan sans ta confirmation.',
+];
+---
+
+<Section
+  id="coach-edge"
+  eyebrow="Premium"
+  title="Coach Edge, quand tu as besoin d’un coup de main"
+  intro="Coach Edge est une IA. Il connaît ton programme et ton rythme, jamais tes notes personnelles."
+  tone="surface"
+>
+  <div class="layout">
+    <ul class="points">
+      {points.map((point) => (
+        <li>{point}</li>
+      ))}
+    </ul>
+    <Placeholder label="Capture App Store 4 — Coach Edge" ratio={1290 / 2796} maxWidth="18rem" />
+  </div>
+</Section>
+
+<style>
+  .layout {
+    display: grid;
+    gap: var(--space-6);
+    align-items: center;
+  }
+
+  @media (min-width: 56rem) {
+    .layout {
+      grid-template-columns: 1.2fr 1fr;
+    }
+  }
+
+  .points {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin: 0;
+    padding-left: var(--space-5);
+    font-size: var(--text-lg);
+    color: var(--color-text-long);
+  }
+</style>

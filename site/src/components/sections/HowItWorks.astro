@@ -1,0 +1,75 @@
+---
+import Card from '../Card.astro';
+import Placeholder from '../Placeholder.astro';
+import Section from '../Section.astro';
+
+const steps = [
+  {
+    title: 'Un principe par jour',
+    text: 'Tiré de Hill, Kiyosaki, Clear, Covey et des autres grands livres de réussite, expliqué en quelques lignes, avec ce qu’il change pour toi aujourd’hui.',
+    capture: 'Capture App Store 1 — principe du jour',
+  },
+  {
+    title: 'Un plan qui s’ajuste',
+    text: 'Chaque soir, un check-in rapide : ton énergie, ton temps disponible demain. Le plan du lendemain s’adapte, jusqu’à une version courte les jours chargés.',
+    capture: 'Capture App Store 2 — plan qui s’ajuste',
+  },
+  {
+    title: 'Des habitudes minuscules',
+    text: 'Trois habitudes assez petites pour tenir même quand la journée déborde. Un jour manqué ne casse pas ta série : tu reprends simplement le lendemain.',
+    capture: 'Capture App Store 3 — habitudes minuscules',
+  },
+];
+---
+
+<Section
+  id="comment-ca-marche"
+  eyebrow="Comment ça marche"
+  title="10 minutes par jour, pas une de plus"
+  intro="Pas un résumé de plus à lire : chaque jour, quelque chose à faire."
+>
+  <ol class="steps">
+    {steps.map((step, index) => (
+      <Card as="li">
+        <span class:list={['step', index === 2 && 'step-accent']} aria-hidden="true">
+          {index + 1}
+        </span>
+        <h3>{step.title}</h3>
+        <p class="text">{step.text}</p>
+        <Placeholder label={step.capture} ratio={1290 / 2796} maxWidth="16rem" />
+      </Card>
+    ))}
+  </ol>
+</Section>
+
+<style>
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+  }
+
+  .step {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-chip);
+    background: var(--color-button-bg);
+    color: var(--color-button-text);
+    font-family: var(--font-heading);
+    font-weight: 700;
+  }
+
+  /* Orange marks momentum (identity: step 3); ink text keeps AA contrast */
+  .step-accent {
+    background: var(--color-accent);
+    color: var(--color-ink-on-accent);
+  }
+
+  .text {
+    color: var(--color-text-muted);
+  }
+</style>

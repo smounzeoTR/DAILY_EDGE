@@ -1,0 +1,28 @@
+---
+import { launchDate, siteMode } from '../../config';
+import type { LandingSource } from '../../data/sources';
+import Button from '../Button.astro';
+import Section from '../Section.astro';
+import WaitlistForm from '../WaitlistForm.astro';
+
+interface Props {
+  source?: LandingSource | undefined;
+}
+
+const { source } = Astro.props;
+---
+
+{siteMode === 'waitlist' ? (
+  <Section
+    id="reserver"
+    title="Réserve ta place"
+    intro={`Lancement le ${launchDate}. Chaque ami qui confirme son inscription avec ton lien te fait gagner 10 places.`}
+    tone="surface"
+  >
+    <WaitlistForm idPrefix="final" source={source} />
+  </Section>
+) : (
+  <Section id="diagnostic" title="Ton plan en 2 minutes" tone="surface">
+    <Button href="#diagnostic">Faire mon diagnostic (2 min)</Button>
+  </Section>
+)}

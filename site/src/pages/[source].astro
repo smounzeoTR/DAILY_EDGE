@@ -1,0 +1,17 @@
+---
+// Source landing pages (/gdiy, /martingale, /linkedin…), listed in src/data/sources.ts.
+import type { GetStaticPaths } from 'astro';
+
+import LandingPage from '../components/LandingPage.astro';
+import { sources } from '../data/sources';
+
+export const getStaticPaths = (() =>
+  sources.map((source) => ({
+    params: { source: source.slug },
+    props: { source },
+  }))) satisfies GetStaticPaths;
+
+const { source } = Astro.props;
+---
+
+<LandingPage source={source} />

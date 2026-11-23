@@ -1,0 +1,36 @@
+---
+// The one-page site (§ 4), shared by / and the source landing pages.
+import type { LandingSource } from '../data/sources';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Coach from './sections/Coach.astro';
+import Faq from './sections/Faq.astro';
+import FinalCta from './sections/FinalCta.astro';
+import Hero from './sections/Hero.astro';
+import HowItWorks from './sections/HowItWorks.astro';
+import Pricing from './sections/Pricing.astro';
+import Proof from './sections/Proof.astro';
+import Trust from './sections/Trust.astro';
+import SiteFooter from './SiteFooter.astro';
+import SiteHeader from './SiteHeader.astro';
+
+interface Props {
+  source?: LandingSource | undefined;
+}
+
+const { source } = Astro.props;
+---
+
+<BaseLayout canonical={source ? '/' : undefined}>
+  <SiteHeader />
+  <main id="contenu">
+    <Hero source={source} />
+    <HowItWorks />
+    <Proof />
+    <Coach />
+    <Pricing />
+    <Trust />
+    <Faq />
+    <FinalCta source={source} />
+  </main>
+  <SiteFooter />
+</BaseLayout>

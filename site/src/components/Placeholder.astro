@@ -1,0 +1,36 @@
+---
+// Reserved slot for a visual supplied later (fixed ratio: no layout shift when the image arrives).
+interface Props {
+  label: string;
+  /** width / height, e.g. 1290 / 2796 for an App Store capture */
+  ratio: number;
+  maxWidth?: string;
+}
+
+const { label, ratio, maxWidth = '100%' } = Astro.props;
+---
+
+<div
+  class="placeholder"
+  style={`aspect-ratio: ${ratio}; max-width: ${maxWidth}`}
+  role="img"
+  aria-label={label}
+>
+  <span aria-hidden="true">{label}</span>
+</div>
+
+<style>
+  .placeholder {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    margin-inline: auto;
+    padding: var(--space-4);
+    border: 2px dashed var(--color-field-border);
+    border-radius: var(--radius-card);
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    text-align: center;
+  }
+</style>

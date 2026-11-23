@@ -1,0 +1,81 @@
+---
+// Waitlist sign-up form. Sent by the waitlist-join Edge Function (lot S2).
+// POST only: the e-mail never ends up in a URL.
+import { legalLinks } from '../config';
+import { defaultUtm, type LandingSource } from '../data/sources';
+import Button from './Button.astro';
+import Field from './Field.astro';
+
+interface Props {
+  idPrefix: string;
+  source?: LandingSource | undefined;
+}
+
+const { idPrefix, source } = Astro.props;
+const utm = source?.utm ?? defaultUtm;
+const landingPath = source ? `/${source.slug}` : '/';
+---
+
+<form class="waitlist" method="post" data-waitlist-form novalidate>
+  <input type="hidden" name="utm_source" value={utm.source} />
+  <input type="hidden" name="utm_medium" value={utm.medium} />
+  <input type="hidden" name="utm_campaign" value={utm.campaign} />
+  <input type="hidden" name="landing_path" value={landingPath} />
+  <input type="hidden" name="ref" value="" />
+  <Field
+    id={`${idPrefix}-email`}
+    name="email"
+    type="email"
+    label="Ton e-mail"
+    autocomplete="email"
+    inputmode="email"
+    placeholder="prenom@exemple.fr"
+    required
+  />
+  <div class="consent">
+    <Field
+      id={`${idPrefix}-consent`}
+      name="consent_marketing"
+      type="checkbox"
+      label="J'accepte de recevoir les e-mails de Daily Edge (lancement, principe de la semaine). Désinscription en un clic."
+      required
+    />
+    <p class="privacy">
+      <a href={legalLinks.privacy}>Politique de confidentialité</a>
+    </p>
+  </div>
+  <Button type="submit" block>
+    Réserver ma place
+  </Button>
+  <p class="status" role="status" aria-live="polite" data-waitlist-status></p>
+</form>
+
+<style>
+  .waitlist {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    width: 100%;
+    max-width: 30rem;
+  }
+
+  .consent {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .privacy {
+    padding-left: calc(var(--touch-min) + var(--space-2));
+    font-size: var(--text-sm);
+  }
+
+  .privacy a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-min);
+  }
+
+  .status:empty {
+    display: none;
+  }
+</style>

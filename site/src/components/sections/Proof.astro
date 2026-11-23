@@ -1,0 +1,89 @@
+---
+import { catalogFacts } from '../../config';
+import { testimonials } from '../../data/testimonials';
+import Card from '../Card.astro';
+import Section from '../Section.astro';
+
+const facts = [
+  { value: catalogFacts.principles, label: 'principes tirés des grands livres' },
+  { value: catalogFacts.exercises, label: 'exercices concrets' },
+  { value: catalogFacts.habits, label: 'habitudes minuscules' },
+  {
+    value: catalogFacts.programs,
+    label: `programmes de ${catalogFacts.programDays} jours`,
+  },
+];
+---
+
+<Section id="contenu-programme" eyebrow="Le contenu" title="De quoi avancer pendant des mois">
+  <ul class="facts">
+    {facts.map((fact) => (
+      <li class="fact">
+        <span class="value">{fact.value}</span>
+        <span class="label">{fact.label}</span>
+      </li>
+    ))}
+  </ul>
+  {testimonials.length > 0 && (
+    <ul class="testimonials" aria-label="Témoignages de la bêta">
+      {testimonials.map((item) => (
+        <Card as="li">
+          <blockquote>
+            <p>« {item.quote} »</p>
+          </blockquote>
+          <p class="author">
+            {item.name}
+            {item.role && <span>, {item.role}</span>}
+          </p>
+        </Card>
+      ))}
+    </ul>
+  )}
+</Section>
+
+<style>
+  .facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+    gap: var(--space-5);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .fact {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .value {
+    font-family: var(--font-heading);
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    letter-spacing: var(--tracking-heading);
+    line-height: 1;
+  }
+
+  .label {
+    color: var(--color-text-muted);
+  }
+
+  .testimonials {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+  }
+
+  blockquote {
+    margin: 0;
+  }
+
+  .author {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+</style>

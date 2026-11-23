@@ -3,20 +3,19 @@
 interface Props {
   variant?: 'full' | 'symbol';
   size?: number;
-  /** Accessible name; pass an empty string when the logo is purely decorative. */
+  /** Accessible name of the symbol variant (the full variant reads its wordmark) */
   label?: string;
 }
 
 const { variant = 'full', size = 36, label = 'Daily Edge' } = Astro.props;
-const decorative = label === '';
+const symbolOnly = variant === 'symbol';
 ---
 
 <span
   class:list={['logo', variant]}
   style={`--logo-size: ${size}px`}
-  role={decorative ? undefined : 'img'}
-  aria-label={decorative ? undefined : label}
-  aria-hidden={decorative ? 'true' : undefined}
+  role={symbolOnly ? 'img' : undefined}
+  aria-label={symbolOnly ? label : undefined}
 >
   <svg viewBox="0 0 64 64" width={size} height={size} aria-hidden="true" focusable="false">
     <path d="M14 40 A18 18 0 0 1 50 40 Z" fill="var(--color-accent)"></path>
@@ -27,7 +26,7 @@ const decorative = label === '';
     </g>
   </svg>
   {variant === 'full' && (
-    <span class="wordmark" aria-hidden="true">
+    <span class="wordmark">
       daily<span class="edge">edge</span>
     </span>
   )}

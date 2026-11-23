@@ -1,0 +1,142 @@
+---
+import Button from '../components/Button.astro';
+import Card from '../components/Card.astro';
+import Placeholder from '../components/Placeholder.astro';
+import Section from '../components/Section.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import { meetingUrl, pricing } from '../config';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const benefits = [
+  {
+    title: '10 minutes par jour, pour chacun',
+    text: 'Chaque collaborateur suit son propre programme : un principe, un exercice, trois habitudes, ajustés à son temps disponible.',
+  },
+  {
+    title: 'Un tableau de bord anonymisé',
+    text: 'Participation, régularité et thèmes travaillés, à l’échelle de l’équipe. Aucune réponse, note ni donnée individuelle n’est visible par l’employeur.',
+  },
+  {
+    title: 'Des livres qui passent enfin à l’action',
+    text: 'Les grands livres de réussite (Covey, Clear, Carnegie…) transformés en gestes concrets, sans séminaire ni journée bloquée.',
+  },
+];
+
+const minimumYearly = `${pricing.teamsPerUserYearEur * pricing.teamsMinimumUsers} €`;
+---
+
+<BaseLayout
+  title="Daily Edge Équipes — 10 minutes par jour pour faire progresser ton équipe"
+  description="Le coach quotidien Daily Edge pour les équipes : un programme individuel, un tableau de bord anonymisé, 79 € HT par utilisateur et par an."
+>
+  <SiteHeader secondary="home" />
+  <main id="contenu">
+    <section class="hero" aria-labelledby="equipes-titre">
+      <div class="container inner">
+        <div class="copy">
+          <p class="eyebrow">Daily Edge Équipes</p>
+          <h1 id="equipes-titre">10 minutes par jour pour faire progresser ton équipe.</h1>
+          <p class="sub">
+            Le coach quotidien Daily Edge pour chaque collaborateur, et une vue d’ensemble
+            anonymisée pour toi.
+          </p>
+          <Button href={meetingUrl}>Prendre rendez-vous</Button>
+        </div>
+        <Placeholder label="Visuel du tableau de bord anonymisé — à fournir" ratio={16 / 10} />
+      </div>
+    </section>
+
+    <Section id="benefices" eyebrow="Bénéfices" title="Ce que ton équipe y gagne" tone="surface">
+      <ul class="benefits">
+        {benefits.map((item) => (
+          <Card as="li">
+            <h3>{item.title}</h3>
+            <p class="text">{item.text}</p>
+          </Card>
+        ))}
+      </ul>
+    </Section>
+
+    <Section id="tarif" eyebrow="Tarif" title="Un prix simple">
+      <Card as="article" padding="lg" class="price-card">
+        <p class="price">
+          <span class="amount">{pricing.teamsPerUserYearEur} € HT</span> par utilisateur et par an
+        </p>
+        <p class="text">
+          À partir de {pricing.teamsMinimumUsers} utilisateurs, soit {minimumYearly} HT par an.
+        </p>
+        <Button href={meetingUrl}>Prendre rendez-vous</Button>
+      </Card>
+    </Section>
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .hero {
+    padding-block: var(--space-6) var(--space-8);
+  }
+
+  .inner {
+    display: grid;
+    gap: var(--space-7);
+    align-items: center;
+  }
+
+  @media (min-width: 56rem) {
+    .inner {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-5);
+  }
+
+  .eyebrow {
+    color: var(--color-link);
+    font-weight: 600;
+  }
+
+  .sub {
+    color: var(--color-text-muted);
+    font-size: var(--text-xl);
+    line-height: 1.45;
+  }
+
+  .benefits {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+  }
+
+  .benefits :global(.card) {
+    background: var(--color-bg);
+  }
+
+  .text {
+    color: var(--color-text-muted);
+  }
+
+  #tarif :global(.price-card) {
+    align-items: flex-start;
+    max-width: 32rem;
+  }
+
+  .price {
+    color: var(--color-text-muted);
+  }
+
+  .amount {
+    color: var(--color-text);
+    font-family: var(--font-heading);
+    font-size: var(--text-2xl);
+    font-weight: 700;
+  }
+</style>

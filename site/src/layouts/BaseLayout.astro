@@ -12,13 +12,17 @@ interface Props {
   title?: string;
   description?: string;
   noindex?: boolean;
+  /** Canonical path, e.g. '/' for source landing pages */
+  canonical?: string | undefined;
 }
 
 const {
   title = 'Daily Edge — Les grands livres de réussite, en 10 minutes par jour',
   description = 'Un principe, un exercice, trois habitudes. 10 minutes par jour, ajustées chaque soir.',
   noindex = false,
+  canonical,
 } = Astro.props;
+const canonicalUrl = new URL(canonical ?? Astro.url.pathname, Astro.site);
 ---
 
 <!doctype html>
@@ -29,6 +33,7 @@ const {
     <title>{title}</title>
     <meta name="description" content={description} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
+    <link rel="canonical" href={canonicalUrl.href} />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F3F5FB" />
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A1230" />
