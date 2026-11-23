@@ -50,19 +50,7 @@ export default function Feedback() {
   return (
     <Screen
       scroll
-      footer={
-        <View style={styles.footer}>
-          {sent ? null : (
-            <Button
-              label={t('feedback.send')}
-              onPress={() => void send()}
-              loading={sending}
-              disabled={body.trim().length === 0}
-            />
-          )}
-          <Button label={t('common.back')} variant="ghost" onPress={() => router.back()} />
-        </View>
-      }
+      footer={<Button label={t('common.back')} variant="ghost" onPress={() => router.back()} />}
     >
       <View style={styles.top}>
         <AppText variant="title" accessibilityRole="header">
@@ -81,6 +69,15 @@ export default function Feedback() {
           multiline
         />
       )}
+      {/* Right under the field: stays above the keyboard */}
+      {sent ? null : (
+        <Button
+          label={t('feedback.send')}
+          onPress={() => void send()}
+          loading={sending}
+          disabled={body.trim().length === 0}
+        />
+      )}
       {error ? <AppText tone="danger">{error}</AppText> : null}
     </Screen>
   );
@@ -88,5 +85,4 @@ export default function Feedback() {
 
 const styles = StyleSheet.create({
   top: { paddingTop: spacing.lg, gap: spacing.xs },
-  footer: { gap: spacing.sm },
 });

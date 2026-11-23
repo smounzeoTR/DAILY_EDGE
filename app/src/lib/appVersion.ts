@@ -7,7 +7,8 @@ export const appEnv = process.env.EXPO_PUBLIC_APP_ENV ?? 'development';
 
 export function appVersion(): { version: string; build: string | null } {
   return {
-    version: Application.nativeApplicationVersion ?? Constants.expoConfig?.version ?? '0.0.0',
+    // app.json version first: in Expo Go the native version is Expo Go's own
+    version: Constants.expoConfig?.version ?? Application.nativeApplicationVersion ?? '0.0.0',
     build: Application.nativeBuildVersion ?? null,
   };
 }
