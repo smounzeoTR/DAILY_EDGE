@@ -24,7 +24,7 @@ Les deux projets sont au plan gratuit de Supabase : pas de sauvegarde gérée, e
 - [ ] Make : dossier « Daily Edge », scénarios « Daily Edge – Liste d'attente confirmée → Brevo » et « Daily Edge – Diagnostic web → Brevo », désactivés jusqu'au test du § 8.
 - [ ] Sentry : projet React Native en région UE (`*.de.sentry.io`), DSN et jeton d'authentification (`SENTRY_AUTH_TOKEN`).
 - [ ] PostHog : projet sur l'instance UE (`eu.i.posthog.com`) et clé de projet.
-- [ ] GitHub Pages pour `legal/` : sur un dépôt privé, il faut un abonnement GitHub qui l'autorise (Pro, Team ou Enterprise). Domaine personnalisé : `legal.dailyedge.fr` (Settings > Pages > Custom domain, puis « Enforce HTTPS »), en attendant l'intégration des pages légales au site (lot S5).
+- [ ] Pages légales : servies par le site `dailyedge.fr` (`/cgu`, `/confidentialite`, `/mentions-legales`, `/en/…`) depuis le lot S5 ; GitHub Pages n'est plus utilisé.
 
 ### Domaine et DNS (zone `dailyedge.fr` chez OVH)
 
@@ -33,7 +33,6 @@ Toutes les valeurs sont données par chaque console au moment de la vérificatio
 | Hôte                      | Type                              | Valeur                                                                               | Pour                                                     |
 | ------------------------- | --------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------------------------------- |
 | racine et `www`           | selon l'hébergeur                 | à définir avec l'hébergement du site (lot S5)                                        | site dailyedge.fr                                        |
-| `legal`                   | `CNAME`                           | `<compte-github>.github.io.`                                                         | pages légales (GitHub Pages)                             |
 | `auth`                    | `TXT` (SPF)                       | valeur donnée par Scaleway                                                           | e-mails de connexion, d'alertes et de la liste d'attente |
 | DKIM de Scaleway (`auth`) | `TXT`                             | nom et valeur donnés par Scaleway                                                    | signature des e-mails de `auth.dailyedge.fr`             |
 | retours de Scaleway       | `MX` (ou ce que Scaleway indique) | nom et valeur donnés par Scaleway                                                    | retours (bounces) des e-mails de `auth.dailyedge.fr`     |
@@ -50,7 +49,7 @@ Toutes les valeurs sont données par chaque console au moment de la vérificatio
 
 ### Textes
 
-- [ ] CGU, politique de confidentialité et mentions légales relues, en FR puis en EN. Je les intègre dans `legal/`.
+- [ ] CGU, politique de confidentialité et mentions légales relues, en FR puis en EN. Je les intègre dans `site/src/legal/`.
 
 ## 2. Fichiers d'environnement
 
@@ -259,7 +258,7 @@ Le contact ne part vers Brevo qu'après la **confirmation du consentement market
 
 ```
 cd ~/DAILY_EDGE/site
-SITE_MODE=launch PUBLIC_FUNCTIONS_URL="$(grep '^SUPABASE_URL=' ../.env.recette | cut -d= -f2- | sed 's#/*$##')/functions/v1" npm run build
+SITE_MODE_OVERRIDE=launch PUBLIC_FUNCTIONS_URL="$(grep '^SUPABASE_URL=' ../.env.recette | cut -d= -f2- | sed 's#/*$##')/functions/v1" npm run build
 npx astro preview --port 4321
 ```
 

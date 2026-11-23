@@ -39,7 +39,7 @@ Remarques :
 
 ## 3. Autres champs de la fiche
 
-- URL de la politique de confidentialité : `https://legal.dailyedge.fr/fr/confidentialite.html`.
+- URL de la politique de confidentialité : `https://dailyedge.fr/confidentialite`.
 - Classification par âge : 17+ ou 18+ selon le questionnaire. Répondre « aucun » à tous les contenus sensibles. L'app est réservée aux adultes par ses CGU, avec une case obligatoire à l'inscription.
 - Catégorie : Santé et forme ou Productivité. Productivité évite toute ambiguïté « santé », ce qui est cohérent avec « pas un service de soin » dans les CGU.
 - Informations pour la vérification d'Apple : fournir un compte de démonstration sur la production (connexion par code e-mail, donc une adresse que tu lis) et expliquer que le code arrive par e-mail.
