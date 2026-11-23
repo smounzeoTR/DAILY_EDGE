@@ -2,7 +2,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 
-const pages = ['/', '/equipes', '/gdiy', '/martingale', '/linkedin'];
+const pages = ['/', '/equipes', '/gdiy', '/martingale', '/linkedin', '/diagnostic'];
 
 for (const colorScheme of ['light', 'dark'] as const) {
   test.describe(`${colorScheme} theme`, () => {

@@ -3,6 +3,7 @@ import { launchDate, siteMode } from '../../config';
 import type { LandingSource } from '../../data/sources';
 import Button from '../Button.astro';
 import Placeholder from '../Placeholder.astro';
+import StoreLinks from '../StoreLinks.astro';
 import WaitlistForm from '../WaitlistForm.astro';
 
 interface Props {
@@ -41,11 +42,8 @@ const headlineParts = headline.split(/(\S+-\S+)/);
         </>
       ) : (
         <>
-          <Button href="#diagnostic">Faire mon diagnostic (2 min)</Button>
-          <div class="stores">
-            <Placeholder label="Badge App Store — à fournir" ratio={120 / 40} maxWidth="10rem" />
-            <Placeholder label="Badge Google Play — à fournir" ratio={135 / 40} maxWidth="11rem" />
-          </div>
+          <Button href="/diagnostic">Faire mon diagnostic (2 min)</Button>
+          <StoreLinks />
         </>
       )}
     </div>
@@ -101,11 +99,5 @@ const headlineParts = headline.split(/(\S+-\S+)/);
   .note {
     color: var(--color-text-muted);
     font-size: var(--text-sm);
-  }
-
-  .stores {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-3);
   }
 </style>

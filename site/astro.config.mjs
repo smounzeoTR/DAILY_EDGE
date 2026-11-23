@@ -6,6 +6,8 @@ export default defineConfig({
   output: 'static',
   trailingSlash: 'never',
   build: { format: 'file' },
+  // The diagnostic page imports the answer values shared with the Edge Functions
+  vite: { server: { fs: { allow: ['..'] } } },
   env: {
     schema: {
       // Read at build time (static output); see src/config.ts
@@ -16,6 +18,9 @@ export default defineConfig({
         default: 'waitlist',
       }),
       MEETING_URL: envField.string({ context: 'server', access: 'public', default: '' }),
+      // Store links (launch mode); the buttons are hidden while they are empty
+      APP_STORE_URL: envField.string({ context: 'server', access: 'public', default: '' }),
+      PLAY_STORE_URL: envField.string({ context: 'server', access: 'public', default: '' }),
       // Edge Functions base URL used by the browser (waitlist-*); local stack by default
       PUBLIC_FUNCTIONS_URL: envField.string({
         context: 'client',

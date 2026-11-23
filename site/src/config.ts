@@ -1,5 +1,5 @@
 // Site configuration, resolved at build time (static output).
-import { MEETING_URL, SITE_MODE } from 'astro:env/server';
+import { APP_STORE_URL, MEETING_URL, PLAY_STORE_URL, SITE_MODE } from 'astro:env/server';
 
 export type SiteMode = 'waitlist' | 'launch';
 
@@ -44,3 +44,6 @@ export const pricing = {
   teamsPerUserYearEur: 79,
   teamsMinimumUsers: 10,
 };
+
+// Store links: hidden while empty (apps not published yet)
+export const storeLinks = { appStore: APP_STORE_URL, googlePlay: PLAY_STORE_URL };

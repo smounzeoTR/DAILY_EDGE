@@ -1,0 +1,79 @@
+---
+// Marketing consent confirmation of the diagnostic result e-mail: /diagnostic/confirmer#t=<token>.
+import SiteFooter from '../../components/SiteFooter.astro';
+import SiteHeader from '../../components/SiteHeader.astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Confirmation — Daily Edge" noindex>
+  <SiteHeader />
+  <main id="contenu" class="container page">
+    <p role="status" data-pending>
+      Confirmation en cours…
+    </p>
+    <div class="message" data-done hidden>
+      <h1 tabindex="-1">C’est confirmé</h1>
+      <p>
+        Tu recevras les e-mails de Daily Edge : le lancement, puis un principe chaque semaine.
+        Désinscription en un clic dans chaque e-mail.
+      </p>
+    </div>
+    <div class="message" data-failed hidden>
+      <h1 tabindex="-1">Ce lien ne fonctionne plus</h1>
+      <p>
+        Il a peut-être déjà servi, ou plus de 48 heures sont passées. Pour recevoir les e-mails de
+        Daily Edge, refais le diagnostic en cochant la case des e-mails.
+      </p>
+      <p>
+        <a href="/diagnostic">Refaire le diagnostic</a>
+      </p>
+    </div>
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<script>
+  import { callFunction } from '../../scripts/api';
+  import { takeFragment } from '../../scripts/storage';
+
+  const pending = document.querySelector<HTMLElement>('[data-pending]')!;
+  const show = (selector: string) => {
+    pending.hidden = true;
+    const block = document.querySelector<HTMLElement>(selector)!;
+    block.hidden = false;
+    block.querySelector<HTMLElement>('h1')!.focus();
+  };
+
+  // A link pasted while already on this page only changes the fragment: start over
+  window.addEventListener('hashchange', () => window.location.reload());
+
+  const token = takeFragment('t');
+  if (!token) {
+    show('[data-failed]');
+  } else {
+    callFunction('diagnostic-confirm-marketing', { token })
+      .then(({ status }) => show(status === 200 ? '[data-done]' : '[data-failed]'))
+      .catch(() => show('[data-failed]'));
+  }
+</script>
+
+<style>
+  .page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    padding-block: var(--space-7);
+  }
+
+  .message {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 40rem;
+  }
+
+  .message[hidden],
+  [data-pending][hidden] {
+    display: none;
+  }
+</style>

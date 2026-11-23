@@ -1,0 +1,28 @@
+---
+// App Store and Google Play buttons; each one is hidden while its link is empty.
+import { storeLinks } from '../config';
+import Button from './Button.astro';
+---
+
+{(storeLinks.appStore || storeLinks.googlePlay) && (
+  <div class="stores">
+    {storeLinks.appStore && (
+      <Button href={storeLinks.appStore} variant="secondary" data-store="ios">
+        Télécharger sur l’App Store
+      </Button>
+    )}
+    {storeLinks.googlePlay && (
+      <Button href={storeLinks.googlePlay} variant="secondary" data-store="android">
+        Télécharger sur Google Play
+      </Button>
+    )}
+  </div>
+)}
+
+<style>
+  .stores {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+</style>

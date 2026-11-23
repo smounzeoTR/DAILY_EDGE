@@ -1,0 +1,289 @@
+---
+// Web diagnostic (launch mode, site § 7): one question per screen, progress bar, back button,
+// answers kept in this browser until sent (never the e-mail), result shown on the page.
+import Button from '../components/Button.astro';
+import Card from '../components/Card.astro';
+import Field from '../components/Field.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import StoreLinks from '../components/StoreLinks.astro';
+import { legalLinks, siteMode } from '../config';
+import { QUESTION_COUNT, questions } from '../data/diagnostic';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Ton diagnostic — Daily Edge"
+  description="7 questions, 2 minutes : ton profil, le programme de 28 jours qui te correspond et ton premier exercice."
+  noindex={siteMode !== 'launch'}
+>
+  <SiteHeader />
+  <main id="contenu" class="container page">
+    <div class="quiz" data-quiz>
+      <p class="progress-label" data-progress-label>
+        Question 1 sur {QUESTION_COUNT}
+      </p>
+      <div
+        class="progress"
+        role="progressbar"
+        aria-label="Avancement du diagnostic"
+        aria-valuemin="1"
+        aria-valuemax={QUESTION_COUNT}
+        aria-valuenow="1"
+        data-progress
+      >
+        <span class="progress-bar" data-progress-bar></span>
+      </div>
+
+      {questions.map((q, index) => (
+        <section class="step" data-step={index} data-key={q.key} hidden={index !== 0}>
+          <fieldset>
+            <legend>
+              <h1 class="question" tabindex="-1" data-step-title>
+                {q.title}
+              </h1>
+            </legend>
+            {q.hint && <p class="hint">{q.hint}</p>}
+            <div class="choices">
+              {q.options.map((o) => (
+                <label class="choice">
+                  <input type={q.multiple ? 'checkbox' : 'radio'} name={q.key} value={o.value} />
+                  <span>{o.label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <div class="nav">
+            {index > 0 && (
+              <Button variant="secondary" data-back>
+                Retour
+              </Button>
+            )}
+            {q.optional && (
+              <Button variant="secondary" data-skip>
+                Passer
+              </Button>
+            )}
+            <Button data-next disabled>
+              Suivant
+            </Button>
+          </div>
+        </section>
+      ))}
+
+      <section class="step" data-step={questions.length} data-key="email" hidden>
+        <form class="email-form" method="post" novalidate data-diagnostic-form>
+          <h1 class="question" tabindex="-1" data-step-title>
+            Ton e-mail, pour recevoir ton plan
+          </h1>
+          <Field
+            id="diagnostic-email"
+            name="email"
+            type="email"
+            label="Ton e-mail"
+            autocomplete="email"
+            inputmode="email"
+            placeholder="prenom@exemple.fr"
+            required
+          />
+          <div class="consent">
+            <Field
+              id="diagnostic-consent"
+              name="consent_marketing"
+              type="checkbox"
+              label="J'accepte de recevoir les e-mails de Daily Edge (lancement, principe de la semaine). Désinscription en un clic. Facultatif."
+            />
+            <p class="privacy">
+              <a href={legalLinks.privacy}>Politique de confidentialité</a>
+            </p>
+          </div>
+          <div class="nav">
+            <Button variant="secondary" data-back>
+              Retour
+            </Button>
+            <Button type="submit">Recevoir mon plan</Button>
+          </div>
+          <p class="status" role="status" aria-live="polite" data-diagnostic-status></p>
+        </form>
+      </section>
+    </div>
+
+    <section class="result" data-result hidden aria-labelledby="resultat-titre">
+      <p class="eyebrow">Ton profil</p>
+      <h1 id="resultat-titre" tabindex="-1" data-result-profile></h1>
+      <p class="lead" data-result-profile-text></p>
+      <Card as="article" padding="lg">
+        <p class="eyebrow">Ton programme de 28 jours</p>
+        <h2 data-result-program></h2>
+        <p class="muted" data-result-program-text></p>
+      </Card>
+      <Card as="article" padding="lg">
+        <p class="eyebrow">Ton premier principe</p>
+        <h2 data-result-principle></h2>
+        <p data-result-principle-text></p>
+        <h3 data-result-exercise></h3>
+        <p data-result-exercise-text></p>
+      </Card>
+      <p class="notice" data-result-notice></p>
+      <StoreLinks />
+    </section>
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<script>
+  import '../scripts/diagnostic';
+</script>
+
+<style>
+  .page {
+    padding-block: var(--space-6) var(--space-8);
+  }
+
+  .quiz,
+  .result {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    max-width: 40rem;
+  }
+
+  .quiz[hidden],
+  .result[hidden],
+  .step[hidden] {
+    display: none;
+  }
+
+  .progress-label {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .progress {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--color-border);
+    overflow: hidden;
+  }
+
+  .progress-bar {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: var(--color-button-bg);
+    transition: width 0.2s ease;
+  }
+
+  .step {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+  }
+
+  fieldset {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  legend {
+    padding: 0;
+    margin-bottom: var(--space-4);
+  }
+
+  .question {
+    font-size: var(--text-2xl);
+  }
+
+  .hint {
+    margin-bottom: var(--space-3);
+    color: var(--color-text-muted);
+  }
+
+  .choices {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .choice {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: var(--button-height);
+    padding: var(--space-3) var(--space-4);
+    border: 1.5px solid var(--color-field-border);
+    border-radius: var(--radius-field);
+    background: var(--color-surface);
+    cursor: pointer;
+  }
+
+  .choice:has(input:checked) {
+    border-color: var(--color-primary);
+    box-shadow: inset 0 0 0 1px var(--color-primary);
+  }
+
+  .choice:has(input:focus-visible) {
+    outline: 3px solid var(--color-focus);
+    outline-offset: 3px;
+  }
+
+  .choice input {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    flex: none;
+    accent-color: var(--color-button-bg);
+  }
+
+  .nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+
+  .email-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .consent {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .privacy {
+    padding-left: calc(var(--touch-min) + var(--space-2));
+    font-size: var(--text-sm);
+  }
+
+  .privacy a {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-min);
+  }
+
+  .status:empty {
+    display: none;
+  }
+
+  .eyebrow {
+    color: var(--color-link);
+    font-weight: 600;
+    font-size: var(--text-sm);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .lead {
+    font-size: var(--text-lg);
+    color: var(--color-text-long);
+  }
+
+  .muted,
+  .notice {
+    color: var(--color-text-muted);
+  }
+</style>

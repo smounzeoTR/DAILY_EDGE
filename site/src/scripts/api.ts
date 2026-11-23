@@ -8,7 +8,12 @@ export interface Place {
 }
 
 export async function callFunction(
-  name: 'waitlist-join' | 'waitlist-confirm' | 'waitlist-status',
+  name:
+    | 'waitlist-join'
+    | 'waitlist-confirm'
+    | 'waitlist-status'
+    | 'diagnostic-submit'
+    | 'diagnostic-confirm-marketing',
   body: unknown,
 ): Promise<{ status: number; data: Record<string, unknown> | null }> {
   const res = await fetch(`${PUBLIC_FUNCTIONS_URL.replace(/\/+$/, '')}/${name}`, {
