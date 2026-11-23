@@ -8,11 +8,11 @@ Fichiers :
 - `scripts/dns/records.txt` : la liste des noms et types comparés.
 - `scripts/dns/dns-compare.sh` : compare chaque enregistrement entre deux serveurs (avant, puis après la bascule).
 
-Export de la zone OVH du 23 novembre 2026, contrôlé le même jour sur `dns17.ovh.net` et au registre `.fr` (`d.nic.fr`).
+Deux exports de la zone OVH du 23 novembre 2026, contrôlés le même jour sur `dns17.ovh.net` et au registre `.fr` (`d.nic.fr`) : la zone **initiale** (numéro de série `2095433896`) et la zone **actuelle** (`2095448114`). L'inventaire les fusionne : tout ce qui est dans la zone actuelle, plus les MX de la zone initiale, supprimés depuis.
 
 ## 1. Constats préalables (à régler avant la bascule)
 
-1. **Aucun enregistrement MX sur `dailyedge.fr`.** La zone ne contient ni MX ni enregistrement de configuration automatique de la messagerie (autodiscover, autoconfig, SRV). En l'état, **un e-mail envoyé à `contact@dailyedge.fr` ou `support@dailyedge.fr` ne peut pas être reçu**, et les rapports DMARC (`rua=mailto:contact@dailyedge.fr`) sont perdus. Il faut d'abord activer ou vérifier la boîte incluse chez OVH (Web Cloud > E-mails > `dailyedge.fr`), puis ajouter **chez OVH** les MX et autres enregistrements que la console OVH indique pour cette offre, refaire un export et me le transmettre : le fichier de zone et `records.txt` seront complétés. Aucune valeur n'est inventée ici.
+1. **Les MX de la messagerie ont été supprimés.** La zone initiale contenait `MX 1 mx1.mail.ovh.net.`, `MX 5 mx2.mail.ovh.net.` et `MX 100 mx3.mail.ovh.net.` ; la zone actuelle n'en a plus (constaté sur `dns17.ovh.net` et `ns17.ovh.net`), sans doute supprimés lors de l'ajout des enregistrements Scaleway. **Depuis, aucun e-mail envoyé à `contact@dailyedge.fr` ou `support@dailyedge.fr` ne peut arriver**, et les rapports DMARC (`rua=mailto:contact@dailyedge.fr`) sont perdus. À faire **chez OVH, avant tout** : Zone DNS > Ajouter une entrée > MX, les trois entrées ci-dessus (priorités 1, 5 et 100), TTL 300. Puis envoyer un e-mail de test à `contact@`. Les deux zones ne contenaient aucun enregistrement de configuration automatique de la messagerie (autodiscover, autoconfig, SRV) : rien à reprendre.
 2. **Rien pour Brevo sur `news.dailyedge.fr`.** Ni SPF, ni DKIM, ni code de vérification. Avec `sp=quarantine` sur la racine, un e-mail marketing envoyé depuis `news.dailyedge.fr` sans authentification serait mis en indésirables. À ajouter depuis Brevo (Paramètres > Expéditeurs, domaines et IP dédiées > Domaines) **avant** le premier envoi marketing ; idéalement chez OVH avant la bascule, pour que l'export les contienne.
 3. **DMARC de la racine déjà en `p=quarantine; sp=quarantine`**, alors que le cahier des charges du site (§ 12) prévoit `p=none` au départ, puis `quarantine` après 4 semaines de rapports propres. Le fichier de zone reprend la valeur actuelle telle quelle ; à toi de décider s'il faut revenir à `p=none` tant que la messagerie et Brevo ne sont pas authentifiés (le sous-domaine `auth` a sa propre politique, `p=none`).
 4. **DNSSEC est actif chez OVH** : DS `50041 8 2 8F0238…CAABF229` publié au registre `.fr` avec un TTL de 3600 s. Il faut le retirer avant de changer de serveurs de noms (§ 4).
@@ -44,7 +44,7 @@ L'export OVH contenait le DKIM en double (deux lignes identiques) ; OVH n'en pub
 
 ## 3. Préparation (avant la bascule)
 
-1. Régler les constats 1 et 2 chez OVH (MX de la messagerie, enregistrements Brevo), refaire l'export ; je mets à jour le fichier de zone et `records.txt`.
+1. Rétablir les trois MX chez OVH (constat 1) et vérifier la réception sur `contact@`. Ajouter chez OVH les enregistrements Brevo (constat 2) ; s'ils sont ajoutés, refaire l'export pour que je complète le fichier de zone et `records.txt`.
 2. **J − 2** : chez OVH, passer le TTL de chaque enregistrement à 300 s (la plupart sont à 3600 s), pour qu'un retour arrière se propage vite.
 3. Cloudflare : Add a domain > `dailyedge.fr` > offre Free. Si Cloudflare propose des enregistrements détectés automatiquement, les supprimer tous.
 4. DNS > Records > Import and Export : importer `docs/dns/dailyedge.fr.cloudflare.zone` en **décochant « Proxy imported DNS records »**. Vérifier ensuite que chaque enregistrement est en nuage gris (DNS only).

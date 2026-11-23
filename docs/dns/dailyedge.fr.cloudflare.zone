@@ -1,6 +1,7 @@
 ; dailyedge.fr — zone to import into Cloudflare (DNS > Records > Import and Export).
-; Faithful copy of the OVH zone exported on 23 November 2026 (docs/dns-migration.md), so that the
-; migration changes nothing; the site is branched afterwards (phase 2 of the document).
+; Merge of the two OVH exports of 23 November 2026 (docs/dns-migration.md): the current zone plus
+; the mail MX of the initial zone, removed since and to be restored at OVH before the switch.
+; The migration changes nothing else; the site is branched afterwards (§ 7 of the document).
 ; On import, UNTICK "Proxy imported DNS records": every record stays "DNS only".
 ; SOA and NS are not imported (Cloudflare writes its own).
 $ORIGIN dailyedge.fr.
@@ -14,7 +15,10 @@ www	3600	IN	A	213.186.33.5
 www	3600	IN	TXT	"3|welcome"
 ftp	3600	IN	CNAME	dailyedge.fr.
 
-; Mail of the root domain (OVH): SPF only. No MX in the OVH zone (see the document).
+; Mail of the root domain (OVH mailbox: contact@, support@): MX of the initial zone, SPF
+@	3600	IN	MX	1 mx1.mail.ovh.net.
+@	3600	IN	MX	5 mx2.mail.ovh.net.
+@	3600	IN	MX	100 mx3.mail.ovh.net.
 @	3600	IN	TXT	"v=spf1 include:mx.ovh.com -all"
 _dmarc	300	IN	TXT	"v=DMARC1; p=quarantine; rua=mailto:contact@dailyedge.fr; sp=quarantine; aspf=r"
 
