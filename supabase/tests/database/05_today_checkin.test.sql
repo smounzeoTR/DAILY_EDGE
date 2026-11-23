@@ -7,6 +7,9 @@ select plan(38);
 -- U: Paris user, onboarded, with plans today and yesterday (local dates)
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000e9', 'u@example.test', '{"timezone":"Europe/Paris"}');
+-- Lot 10b: onboarding requires the 18+ confirmation
+update public.profiles set adult_confirmed_at = now()
+  where user_id::text like '00000000-0000-0000-0000-%';
 update public.profiles set onboarded_at = now(), program_id = 'PR1'
 where user_id = '00000000-0000-0000-0000-0000000000e9';
 
@@ -189,6 +192,8 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000f6', 'paris2@example.test', '{"timezone":"Europe/Paris"}'),
   ('00000000-0000-0000-0000-0000000000f7', 'paris3@example.test', '{"timezone":"Europe/Paris"}'),
   ('00000000-0000-0000-0000-0000000000f8', 'ny@example.test', '{"timezone":"America/New_York"}');
+update public.profiles set adult_confirmed_at = now()
+where user_id in ('00000000-0000-0000-0000-0000000000f5', '00000000-0000-0000-0000-0000000000f6', '00000000-0000-0000-0000-0000000000f8');
 update public.profiles set onboarded_at = '2026-11-01'
 where user_id in ('00000000-0000-0000-0000-0000000000f5', '00000000-0000-0000-0000-0000000000f6', '00000000-0000-0000-0000-0000000000f8');
 -- paris2 already has its plan for 2026-12-15; paris3 is not onboarded

@@ -7,6 +7,9 @@ select plan(29);
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000f1', 'f1@example.test', '{"locale":"fr"}'),
   ('00000000-0000-0000-0000-0000000000f2', 'f2@example.test', '{"locale":"fr"}');
+-- Lot 10b: onboarding requires the 18+ confirmation
+update public.profiles set adult_confirmed_at = now()
+  where user_id::text like '00000000-0000-0000-0000-%';
 
 -- Valid habits: H01 with a custom cue, H02 with its default cue (not stored), H03 without cue
 create temp table habits_ok as

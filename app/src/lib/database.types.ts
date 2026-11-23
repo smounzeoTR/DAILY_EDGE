@@ -23,6 +23,34 @@ export type Database = {
   };
   public: {
     Tables: {
+      admin_audit: {
+        Row: {
+          action: string;
+          admin_id: string | null;
+          created_at: string;
+          detail: NonNullable<Json>;
+          id: string;
+          target_user_id: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          action: string;
+          admin_id?: string | null;
+          created_at?: string;
+          detail?: NonNullable<Json>;
+          id?: string;
+          target_user_id?: string | null;
+        };
+        Update: {
+          action?: string;
+          admin_id?: string | null;
+          created_at?: string;
+          detail?: NonNullable<Json>;
+          id?: string;
+          target_user_id?: string | null;
+        };
+        Relationships: [];
+      };
       app_settings: {
         Row: {
           key: string;
@@ -482,6 +510,40 @@ export type Database = {
         };
         Relationships: [];
       };
+      feedback: {
+        Row: {
+          app_version: string;
+          body: string;
+          build: string | null;
+          created_at: string;
+          id: string;
+          locale: string;
+          platform: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          app_version: string;
+          body: string;
+          build?: string | null;
+          created_at?: string;
+          id?: string;
+          locale: string;
+          platform: string;
+          user_id?: string;
+        };
+        Update: {
+          app_version?: string;
+          body?: string;
+          build?: string | null;
+          created_at?: string;
+          id?: string;
+          locale?: string;
+          platform?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       goals: {
         Row: {
           achieved_at: string | null;
@@ -778,6 +840,59 @@ export type Database = {
         };
         Relationships: [];
       };
+      ops_alerts: {
+        Row: {
+          created_at: string;
+          day: string;
+          detail: NonNullable<Json>;
+          id: string;
+          kind: string;
+          notified_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          day: string;
+          detail?: NonNullable<Json>;
+          id?: string;
+          kind: string;
+          notified_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          day?: string;
+          detail?: NonNullable<Json>;
+          id?: string;
+          kind?: string;
+          notified_at?: string | null;
+        };
+        Relationships: [];
+      };
+      ops_batch_runs: {
+        Row: {
+          finished_at: string;
+          id: string;
+          ok: boolean;
+          started_at: string;
+          summary: NonNullable<Json>;
+        };
+        ComputedFields: never;
+        Insert: {
+          finished_at?: string;
+          id?: string;
+          ok: boolean;
+          started_at: string;
+          summary?: NonNullable<Json>;
+        };
+        Update: {
+          finished_at?: string;
+          id?: string;
+          ok?: boolean;
+          started_at?: string;
+          summary?: NonNullable<Json>;
+        };
+        Relationships: [];
+      };
       plan_items: {
         Row: {
           adopted: boolean;
@@ -949,6 +1064,7 @@ export type Database = {
       };
       profiles: {
         Row: {
+          adult_confirmed_at: string | null;
           blockers: Database['public']['Enums']['blocker'][];
           chronotype: Database['public']['Enums']['chronotype'] | null;
           consent_ai: boolean;
@@ -978,6 +1094,7 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
+          adult_confirmed_at?: string | null;
           blockers?: Database['public']['Enums']['blocker'][];
           chronotype?: Database['public']['Enums']['chronotype'] | null;
           consent_ai?: boolean;
@@ -1006,6 +1123,7 @@ export type Database = {
           user_id: string;
         };
         Update: {
+          adult_confirmed_at?: string | null;
           blockers?: Database['public']['Enums']['blocker'][];
           chronotype?: Database['public']['Enums']['chronotype'] | null;
           consent_ai?: boolean;
@@ -1395,6 +1513,41 @@ export type Database = {
           too_hard_rate: number;
         }[];
       };
+      admin_feedback: {
+        Args: { p_limit?: number };
+        Returns: {
+          app_version: string;
+          body: string;
+          build: string;
+          created_at: string;
+          email: string;
+          id: string;
+          locale: string;
+          platform: string;
+        }[];
+      };
+      admin_grant_premium: { Args: { p_email: string; p_until: string }; Returns: Json };
+      admin_list_premium: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          email: string;
+          provider: string;
+          until: string;
+        }[];
+      };
+      admin_metrics: { Args: { p_from: string; p_to: string }; Returns: Json };
+      admin_ops_alerts: {
+        Args: { p_limit?: number };
+        Returns: {
+          created_at: string;
+          day: string;
+          detail: Json;
+          id: string;
+          kind: string;
+          notified_at: string;
+        }[];
+      };
+      admin_revoke_premium: { Args: { p_email: string }; Returns: undefined };
       answer_review_proposal: {
         Args: { p_accept: boolean; p_index: number; p_review_id: string };
         Returns: Json;
@@ -1412,6 +1565,7 @@ export type Database = {
       cancel_account_deletion: { Args: Record<PropertyKey, never>; Returns: undefined };
       cancel_assistant_action: { Args: { p_action_id: string }; Returns: undefined };
       change_program: { Args: { p_program_id: string }; Returns: undefined };
+      check_ops_alerts: { Args: { p_now?: string }; Returns: number };
       complete_onboarding: {
         Args: {
           p_blockers?: Database['public']['Enums']['blocker'][];
@@ -1437,6 +1591,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      confirm_adult_age: { Args: Record<PropertyKey, never>; Returns: string };
       confirm_assistant_action: { Args: { p_action_id: string }; Returns: Json };
       current_user_local_date: { Args: Record<PropertyKey, never>; Returns: string };
       delete_assistant_history: { Args: Record<PropertyKey, never>; Returns: undefined };
@@ -1491,6 +1646,10 @@ export type Database = {
       my_done_days: { Args: Record<PropertyKey, never>; Returns: string[] };
       purge_assistant_history: { Args: { p_now?: string }; Returns: number };
       purge_deleted_accounts: { Args: { p_now: string }; Returns: number };
+      record_batch_run: {
+        Args: { p_ok: boolean; p_started_at: string; p_summary: Json };
+        Returns: undefined;
+      };
       replace_active_goal: {
         Args: {
           p_deadline?: string;
@@ -1503,6 +1662,7 @@ export type Database = {
       };
       request_account_deletion: { Args: Record<PropertyKey, never>; Returns: string };
       require_admin: { Args: Record<PropertyKey, never>; Returns: undefined };
+      run_ops_checks: { Args: Record<PropertyKey, never>; Returns: number };
       save_daily_plan: {
         Args: { p_date: string; p_decision: Json; p_plan: Json; p_user_id: string };
         Returns: Json;

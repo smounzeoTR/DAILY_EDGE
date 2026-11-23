@@ -8,6 +8,9 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000c5', 'lib@example.test', '{"timezone":"Europe/Paris"}'),
   ('00000000-0000-0000-0000-0000000000c6', 'adopt@example.test', '{"timezone":"Europe/Paris"}'),
   ('00000000-0000-0000-0000-0000000000c7', 'other@example.test', '{"timezone":"Europe/Paris"}');
+-- Lot 10b: onboarding requires the 18+ confirmation
+update public.profiles set adult_confirmed_at = now()
+  where user_id::text like '00000000-0000-0000-0000-%';
 update public.profiles set onboarded_at = now(), program_id = 'PR1'
 where user_id in ('00000000-0000-0000-0000-0000000000c5', '00000000-0000-0000-0000-0000000000c6');
 

@@ -6,6 +6,9 @@ select plan(23);
 
 insert into auth.users (id, email) values
   ('00000000-0000-0000-0000-0000000000d1', 'd1@example.test');
+-- Lot 10b: onboarding requires the 18+ confirmation
+update public.profiles set adult_confirmed_at = now()
+  where user_id::text like '00000000-0000-0000-0000-%';
 
 -- ---- program_day / program_start_date are not user-writable ---------------
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000d1","role":"authenticated"}', true);

@@ -7,6 +7,9 @@ select plan(36);
 insert into auth.users (id, email, raw_user_meta_data) values
   ('00000000-0000-0000-0000-0000000000a9', 'a9@example.test', '{"timezone":"Europe/Paris"}'),
   ('00000000-0000-0000-0000-0000000000b9', 'b9@example.test', '{"timezone":"Europe/Paris"}');
+-- Lot 10b: onboarding requires the 18+ confirmation
+update public.profiles set adult_confirmed_at = now()
+  where user_id::text like '00000000-0000-0000-0000-%';
 update public.profiles set onboarded_at = '2026-10-01', program_id = 'PR1', persona = 'entrepreneur',
   level = 'beginner', daily_minutes = 30
 where user_id in ('00000000-0000-0000-0000-0000000000a9', '00000000-0000-0000-0000-0000000000b9');
