@@ -27,7 +27,7 @@ import {
   usePrograms,
 } from '@/lib/queries';
 import { track } from '@/lib/analytics';
-import { appVersion } from '@/lib/appVersion';
+import { appEnv, appVersion } from '@/lib/appVersion';
 import { supabase } from '@/lib/supabase';
 import { spacing, useTheme, type ThemePreference } from '@/theme';
 
@@ -381,6 +381,7 @@ export default function Settings() {
             version: version.version,
             build: version.build ?? '–',
           })}
+          {appEnv === 'production' ? '' : ` · ${appEnv}`}
         </AppText>
       </Card>
 
