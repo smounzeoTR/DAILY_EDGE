@@ -82,7 +82,9 @@ select lives_ok($$ select public.admin_grant_premium(' B2@example.test ', (selec
 select ok(public.is_premium('00000000-0000-0000-0000-0000000000b2'), 'the tester is premium');
 select is((select count(*)::int from public.admin_list_premium() where email = 'b2@example.test'),
   1, 'listed among premium accounts');
-select is((select count(*)::int from public.admin_feedback()), 1, 'admin reads all feedback');
+-- Local data may hold other feedback (Maestro): the tester's one is listed with its e-mail
+select is((select count(*)::int from public.admin_feedback() where email = 'b1@example.test'), 1,
+  'admin reads all feedback');
 select lives_ok($$ select public.admin_revoke_premium('b2@example.test') $$, 'premium revoked');
 select ok(not public.is_premium('00000000-0000-0000-0000-0000000000b2'), 'no longer premium');
 reset role;

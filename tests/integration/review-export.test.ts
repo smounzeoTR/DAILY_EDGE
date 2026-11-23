@@ -118,6 +118,7 @@ describe('export-my-data', () => {
         'daily_plans',
         'engine_decisions',
         'favorites',
+        'feedback',
         'goals',
         'habit_logs',
         'llm_calls',
