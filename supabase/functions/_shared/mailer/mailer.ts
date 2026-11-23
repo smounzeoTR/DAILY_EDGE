@@ -1,6 +1,6 @@
 // Transactional e-mail behind one interface (site § 3): Scaleway TEM in production,
 // Mailpit (the local Supabase "Inbucket") or the log locally.
-// MAILER_PROVIDER = scaleway | mailpit | log (default: log, nothing is sent).
+// MAILER_PROVIDER = scaleway | mailpit | log (default: log, nothing is sent); sender: WAITLIST_FROM.
 
 export interface MailMessage {
   to: string;
@@ -14,14 +14,17 @@ export interface Mailer {
   send(message: MailMessage): Promise<void>;
 }
 
+// Default sender; WAITLIST_FROM overrides it (always an address of auth.dailyedge.fr)
 export const MAIL_FROM = { email: 'bonjour@auth.dailyedge.fr', name: 'Daily Edge' };
+export type Sender = { email: string; name: string };
 
 type Fetch = typeof fetch;
 
 export function scalewayMailer(
-  config: { secretKey: string; projectId: string; region: string },
+  config: { secretKey: string; projectId: string; region: string; from?: Sender },
   fetchFn: Fetch = fetch,
 ): Mailer {
+  const from = config.from ?? MAIL_FROM;
   return {
     provider: 'scaleway',
     async send(message) {
@@ -31,7 +34,7 @@ export function scalewayMailer(
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'X-Auth-Token': config.secretKey },
           body: JSON.stringify({
-            from: MAIL_FROM,
+            from,
             to: [{ email: message.to }],
             subject: message.subject,
             text: message.text,
@@ -47,7 +50,11 @@ export function scalewayMailer(
 }
 
 /** Mailpit HTTP send API (local stack only). */
-export function mailpitMailer(baseUrl: string, fetchFn: Fetch = fetch): Mailer {
+export function mailpitMailer(
+  baseUrl: string,
+  fetchFn: Fetch = fetch,
+  from: Sender = MAIL_FROM,
+): Mailer {
   return {
     provider: 'mailpit',
     async send(message) {
@@ -55,7 +62,7 @@ export function mailpitMailer(baseUrl: string, fetchFn: Fetch = fetch): Mailer {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          From: { Email: MAIL_FROM.email, Name: MAIL_FROM.name },
+          From: { Email: from.email, Name: from.name },
           To: [{ Email: message.to }],
           Subject: message.subject,
           Text: message.text,
@@ -87,15 +94,18 @@ export function mailerFromEnv(get: (name: string) => string | undefined): Mailer
     if (!value) throw new Error(`missing env ${name}`);
     return value;
   };
+  const fromEmail = get('WAITLIST_FROM')?.trim();
+  const from: Sender = fromEmail ? { email: fromEmail, name: MAIL_FROM.name } : MAIL_FROM;
   switch (provider) {
     case 'scaleway':
       return scalewayMailer({
         secretKey: required('SCW_SECRET_KEY'),
         projectId: required('SCW_PROJECT_ID'),
         region: get('SCW_TEM_REGION') || 'fr-par',
+        from,
       });
     case 'mailpit':
-      return mailpitMailer(required('MAILPIT_URL'));
+      return mailpitMailer(required('MAILPIT_URL'), fetch, from);
     case 'log':
       return logMailer();
     default:
