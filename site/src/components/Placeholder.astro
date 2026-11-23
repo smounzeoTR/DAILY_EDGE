@@ -1,21 +1,17 @@
 ---
 // Reserved slot for a visual supplied later (fixed ratio: no layout shift when the image arrives).
+// Shapes and sizes are classes (no inline style: strict CSP).
 interface Props {
   label: string;
-  /** width / height, e.g. 1290 / 2796 for an App Store capture */
-  ratio: number;
-  maxWidth?: string;
+  /** phone: App Store capture (1290 × 2796); wide: 16 / 10 */
+  shape: 'phone' | 'wide';
+  size?: 'sm' | 'md' | 'lg' | 'full';
 }
 
-const { label, ratio, maxWidth = '100%' } = Astro.props;
+const { label, shape, size = 'full' } = Astro.props;
 ---
 
-<div
-  class="placeholder"
-  style={`aspect-ratio: ${ratio}; max-width: ${maxWidth}`}
-  role="img"
-  aria-label={label}
->
+<div class:list={['placeholder', shape, size]} role="img" aria-label={label}>
   <span aria-hidden="true">{label}</span>
 </div>
 
@@ -32,5 +28,29 @@ const { label, ratio, maxWidth = '100%' } = Astro.props;
     color: var(--color-text-muted);
     font-size: var(--text-sm);
     text-align: center;
+  }
+
+  .phone {
+    aspect-ratio: 1290 / 2796;
+  }
+
+  .wide {
+    aspect-ratio: 16 / 10;
+  }
+
+  .sm {
+    max-width: 16rem;
+  }
+
+  .md {
+    max-width: 18rem;
+  }
+
+  .lg {
+    max-width: 20rem;
+  }
+
+  .full {
+    max-width: 100%;
   }
 </style>

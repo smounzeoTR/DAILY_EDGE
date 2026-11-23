@@ -26,7 +26,8 @@ export const LIMITS: Record<SiteAction, Limit[]> = {
   'waitlist-confirm': [{ max: 30, seconds: 600 }],
   'waitlist-status': [{ max: 30, seconds: 600 }],
   'diagnostic-confirm-marketing': [{ max: 30, seconds: 600 }],
-  'altcha-challenge': [{ max: 60, seconds: 600 }],
+  // One challenge per form actually used; generous for shared addresses (cheap to serve)
+  'altcha-challenge': [{ max: 200, seconds: 600 }],
 };
 
 let warned = false;

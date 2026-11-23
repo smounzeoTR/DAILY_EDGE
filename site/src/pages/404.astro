@@ -1,0 +1,61 @@
+---
+// Not found page (Cloudflare Pages serves 404.html with a 404 status)
+import Button from '../components/Button.astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import SiteHeader from '../components/SiteHeader.astro';
+import { siteMode } from '../config';
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Page introuvable — Daily Edge" noindex>
+  <SiteHeader />
+  <main id="contenu" class="container page">
+    <p class="code" aria-hidden="true">
+      404
+    </p>
+    <h1>Cette page n’existe pas</h1>
+    <p class="text">L’adresse a peut-être changé. Repars de l’accueil, tout y est.</p>
+    <div class="actions">
+      <Button href="/">Revenir à l’accueil</Button>
+      {siteMode === 'launch' ? (
+        <Button href="/diagnostic" variant="secondary">
+          Faire mon diagnostic (2 min)
+        </Button>
+      ) : (
+        <Button href="/#reserver" variant="secondary">
+          Réserver ma place
+        </Button>
+      )}
+    </div>
+  </main>
+  <SiteFooter />
+</BaseLayout>
+
+<style>
+  .page {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding-block: var(--space-8);
+  }
+
+  .code {
+    color: var(--color-accent);
+    font-family: var(--font-heading);
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .text {
+    color: var(--color-text-muted);
+    font-size: var(--text-lg);
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+</style>

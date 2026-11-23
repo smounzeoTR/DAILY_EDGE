@@ -1,5 +1,6 @@
 ---
 // The one-page site (§ 4), shared by / and the source landing pages.
+import { pricing } from '../config';
 import type { LandingSource } from '../data/sources';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Coach from './sections/Coach.astro';
@@ -18,9 +19,38 @@ interface Props {
 }
 
 const { source } = Astro.props;
+
+// SoftwareApplication (§ 9): prices only, never a rating until real reviews exist
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: 'Daily Edge',
+  applicationCategory: 'LifestyleApplication',
+  operatingSystem: 'iOS, Android',
+  inLanguage: 'fr',
+  url: new URL('/', Astro.site).href,
+  image: new URL('/og.png', Astro.site).href,
+  description:
+    'Un principe tiré des grands livres de réussite, un exercice concret et trois habitudes. 10 minutes par jour, ajustées chaque soir.',
+  offers: [
+    { '@type': 'Offer', name: 'Gratuit', price: '0', priceCurrency: 'EUR' },
+    {
+      '@type': 'Offer',
+      name: 'Premium annuel',
+      price: pricing.yearly.replace(/[^\d,]/g, '').replace(',', '.'),
+      priceCurrency: 'EUR',
+    },
+    {
+      '@type': 'Offer',
+      name: 'Premium mensuel',
+      price: pricing.monthly.replace(/[^\d,]/g, '').replace(',', '.'),
+      priceCurrency: 'EUR',
+    },
+  ],
+};
 ---
 
-<BaseLayout canonical={source ? '/' : undefined}>
+<BaseLayout canonical={source ? '/' : undefined} jsonLd={jsonLd}>
   <SiteHeader />
   <main id="contenu">
     <Hero source={source} />

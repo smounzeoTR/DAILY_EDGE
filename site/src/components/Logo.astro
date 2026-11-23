@@ -1,8 +1,11 @@
 ---
 // Rising sun symbol + "dailyedge" wordmark (docs/identite-visuelle.md).
+// Sizes as classes (no inline style: strict CSP)
+type Size = 28 | 32 | 36 | 48;
+
 interface Props {
   variant?: 'full' | 'symbol';
-  size?: number;
+  size?: Size;
   /** Accessible name of the symbol variant (the full variant reads its wordmark) */
   label?: string;
 }
@@ -12,8 +15,7 @@ const symbolOnly = variant === 'symbol';
 ---
 
 <span
-  class:list={['logo', variant]}
-  style={`--logo-size: ${size}px`}
+  class:list={['logo', variant, `size-${size}`]}
   role={symbolOnly ? 'img' : undefined}
   aria-label={symbolOnly ? label : undefined}
 >
@@ -33,6 +35,22 @@ const symbolOnly = variant === 'symbol';
 </span>
 
 <style>
+  .size-28 {
+    --logo-size: 28px;
+  }
+
+  .size-32 {
+    --logo-size: 32px;
+  }
+
+  .size-36 {
+    --logo-size: 36px;
+  }
+
+  .size-48 {
+    --logo-size: 48px;
+  }
+
   .logo {
     display: inline-flex;
     align-items: center;

@@ -2,20 +2,28 @@
 import { defineConfig, envField } from 'astro/config';
 
 export default defineConfig({
-  site: 'https://dailyedge.fr',
+  // Public origin of the environment (canonical, share image, sitemap)
+  site: process.env.SITE_ORIGIN || 'https://dailyedge.fr',
   output: 'static',
   trailingSlash: 'never',
-  build: { format: 'file' },
+  // Stylesheets always as files (strict CSP: style-src 'self')
+  build: { format: 'file', inlineStylesheets: 'never' },
   // The diagnostic page imports the answer values shared with the Edge Functions
   vite: { server: { fs: { allow: ['..'] } } },
   env: {
     schema: {
       // Read at build time (static output); see src/config.ts
-      SITE_MODE: envField.enum({
+      // Mode: SITE_MODE_OVERRIDE (waitlist | launch) wins, else launch from SITE_LAUNCH_AT
+      SITE_MODE_OVERRIDE: envField.enum({
         context: 'server',
         access: 'public',
         values: ['waitlist', 'launch'],
-        default: 'waitlist',
+        optional: true,
+      }),
+      SITE_LAUNCH_AT: envField.string({
+        context: 'server',
+        access: 'public',
+        default: '2027-01-04T00:00:00+01:00',
       }),
       MEETING_URL: envField.string({ context: 'server', access: 'public', default: '' }),
       // Store links (launch mode); the buttons are hidden while they are empty

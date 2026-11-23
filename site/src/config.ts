@@ -1,19 +1,29 @@
 // Site configuration, resolved at build time (static output).
-import { APP_STORE_URL, MEETING_URL, PLAY_STORE_URL, SITE_MODE } from 'astro:env/server';
+import {
+  APP_STORE_URL,
+  MEETING_URL,
+  PLAY_STORE_URL,
+  SITE_LAUNCH_AT,
+  SITE_MODE_OVERRIDE,
+} from 'astro:env/server';
 
-export type SiteMode = 'waitlist' | 'launch';
+import { resolveSiteMode, type SiteMode } from './mode';
 
-export const siteMode: SiteMode = SITE_MODE;
+export type { SiteMode };
+
+// Decided once per build (see src/mode.ts and docs/exploitation.md)
+export const siteMode: SiteMode = resolveSiteMode({
+  override: SITE_MODE_OVERRIDE,
+  launchAt: SITE_LAUNCH_AT,
+});
 
 export const contactEmail = 'contact@dailyedge.fr';
 
-// Legal pages on GitHub Pages until they move to the site (lot S5)
-const legalRoot = 'https://legal.dailyedge.fr/fr';
-
+// Legal pages, served by the site itself (lot S5)
 export const legalLinks = {
-  notice: `${legalRoot}/mentions-legales.html`,
-  terms: `${legalRoot}/cgu.html`,
-  privacy: `${legalRoot}/confidentialite.html`,
+  notice: '/mentions-legales',
+  terms: '/cgu',
+  privacy: '/confidentialite',
 };
 
 // Social profiles: an entry without href is not displayed

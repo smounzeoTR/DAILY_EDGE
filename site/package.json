@@ -4,13 +4,13 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/postbuild.mjs",
     "preview": "astro preview",
     "typecheck": "astro check",
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check:weight": "PUBLIC_POSTHOG_KEY=phc_weight_check astro build && node scripts/check-weight.mjs",
+    "check:weight": "PUBLIC_POSTHOG_KEY=phc_weight_check npm run build && node scripts/check-weight.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
     "@astrojs/check": "^0.9.12",
     "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.65.1",
+    "@resvg/resvg-js": "^2.6.2",
     "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-astro": "^3.2.1",

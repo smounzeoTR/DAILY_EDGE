@@ -3,8 +3,28 @@ import { test as base, expect, type BrowserContext } from '@playwright/test';
 
 type Consent = 'pending' | 'denied' | 'granted';
 
-export const test = base.extend<{ consent: Consent; posthogBodies: string[] }>({
+export const test = base.extend<{
+  consent: Consent;
+  posthogBodies: string[];
+  cspViolations: string[];
+}>({
   consent: ['denied', { option: true }],
+  // Automatic: any Content-Security-Policy violation reported by the browser fails the test
+  cspViolations: [
+    async ({ page }, use) => {
+      const violations: string[] = [];
+      page.on('console', (message) => {
+        if (
+          /Content Security Policy|Refused to (load|execute|apply|connect)/i.test(message.text())
+        ) {
+          violations.push(message.text());
+        }
+      });
+      await use(violations);
+      expect(violations, 'CSP violations').toEqual([]);
+    },
+    { auto: true },
+  ],
   // Automatic: every test gets PostHog intercepted and the consent preset
   posthogBodies: [
     async ({ context, consent }, use) => {

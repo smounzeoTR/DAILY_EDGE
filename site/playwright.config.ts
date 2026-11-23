@@ -11,7 +11,7 @@ export default defineConfig({
   use: { baseURL: `http://localhost:${port}`, ...devices['Pixel 7'] },
   webServer: {
     // A PostHog key makes the consent banner and the measurement active (requests intercepted)
-    command: `PUBLIC_POSTHOG_KEY=phc_e2e_test npm run build && npx astro preview --ignore-lock --port ${port}`,
+    command: `PUBLIC_POSTHOG_KEY=phc_e2e_test npm run build && node scripts/serve.mjs ${port}`,
     url: `http://localhost:${port}`,
     reuseExistingServer: false,
   },
