@@ -8,6 +8,7 @@ import interRegular from '@fontsource/inter/files/inter-latin-400-normal.woff2?u
 import groteskBold from '@fontsource/space-grotesk/files/space-grotesk-latin-700-normal.woff2?url';
 import '../styles/global.css';
 import ConsentBanner from '../components/ConsentBanner.astro';
+import { siteMode } from '../config';
 
 interface Props {
   title?: string;
@@ -33,7 +34,7 @@ const shareImage = new URL('/og.png', Astro.site).href;
 ---
 
 <!doctype html>
-<html lang={lang}>
+<html lang={lang} data-site-mode={siteMode}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

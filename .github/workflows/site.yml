@@ -1,0 +1,197 @@
+# dailyedge.fr: tests, then recette, then production (Cloudflare Pages, wrangler pages deploy).
+# Nothing is published when a test, the page weight or Lighthouse fails; production only after
+# the recette deployment and its remote checks. Procedure: docs/mise-en-ligne.md § 11.
+#
+# Repository secrets: CLOUDFLARE_API_TOKEN (Cloudflare Pages: Edit only), CLOUDFLARE_ACCOUNT_ID,
+#   SITE_VARIABLES_TOKEN (fine-grained GitHub token, this repository, Environments + Variables: write).
+# Environment "recette" secrets: CF_ACCESS_CLIENT_ID, CF_ACCESS_CLIENT_SECRET (Access service token).
+# Environment variables (recette and production): PAGES_PROJECT, SITE_ORIGIN, PUBLIC_FUNCTIONS_URL,
+#   PUBLIC_POSTHOG_KEY, SITE_LAUNCH_AT, SITE_MODE_OVERRIDE, MEETING_URL, APP_STORE_URL,
+#   PLAY_STORE_URL, HSTS_MAX_AGE.
+name: Site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'supabase/functions/_shared/diagnostic/**'
+      - 'supabase/functions/_shared/onboarding/**'
+      - '.github/workflows/site.yml'
+  # 4 January 2027, 00:05 in Paris (23:05 UTC on 3 January): build in launch mode.
+  # GitHub may start it late; "force-launch" below is the manual fallback.
+  schedule:
+    - cron: '5 23 3 1 *'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'publish: tests then recette then production; force-launch / back-to-waitlist: set the mode then publish; republish-previous: production rollback'
+        type: choice
+        options: [publish, force-launch, back-to-waitlist, republish-previous]
+        default: publish
+
+concurrency:
+  group: site-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  WRANGLER_VERSION: 4.162.0
+
+jobs:
+  set-mode:
+    if: github.event_name == 'workflow_dispatch' && (inputs.action == 'force-launch' || inputs.action == 'back-to-waitlist')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Mode override in both environments (kept for the next builds)
+        env:
+          GH_TOKEN: ${{ secrets.SITE_VARIABLES_TOKEN }}
+          MODE: ${{ inputs.action == 'force-launch' && 'launch' || 'waitlist' }}
+        run: |
+          for environment in recette production; do
+            gh variable set SITE_MODE_OVERRIDE --repo "$GITHUB_REPOSITORY" --env "$environment" --body "$MODE"
+          done
+          echo "SITE_MODE_OVERRIDE=$MODE (recette, production)" >> "$GITHUB_STEP_SUMMARY"
+
+  test:
+    needs: set-mode
+    if: always() && !(github.event_name == 'workflow_dispatch' && inputs.action == 'republish-previous') && needs.set-mode.result != 'failure'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            site/package-lock.json
+      - uses: supabase/setup-cli@1dedf2c611547ede7232d26866dd3c56ab903bbb # v1.7.3
+        with:
+          version: 3.2.0
+      - run: npm ci
+      - run: npm ci
+        working-directory: site
+      - name: Local Supabase stack (migrations, catalogue, mock providers)
+        run: supabase start
+      - run: npx playwright install --with-deps chromium
+        working-directory: site
+      - name: Site checks (types, lint, format)
+        working-directory: site
+        run: npm run typecheck && npm run lint && npm run format:check
+      - name: Unit tests (site, shared rules)
+        run: npx vitest run tests/site supabase/functions/_shared/onboarding supabase/functions/_shared/diagnostic supabase/functions/_shared/site supabase/functions/_shared/waitlist supabase/functions/_shared/mailer
+      - name: Integration tests of the site functions
+        run: npx vitest run --config vitest.integration.config.ts tests/integration/waitlist.test.ts tests/integration/diagnostic.test.ts tests/integration/site-abuse.test.ts
+      - name: End-to-end tests (Playwright, axe, CSP, consent)
+        working-directory: site
+        run: npm run test:e2e
+      - name: Page weight (< 500 KB without fonts)
+        working-directory: site
+        run: npm run check:weight
+      - name: Lighthouse mobile (>= 90)
+        working-directory: site
+        run: |
+          export CHROME_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")"
+          npm run check:lighthouse
+
+  deploy-recette:
+    needs: test
+    if: always() && needs.test.result == 'success'
+    runs-on: ubuntu-latest
+    environment: recette
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+        working-directory: site
+      - name: Build (recette)
+        working-directory: site
+        env:
+          DEPLOY_ENV: recette
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
+          PUBLIC_FUNCTIONS_URL: ${{ vars.PUBLIC_FUNCTIONS_URL }}
+          PUBLIC_POSTHOG_KEY: ${{ vars.PUBLIC_POSTHOG_KEY }}
+          SITE_LAUNCH_AT: ${{ vars.SITE_LAUNCH_AT }}
+          # The requested mode first (same run as set-mode), then the stored override
+          SITE_MODE_OVERRIDE: ${{ (github.event_name == 'workflow_dispatch' && inputs.action == 'force-launch') && 'launch' || (github.event_name == 'workflow_dispatch' && inputs.action == 'back-to-waitlist') && 'waitlist' || vars.SITE_MODE_OVERRIDE }}
+          MEETING_URL: ${{ vars.MEETING_URL }}
+          APP_STORE_URL: ${{ vars.APP_STORE_URL }}
+          PLAY_STORE_URL: ${{ vars.PLAY_STORE_URL }}
+          HSTS_MAX_AGE: ${{ vars.HSTS_MAX_AGE }}
+        run: npm run build
+      - name: Deploy to Cloudflare Pages (recette)
+        working-directory: site
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler@${WRANGLER_VERSION} pages deploy dist --project-name="${{ vars.PAGES_PROJECT }}" --branch=main --commit-hash="$GITHUB_SHA" --commit-dirty=false
+      - name: Remote checks on the online recette
+        working-directory: site
+        env:
+          CF_ACCESS_CLIENT_ID: ${{ secrets.CF_ACCESS_CLIENT_ID }}
+          CF_ACCESS_CLIENT_SECRET: ${{ secrets.CF_ACCESS_CLIENT_SECRET }}
+        run: node scripts/remote-check.mjs --base "${{ vars.SITE_ORIGIN }}" --env recette
+
+  deploy-production:
+    needs: deploy-recette
+    if: always() && needs.deploy-recette.result == 'success'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+      - run: npm ci
+        working-directory: site
+      - name: Build (production)
+        working-directory: site
+        env:
+          DEPLOY_ENV: production
+          SITE_ORIGIN: ${{ vars.SITE_ORIGIN }}
+          PUBLIC_FUNCTIONS_URL: ${{ vars.PUBLIC_FUNCTIONS_URL }}
+          PUBLIC_POSTHOG_KEY: ${{ vars.PUBLIC_POSTHOG_KEY }}
+          SITE_LAUNCH_AT: ${{ vars.SITE_LAUNCH_AT }}
+          # The requested mode first (same run as set-mode), then the stored override
+          SITE_MODE_OVERRIDE: ${{ (github.event_name == 'workflow_dispatch' && inputs.action == 'force-launch') && 'launch' || (github.event_name == 'workflow_dispatch' && inputs.action == 'back-to-waitlist') && 'waitlist' || vars.SITE_MODE_OVERRIDE }}
+          MEETING_URL: ${{ vars.MEETING_URL }}
+          APP_STORE_URL: ${{ vars.APP_STORE_URL }}
+          PLAY_STORE_URL: ${{ vars.PLAY_STORE_URL }}
+          HSTS_MAX_AGE: ${{ vars.HSTS_MAX_AGE }}
+        run: npm run build
+      - name: Deploy to Cloudflare Pages (production)
+        working-directory: site
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx wrangler@${WRANGLER_VERSION} pages deploy dist --project-name="${{ vars.PAGES_PROJECT }}" --branch=main --commit-hash="$GITHUB_SHA" --commit-dirty=false
+      - name: Remote checks on dailyedge.fr
+        working-directory: site
+        run: node scripts/remote-check.mjs --base "${{ vars.SITE_ORIGIN }}" --env production --pages-dev "https://${{ vars.PAGES_PROJECT }}.pages.dev"
+
+  republish-previous:
+    if: github.event_name == 'workflow_dispatch' && inputs.action == 'republish-previous'
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      - name: Republish the previous production deployment
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node site/scripts/pages-rollback.mjs "${{ vars.PAGES_PROJECT }}"
+      - name: Remote checks on dailyedge.fr
+        run: node site/scripts/remote-check.mjs --base "${{ vars.SITE_ORIGIN }}" --env production
