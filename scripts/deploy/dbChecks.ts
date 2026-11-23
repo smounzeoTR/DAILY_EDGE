@@ -8,6 +8,7 @@ import { MAKE_KEYS, type Target } from './plan.ts';
 // once they are on the project
 export const WAITLIST_MIGRATION = '20261210090000';
 export const DIAGNOSTIC_MIGRATION = '20261212090000';
+export const ABUSE_MIGRATION = '20261213090000';
 
 const SITE_FEATURES = [
   {
@@ -21,6 +22,17 @@ const SITE_FEATURES = [
     migration: DIAGNOSTIC_MIGRATION,
     tables: ['web_diagnostics', 'web_diagnostic_tokens'],
     trigger: { table: 'web_diagnostics', name: 'web_diagnostics_make_webhook' },
+  },
+  {
+    name: 'anti-abus',
+    migration: ABUSE_MIGRATION,
+    tables: [
+      'rate_limit_salts',
+      'rate_limit_hits',
+      'altcha_used_challenges',
+      'waitlist_email_sends',
+    ],
+    trigger: null,
   },
 ] as const;
 
@@ -67,6 +79,7 @@ export async function waitlistDbChecks(sql: Sql, target: Target): Promise<DbChec
         });
       }
     }
+    if (!feature.trigger) continue;
     const [trigger] = await sql`
       select t.tgenabled <> 'D' as enabled
       from pg_trigger t

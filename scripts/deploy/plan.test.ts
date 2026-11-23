@@ -40,6 +40,7 @@ const good = {
   MAILER_PROVIDER: 'scaleway',
   SITE_URL: 'http://localhost:4321',
   WAITLIST_FROM: 'bonjour@auth.dailyedge.fr',
+  ALTCHA_HMAC_KEY: 'a'.repeat(64),
   SUPABASE_DB_URL: 'never sent',
 };
 
@@ -165,6 +166,21 @@ describe('waitlist deployment rules', () => {
     expect(checkFunctionSecrets(withStores, 'recette')).toEqual([]);
     expect(functionSecrets(withStores)).toHaveProperty('APP_STORE_URL');
     expect(functionSecrets(withStores)).not.toHaveProperty('PLAY_STORE_URL');
+  });
+
+  it('ALTCHA key required (32+ characters); CLIENT_IP_SOURCE refused outside local', () => {
+    expect(checkFunctionSecrets({ ...good, ALTCHA_HMAC_KEY: 'short' }, 'recette')).toContain(
+      'ALTCHA_HMAC_KEY doit faire au moins 32 caractères (openssl rand -hex 32)',
+    );
+    expect(
+      checkFunctionSecrets({ ...good, CLIENT_IP_SOURCE: 'xff-rightmost' }, 'recette'),
+    ).toContain(
+      'CLIENT_IP_SOURCE ne doit pas être défini hors local (cf-connecting-ip par défaut)',
+    );
+    expect(functionSecrets(good)).toHaveProperty('ALTCHA_HMAC_KEY');
+    expect(functionSecrets({ ...good, CLIENT_IP_SOURCE: 'x' })).not.toHaveProperty(
+      'CLIENT_IP_SOURCE',
+    );
   });
 
   it('every sender is an address of auth.dailyedge.fr', () => {

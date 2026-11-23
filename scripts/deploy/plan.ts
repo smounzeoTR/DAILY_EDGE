@@ -53,6 +53,8 @@ export const FUNCTION_SECRET_KEYS = [
   // Web diagnostic (diagnostic-submit): store buttons of the result e-mail, hidden while empty
   'APP_STORE_URL',
   'PLAY_STORE_URL',
+  // Site anti-abuse (S4): ALTCHA challenges signed by our functions
+  'ALTCHA_HMAC_KEY',
 ] as const;
 
 // Every sender of the app and of the site uses this domain (Scaleway TEM)
@@ -118,6 +120,15 @@ export function checkWaitlistSecrets(env: Env, target: Target): string[] {
     for (const k of ['SCW_SECRET_KEY', 'SCW_PROJECT_ID', 'SCW_TEM_REGION']) {
       if (!filled(env, k)) errors.push(`${k} manquant (e-mails de la liste d'attente)`);
     }
+  }
+  if ((env.ALTCHA_HMAC_KEY ?? '').trim().length < 32) {
+    errors.push('ALTCHA_HMAC_KEY doit faire au moins 32 caractères (openssl rand -hex 32)');
+  }
+  // Local only: the client IP must come from cf-connecting-ip on Supabase (docs/exploitation.md)
+  if (filled(env, 'CLIENT_IP_SOURCE')) {
+    errors.push(
+      'CLIENT_IP_SOURCE ne doit pas être défini hors local (cf-connecting-ip par défaut)',
+    );
   }
   for (const k of ['APP_STORE_URL', 'PLAY_STORE_URL']) {
     const value = (env[k] ?? '').trim();

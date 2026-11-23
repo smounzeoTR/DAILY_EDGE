@@ -290,3 +290,29 @@ Le scénario « Daily Edge – Diagnostic web → Brevo » reste **désactivé**
 4. Éditeur SQL : `select r.created_at, r.url_host, h.status_code from public.make_webhook_requests r left join net._http_response h on h.id = r.request_id where r.source_table = 'web_diagnostics';` montre un appel 2xx.
 5. Make : lancer une fois (« Run once ») le scénario « Daily Edge – Diagnostic web → Brevo », vérifier le contact dans la liste Brevo « Daily Edge – Diagnostic web » (`PROFIL`, `PROGRAMME`, UTM), **puis seulement** activer le scénario.
 6. Nettoyage : dans l'éditeur SQL, `delete from public.web_diagnostics where email = '<ton adresse de test>';` (les jetons suivent), puis supprimer le contact de test dans Brevo.
+
+## 10. Mesure d'audience et anti-abus du site (lot S4)
+
+### PostHog (instance UE)
+
+Dans le projet PostHog du site (eu.posthog.com) :
+
+1. Project settings > Web analytics (ou Product analytics) > **Cookieless server hash mode** : activer. Sans ce réglage, les visiteurs qui n'ont pas accepté (refus ou pas encore de choix) ne sont pas comptés.
+2. Project settings > **Discard client IP data** : activer (aucune adresse IP conservée par PostHog).
+3. Ne pas activer le rejeu de session ni les questionnaires (le site les désactive aussi dans son code).
+4. Relever la clé publique du projet (`phc_…`) : ce n'est pas un secret.
+
+Le site se construit alors avec la clé (sinon, pas de mesure et pas de bandeau) :
+
+```
+cd ~/DAILY_EDGE/site
+PUBLIC_POSTHOG_KEY=phc_... PUBLIC_FUNCTIONS_URL=https://<ref>.supabase.co/functions/v1 npm run build
+```
+
+Comportement : sans choix ou après un refus, mesure anonyme sans cookie (empreinte calculée par PostHog sur ses serveurs) ; après acceptation, suivi complet sans identification. Le choix est gardé 6 mois dans `dailyedge.consent` ; tant qu'il n'y en a pas, le bandeau s'affiche à chaque visite. « Gérer mes cookies », dans le pied de page, rouvre le bandeau. Aucun e-mail, fragment d'URL ni paramètre autre que `utm_*` et `ref` n'est envoyé (`site/src/scripts/sanitize.ts`).
+
+### ALTCHA et limites par IP
+
+- Secret `ALTCHA_HMAC_KEY` dans `.env.<env>` (`openssl rand -hex 32`, différent par environnement), envoyé par `deploy secrets`. Nouvelle fonction `altcha-challenge` (sans JWT), déployée par `deploy functions`.
+- Après le déploiement en recette : le contrôle de l'IP du client de `docs/exploitation.md` § 8 (31 requêtes, la dernière en 429) **avant** la production.
+- Limites, sel quotidien et purges : `docs/exploitation.md` § 8.

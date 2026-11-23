@@ -46,6 +46,8 @@ describe('deploy check: waitlist', () => {
     expect(texts).toContain('web_diagnostics : RLS active');
     expect(texts).toContain("web_diagnostic_tokens : aucune politique d'accès (0)");
     expect(texts).toContain('trigger web_diagnostics_make_webhook (Make) installé et actif');
+    expect(texts).toContain('rate_limit_hits : RLS active');
+    expect(texts).toContain('rate_limit_salts : aucun droit pour anon ni authenticated');
   });
 
   it('diagnostic: fails with a public policy or without its Make trigger', async () => {
