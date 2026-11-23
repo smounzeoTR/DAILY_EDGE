@@ -1,0 +1,6 @@
+{
+  "allow_plan_toggle": false,
+  "assistant_daily_messages": 15,
+  "assistant_monthly_cost_cap_eur": 2,
+  "ops_ai_daily_cost_alert_eur": 5
+}
