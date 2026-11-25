@@ -34,8 +34,19 @@ const check = (ok, text) => {
   console.log(`${ok ? '✅' : '❌'} ${text}`);
   if (!ok) failures.push(text);
 };
-const get = (url, init = {}) =>
+const once = (url, init = {}) =>
   fetch(url, { redirect: 'manual', ...init, headers: { ...access, ...(init.headers ?? {}) } });
+
+// A deployment that has just been published can answer 5xx for a few seconds at some edges:
+// retry a 5xx answer for up to two minutes before reporting it
+async function get(url, init = {}) {
+  let res = await once(url, init);
+  for (let attempt = 1; res.status >= 500 && attempt <= 12; attempt++) {
+    await new Promise((resolve) => setTimeout(resolve, 10_000));
+    res = await once(url, init);
+  }
+  return res;
+}
 
 for (const path of PAGES) {
   const res = await get(`${base}${path}`);

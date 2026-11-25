@@ -73,7 +73,11 @@ const shareImage = new URL('/og.png', Astro.site).href;
     <a class="skip-link" href="#contenu">
       Aller au contenu
     </a>
+    {/* Cloudflare never rewrites what is between these markers (Email Address Obfuscation would
+        inject a script, refused by the CSP) */}
+    <Fragment set:html="<!--email_off-->" />
     <slot />
     <ConsentBanner />
+    <Fragment set:html="<!--/email_off-->" />
   </body>
 </html>
