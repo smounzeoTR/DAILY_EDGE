@@ -1,0 +1,4 @@
+/* Without JavaScript: no audience measurement, so no consent banner */
+[data-consent-banner] {
+  display: none !important;
+}

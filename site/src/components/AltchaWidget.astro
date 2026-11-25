@@ -1,6 +1,6 @@
 ---
-// ALTCHA proof-of-work (anti-robot), invisible: computed in the background as soon as the visitor
-// enters the form (or at submit), sent
+// ALTCHA proof-of-work (anti-robot), invisible: loaded and computed in the background as soon as
+// the visitor enters the form (or at submit), sent
 // with the form in the hidden field "altcha". Challenges come from our altcha-challenge function.
 import { PUBLIC_FUNCTIONS_URL } from 'astro:env/client';
 
@@ -11,7 +11,7 @@ const challenge = `${PUBLIC_FUNCTIONS_URL.replace(/\/+$/, '')}/altcha-challenge`
   challenge={challenge}
   name="altcha"
   display="invisible"
-  auto="onfocus"
+  auto="off"
   language="fr"
   configuration={JSON.stringify({
     humanInteractionSignature: false,
@@ -22,16 +22,14 @@ const challenge = `${PUBLIC_FUNCTIONS_URL.replace(/\/+$/, '')}/altcha-challenge`
 ></altcha-widget>
 
 <script>
-  // External build (strict CSP): no bundled blob: worker, no injected style; the PBKDF2 worker
-  // is served as a file of the site
-  import 'altcha/external';
-  import 'altcha/altcha.css';
-  import Pbkdf2Worker from 'altcha/workers/pbkdf2?worker';
+  import { loadAltcha } from '../scripts/altchaLoader';
 
-  const registry = (
-    globalThis as unknown as {
-      $altcha?: { algorithms: { set: (name: string, create: () => Worker) => void } };
-    }
-  ).$altcha;
-  registry?.algorithms.set('PBKDF2/SHA-256', () => new Pbkdf2Worker());
+  // As soon as the visitor enters a form with a widget: load ALTCHA and start the proof-of-work
+  document.addEventListener('focusin', (event) => {
+    const form = (event.target as Element | null)?.closest('form');
+    const widget = form?.querySelector<HTMLElement & { verify?: () => void }>('altcha-widget');
+    if (!widget || widget.dataset.started) return;
+    widget.dataset.started = 'true';
+    void loadAltcha().then(() => widget.verify?.());
+  });
 </script>

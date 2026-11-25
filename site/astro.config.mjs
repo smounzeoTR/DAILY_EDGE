@@ -9,7 +9,9 @@ export default defineConfig({
   // Stylesheets always as files (strict CSP: style-src 'self')
   build: { format: 'file', inlineStylesheets: 'never' },
   // The diagnostic page imports the answer values shared with the Edge Functions
-  vite: { server: { fs: { allow: ['..'] } } },
+  // One stylesheet for the site (fewer render-blocking requests); the diagnostic page imports the
+  // answer values shared with the Edge Functions
+  vite: { build: { cssCodeSplit: false }, server: { fs: { allow: ['..'] } } },
   env: {
     schema: {
       // Read at build time (static output); see src/config.ts

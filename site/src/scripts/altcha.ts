@@ -1,4 +1,5 @@
 // Waits for the ALTCHA solution of a form (the widget computes it in the background).
+import { loadAltcha } from './altchaLoader';
 type AltchaWidget = HTMLElement & {
   verify?: () => void;
   reset?: () => void;
@@ -11,7 +12,11 @@ function payloadOf(form: HTMLFormElement): string | null {
 }
 
 /** The solution to send with the form, or null when it could not be computed in time. */
-export function altchaPayload(form: HTMLFormElement, timeoutMs = 30_000): Promise<string | null> {
+export async function altchaPayload(
+  form: HTMLFormElement,
+  timeoutMs = 30_000,
+): Promise<string | null> {
+  await loadAltcha();
   const ready = payloadOf(form);
   if (ready) return Promise.resolve(ready);
   const widget = form.querySelector<AltchaWidget>('altcha-widget');
@@ -33,6 +38,7 @@ export function altchaPayload(form: HTMLFormElement, timeoutMs = 30_000): Promis
 
 /** A solution is accepted once: start a new one after each sending attempt. */
 export function resetAltcha(form: HTMLFormElement): void {
+  void loadAltcha();
   const widget = form.querySelector<AltchaWidget>('altcha-widget');
   widget?.reset?.();
   widget?.verify?.();

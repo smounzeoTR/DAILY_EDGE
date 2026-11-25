@@ -1,23 +1,28 @@
 ---
 // Audience measurement banner (CNIL): "Refuser" exactly as visible as "Accepter".
 // Shown at every visit while no choice is stored ("pending"); reopened by "Gérer mes cookies".
+// Rendered visible (best LCP and CLS); hidden without JavaScript by /noscript.css (no measurement then).
 import { PUBLIC_POSTHOG_KEY } from 'astro:env/client';
 
 import { legalLinks } from '../config';
 ---
 
 {PUBLIC_POSTHOG_KEY && (
-  <section class="consent" aria-labelledby="consent-title" data-consent-banner hidden>
+  <section class="consent" aria-labelledby="consent-title" data-consent-banner>
     <div class="inner">
       <h2 id="consent-title" class="title">
         Mesure d’audience
       </h2>
-      <p class="text">
-        Nous mesurons l’audience de ce site avec PostHog, hébergé dans l’Union européenne.
-        <strong>Sans ton accord, seule une mesure anonyme, sans cookie, est faite.</strong> Avec ton
-        accord, un cookie nous aide à mieux comprendre les visites, sans jamais ton e-mail.{' '}
-        <a href={legalLinks.privacy}>En savoir plus</a>
-      </p>
+      <div class="text">
+        <p>
+          Nous mesurons l’audience de ce site avec PostHog, hébergé dans l’Union européenne.
+          <strong>Sans ton accord, seule une mesure anonyme, sans cookie, est faite.</strong>
+        </p>
+        <p>
+          Avec ton accord, un cookie nous aide à mieux comprendre les visites, sans jamais ton
+          e-mail. <a href={legalLinks.privacy}>En savoir plus</a>
+        </p>
+      </div>
       <div class="actions">
         <button type="button" class="choice" data-consent="denied">
           Refuser
@@ -37,7 +42,8 @@ import { legalLinks } from '../config';
   const banner = document.querySelector<HTMLElement>('[data-consent-banner]');
   if (analyticsEnabled && banner) {
     startAnalytics();
-    if (readConsent() === 'pending') banner.hidden = false;
+    // Visible from the HTML (no late paint, no layout shift): hidden once a choice exists
+    if (readConsent() !== 'pending') banner.hidden = true;
     banner.addEventListener('click', (event) => {
       const button = (event.target as Element).closest<HTMLButtonElement>('[data-consent]');
       if (!button) return;
@@ -55,7 +61,15 @@ import { legalLinks } from '../config';
 </script>
 
 <style>
+  /* System font: the banner is painted at once and keeps its size when the web fonts arrive
+     (no layout shift, no late largest paint) */
   .consent {
+    font-family:
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      Roboto,
+      sans-serif;
     position: fixed;
     inset: auto 0 0 0;
     z-index: 20;
@@ -87,10 +101,16 @@ import { legalLinks } from '../config';
   }
 
   .title {
+    font-family: inherit;
     font-size: var(--text-lg);
   }
 
+  /* Two short paragraphs rather than one long one: the page's own heading stays its largest
+     element (better LCP) */
   .text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
     color: var(--color-text-long);
     font-size: var(--text-sm);
   }
@@ -111,6 +131,7 @@ import { legalLinks } from '../config';
     color: var(--color-button-text);
     font: inherit;
     font-weight: 600;
+    font-family: inherit;
     cursor: pointer;
   }
 
