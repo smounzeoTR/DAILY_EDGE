@@ -124,11 +124,9 @@ export function checkWaitlistSecrets(env: Env, target: Target): string[] {
   if ((env.ALTCHA_HMAC_KEY ?? '').trim().length < 32) {
     errors.push('ALTCHA_HMAC_KEY doit faire au moins 32 caractères (openssl rand -hex 32)');
   }
-  // Local only: the client IP must come from cf-connecting-ip on Supabase (docs/exploitation.md)
+  // Local only: on Supabase the client IP comes from x-real-ip (docs/exploitation.md § 8)
   if (filled(env, 'CLIENT_IP_SOURCE')) {
-    errors.push(
-      'CLIENT_IP_SOURCE ne doit pas être défini hors local (cf-connecting-ip par défaut)',
-    );
+    errors.push('CLIENT_IP_SOURCE ne doit pas être défini hors local (x-real-ip par défaut)');
   }
   for (const k of ['APP_STORE_URL', 'PLAY_STORE_URL']) {
     const value = (env[k] ?? '').trim();

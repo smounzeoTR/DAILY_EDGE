@@ -174,9 +174,7 @@ describe('waitlist deployment rules', () => {
     );
     expect(
       checkFunctionSecrets({ ...good, CLIENT_IP_SOURCE: 'xff-rightmost' }, 'recette'),
-    ).toContain(
-      'CLIENT_IP_SOURCE ne doit pas être défini hors local (cf-connecting-ip par défaut)',
-    );
+    ).toContain('CLIENT_IP_SOURCE ne doit pas être défini hors local (x-real-ip par défaut)');
     expect(functionSecrets(good)).toHaveProperty('ALTCHA_HMAC_KEY');
     expect(functionSecrets({ ...good, CLIENT_IP_SOURCE: 'x' })).not.toHaveProperty(
       'CLIENT_IP_SOURCE',
