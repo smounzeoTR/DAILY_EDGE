@@ -1,7 +1,7 @@
 # Screenshots for dailyedge.fr and the App Store: demo account, light mode, Release build on the
-# simulator (no Expo Go button on the images). Not a test: run on demand.
+# simulator (a Debug build shows the developer menu button: never use it). Not a test: run on demand.
 # Run (from the repository root): npm run seed:demo, Release build installed (see CLAUDE.md), then
-#   maestro test app/e2e/site-screenshots.yaml --test-output-dir site/screenshots-raw
+#   maestro test app/e2e/site-screenshots.yaml --test-output-dir site/screenshots
 appId: com.trasenel.daily-edge
 env:
   EMAIL: demo@daily-edge.local
@@ -41,15 +41,18 @@ env:
     visible: 'Jour 10 sur 28.*'
     timeout: 30000
 - waitForAnimationToEnd
+# A Debug build shows the developer menu button on every screen: Release build only
+- assertNotVisible: 'Gear Shape.*'
 
 # Hero of the site: Today, top of the screen
 - takeScreenshot: site-hero-today
 
 # 1. The principle and the exercise of the day
-- scrollUntilVisible:
-    element: 'Exercice du jour'
-    direction: DOWN
-    centerElement: true
+# The exercise card is already on screen: scroll so that it sits in the middle
+- swipe:
+    start: 50%, 70%
+    end: 50%, 40%
+- waitForAnimationToEnd
 - takeScreenshot: site-1-principle
 
 # 3. Tiny habits
@@ -107,8 +110,16 @@ env:
 - tapOn:
     id: 'coach-input'
 - inputText: "Je n'ai que 5 minutes aujourd'hui"
-- hideKeyboard
+# iOS keyboard tip (hideKeyboard fails on this input): close it if shown, then send
+- runFlow:
+    when:
+      visible: '.*(Speed up your typing|Tapez plus rapidement|glissant).*'
+    commands:
+      - tapOn: 'Continue|Continuer'
 - tapOn: 'Envoyer'
+# Hide the keyboard: tap the conversation area (not an input)
+- tapOn:
+    point: 50%, 30%
 - extendedWaitUntil:
     visible: 'Passer à une version courte de ta journée \(5 min\)'
     timeout: 20000

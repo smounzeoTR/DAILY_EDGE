@@ -20,4 +20,4 @@ scripts/assistant-eval/results/
 
 # Database backups (personal data): never committed
 backups/
-site/screenshots-raw/
+site/screenshots/
