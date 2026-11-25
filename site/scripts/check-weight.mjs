@@ -1,6 +1,7 @@
 // Fails when a built page weighs 500 KB or more, fonts excluded (spec § 10).
 // Counts the HTML plus every local stylesheet, script and image it references, and the scripts
-// those scripts import (statically or on demand).
+// those scripts import (statically or on demand). Responsive images count once, by their `src`
+// (the largest fallback): `srcset` candidates are alternatives, a browser downloads one.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -16,7 +17,7 @@ let failed = false;
 for (const page of pages) {
   const html = readFileSync(join(dist, page), 'utf8');
   const refs = new Set(
-    [...html.matchAll(/(?:href|src)="(\/[^"#?]+)"/g)]
+    [...html.matchAll(/\s(?:href|src)="(\/[^"#?]+)"/g)]
       .map((m) => m[1])
       .filter((ref) => !fontExt.test(ref)),
   );

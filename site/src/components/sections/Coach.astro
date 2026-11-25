@@ -1,5 +1,6 @@
 ---
-import Placeholder from '../Placeholder.astro';
+import coach from '../../assets/screens/4-coach.png';
+import PhoneShot from '../PhoneShot.astro';
 import Section from '../Section.astro';
 
 const points = [
@@ -22,7 +23,11 @@ const points = [
         <li>{point}</li>
       ))}
     </ul>
-    <Placeholder label="Capture App Store 4 — Coach Edge" shape="phone" size="md" />
+    <PhoneShot
+      image={coach}
+      alt="Coach Edge propose de passer à une version courte de la journée (5 min), avec les boutons Appliquer et Annuler."
+      size="md"
+    />
   </div>
 </Section>
 

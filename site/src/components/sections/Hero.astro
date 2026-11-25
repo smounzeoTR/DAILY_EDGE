@@ -2,7 +2,8 @@
 import { launchDate, siteMode } from '../../config';
 import type { LandingSource } from '../../data/sources';
 import Button from '../Button.astro';
-import Placeholder from '../Placeholder.astro';
+import heroToday from '../../assets/screens/hero-today.png';
+import PhoneShot from '../PhoneShot.astro';
 import StoreLinks from '../StoreLinks.astro';
 import WaitlistForm from '../WaitlistForm.astro';
 
@@ -50,7 +51,12 @@ const headlineParts = headline.split(/(\S+-\S+)/);
       )}
     </div>
     <div class="visual">
-      <Placeholder label="Visuel principal — à fournir" shape="phone" size="lg" />
+      <PhoneShot
+        image={heroToday}
+        alt="Écran Aujourd’hui de Daily Edge : le principe du jour « Le travail en profondeur » et l’exercice du jour « Une session de travail profond » (30 min)."
+        size="lg"
+        priority
+      />
     </div>
   </div>
 </section>

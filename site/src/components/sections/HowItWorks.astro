@@ -1,23 +1,29 @@
 ---
 import Card from '../Card.astro';
-import Placeholder from '../Placeholder.astro';
+import principle from '../../assets/screens/1-principle.png';
+import checkin from '../../assets/screens/2-checkin.png';
+import habits from '../../assets/screens/3-habits.png';
+import PhoneShot from '../PhoneShot.astro';
 import Section from '../Section.astro';
 
 const steps = [
   {
     title: 'Un principe par jour',
     text: 'Tiré de Hill, Kiyosaki, Clear, Covey et des autres grands livres de réussite, expliqué en quelques lignes, avec ce qu’il change pour toi aujourd’hui.',
-    capture: 'Capture App Store 1 — principe du jour',
+    image: principle,
+    alt: 'L’exercice du jour avec les boutons Fait, Pas le temps et Trop dur, suivi de « Pourquoi aujourd’hui ».',
   },
   {
     title: 'Un plan qui s’ajuste',
     text: 'Chaque soir, un check-in rapide : ton énergie, ton temps disponible demain. Le plan du lendemain s’adapte, jusqu’à une version courte les jours chargés.',
-    capture: 'Capture App Store 2 — plan qui s’ajuste',
+    image: checkin,
+    alt: 'Le check-in du soir : énergie, humeur et temps disponible demain.',
   },
   {
     title: 'Des habitudes minuscules',
     text: 'Trois habitudes assez petites pour tenir même quand la journée déborde. Un jour manqué ne casse pas ta série : tu reprends simplement le lendemain.',
-    capture: 'Capture App Store 3 — habitudes minuscules',
+    image: habits,
+    alt: 'Trois habitudes, chacune avec son signal et sa version minimale.',
   },
 ];
 ---
@@ -36,7 +42,7 @@ const steps = [
         </span>
         <h3>{step.title}</h3>
         <p class="text">{step.text}</p>
-        <Placeholder label={step.capture} shape="phone" size="sm" />
+        <PhoneShot image={step.image} alt={step.alt} size="sm" />
       </Card>
     ))}
   </ol>
