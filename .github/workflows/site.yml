@@ -83,7 +83,8 @@ jobs:
         working-directory: site
         run: npm run typecheck && npm run lint && npm run format:check
       - name: Unit tests (site, shared rules)
-        run: npx vitest run tests/site supabase/functions/_shared/onboarding supabase/functions/_shared/diagnostic supabase/functions/_shared/site supabase/functions/_shared/waitlist supabase/functions/_shared/mailer
+        # The parity test of the onboarding rule needs the app dependencies: run by `npm test`
+        run: npx vitest run tests/site supabase/functions/_shared/diagnostic supabase/functions/_shared/site supabase/functions/_shared/waitlist supabase/functions/_shared/mailer
       - name: Integration tests of the site functions
         run: npx vitest run --config vitest.integration.config.ts tests/integration/waitlist.test.ts tests/integration/diagnostic.test.ts tests/integration/site-abuse.test.ts
       - name: End-to-end tests (Playwright, axe, CSP, consent)
