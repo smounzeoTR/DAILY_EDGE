@@ -41,9 +41,11 @@ import {
   functionSecrets,
   isEuRegion,
   MAKE_KEYS,
+  localOnlySecrets,
   makeVaultSecrets,
   missingKeys,
   parseVerifyJwt,
+  remoteLocalOnlySecrets,
   PROJECT_KEYS,
   settingsSql,
   vaultSecrets,
@@ -99,9 +101,11 @@ if (missing.length > 0) fail(`clés manquantes dans .env.${target} : ${missing.j
 const ref = env.SUPABASE_PROJECT_REF ?? '';
 
 // ---- Helpers ------------------------------------------------------------------------------
-function supabase(args: string[], options: { capture?: boolean } = {}) {
+// cwd: Supabase CLI 3 reads supabase/config.toml when run inside the repository, and sends its
+// local [edge_runtime.secrets] along with `secrets set`: the secrets commands run elsewhere
+function supabase(args: string[], options: { capture?: boolean; cwd?: string } = {}) {
   const result = spawnSync('supabase', args, {
-    cwd: root,
+    cwd: options.cwd ?? root,
     env: { ...process.env, SUPABASE_ACCESS_TOKEN: env.SUPABASE_ACCESS_TOKEN },
     encoding: 'utf8',
     stdio: options.capture ? ['ignore', 'pipe', 'pipe'] : 'inherit',
@@ -183,6 +187,19 @@ function functionNames(): string[] {
 
 const verifyJwt = () => parseVerifyJwt(readFileSync(resolve(root, 'supabase/config.toml'), 'utf8'));
 
+// Names of the secrets of the remote project (values are never read)
+function remoteSecretNames(cwd: string): string[] {
+  const out = supabase(['secrets', 'list', `--remote=${ref}`, '-o', 'json'], {
+    capture: true,
+    cwd,
+  });
+  const parsed = JSON.parse(out) as { secrets?: { name: string }[] } | { name: string }[];
+  return (Array.isArray(parsed) ? parsed : (parsed.secrets ?? [])).map((s) => s.name);
+}
+
+const localOnly = () =>
+  localOnlySecrets(readFileSync(resolve(root, 'supabase/config.toml'), 'utf8'));
+
 const dryRunNote = () => {
   if (!apply)
     console.log('\nSimulation : rien n’a été écrit. Relancer avec --apply pour appliquer.');
@@ -208,6 +225,18 @@ if (step === 'check') {
   if (project)
     report(isEuRegion(project.region ?? ''), `région ${project.region} dans l'Union européenne`);
   report(missingKeys(env, AUTH_KEYS).length === 0, `configuration auth et SMTP renseignée`);
+  {
+    const dir = mkdtempSync(join(tmpdir(), 'daily-edge-check-'));
+    try {
+      const stray = remoteLocalOnlySecrets(remoteSecretNames(dir), localOnly());
+      report(
+        stray.length === 0,
+        `aucun secret réservé au local sur le projet${stray.length ? ` (présents : ${stray.join(', ')} ; corriger avec deploy secrets --apply)` : ''}`,
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
   const secretErrors = checkFunctionSecrets(env, target);
   report(
     secretErrors.length === 0,
@@ -311,10 +340,17 @@ if (step === 'secrets') {
   if (errors.length > 0) fail(errors.join(' ; '));
   const secrets = functionSecrets(env);
   console.log(`Secrets envoyés (noms seulement) : ${Object.keys(secrets).join(', ')}`);
-  if (apply) {
-    const dir = mkdtempSync(join(tmpdir(), 'daily-edge-secrets-'));
-    const file = join(dir, 'secrets.env');
-    try {
+  // Outside the repository: the CLI must not read config.toml (local secrets)
+  const dir = mkdtempSync(join(tmpdir(), 'daily-edge-secrets-'));
+  try {
+    const stray = remoteLocalOnlySecrets(remoteSecretNames(dir), localOnly());
+    console.log(
+      stray.length
+        ? `Secrets réservés au local présents sur le projet, ${apply ? 'supprimés' : 'à supprimer (avec --apply)'} : ${stray.join(', ')}`
+        : 'Aucun secret réservé au local sur le projet.',
+    );
+    if (apply) {
+      const file = join(dir, 'secrets.env');
       writeFileSync(
         file,
         Object.entries(secrets)
@@ -322,10 +358,17 @@ if (step === 'secrets') {
           .join('\n'),
       );
       chmodSync(file, 0o600);
-      supabase(['secrets', 'set', `--remote=${ref}`, '--env-file', file, '--yes']);
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
+      supabase(['secrets', 'set', `--remote=${ref}`, '--env-file', file, '--yes'], { cwd: dir });
+      const after = remoteLocalOnlySecrets(remoteSecretNames(dir), localOnly());
+      if (after.length > 0) {
+        supabase(['secrets', 'unset', ...after, `--remote=${ref}`, '--yes'], { cwd: dir });
+      }
+      const left = remoteLocalOnlySecrets(remoteSecretNames(dir), localOnly());
+      if (left.length > 0) fail(`secrets réservés au local toujours présents : ${left.join(', ')}`);
+      console.log('✅ Secrets à jour, aucun secret réservé au local.');
     }
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
   dryRunNote();
 }

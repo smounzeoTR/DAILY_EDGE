@@ -7,19 +7,21 @@ import { LIMITS } from './rateLimit.ts';
 const headers = (values: Record<string, string>) => new Headers(values);
 
 describe('client IP (one place for the trusted header)', () => {
-  it('Supabase hosted: x-real-ip (set by the API gateway), never x-forwarded-for', () => {
-    const h = headers({
-      'x-real-ip': '88.191.219.182',
-      'cf-connecting-ip': '172.69.12.34',
-      'x-forwarded-for': '203.0.113.7',
+  // Headers as received by the function on Supabase (probe on recette, forged XFF and X-Real-IP)
+  const hosted = () =>
+    headers({
+      'cf-connecting-ip': '213.223.155.226',
+      'x-forwarded-for': '213.223.155.226,213.223.155.226, 35.34.105.45',
     });
-    expect(clientIp(h, 'x-real-ip')).toBe('88.191.219.182');
-    expect(clientIp(headers({ 'x-forwarded-for': '203.0.113.7' }), 'x-real-ip')).toBeNull();
+
+  it('Supabase hosted: cf-connecting-ip, the client address', () => {
+    expect(clientIp(hosted(), 'cf-connecting-ip')).toBe('213.223.155.226');
+    expect(clientIp(headers({ 'x-forwarded-for': '203.0.113.7' }), 'cf-connecting-ip')).toBeNull();
   });
 
-  it('cf-connecting-ip only when explicitly chosen', () => {
-    const h = headers({ 'cf-connecting-ip': '88.191.219.182', 'x-real-ip': '10.0.0.1' });
-    expect(clientIp(h, 'cf-connecting-ip')).toBe('88.191.219.182');
+  it('on Supabase the right-most x-forwarded-for entry is a gateway: never the hosted source', () => {
+    expect(clientIp(hosted(), 'xff-rightmost')).toBe('35.34.105.45');
+    expect(ipSourceFrom(undefined)).toBe('cf-connecting-ip');
   });
 
   it('local stack: the right-most x-forwarded-for entry (appended by Kong), not the forged left one', () => {
@@ -28,17 +30,18 @@ describe('client IP (one place for the trusted header)', () => {
   });
 
   it('IPv6 accepted, garbage refused', () => {
-    expect(clientIp(headers({ 'x-real-ip': '2a01:e0a:1:2::5' }), 'x-real-ip')).toBe(
+    expect(clientIp(headers({ 'cf-connecting-ip': '2a01:e0a:1:2::5' }), 'cf-connecting-ip')).toBe(
       '2a01:e0a:1:2::5',
     );
-    expect(clientIp(headers({ 'x-real-ip': 'unknown' }), 'x-real-ip')).toBeNull();
-    expect(clientIp(headers({ 'x-real-ip': '1.2.3.4; drop' }), 'x-real-ip')).toBeNull();
+    expect(clientIp(headers({ 'cf-connecting-ip': 'unknown' }), 'cf-connecting-ip')).toBeNull();
+    expect(
+      clientIp(headers({ 'cf-connecting-ip': '1.2.3.4; drop' }), 'cf-connecting-ip'),
+    ).toBeNull();
   });
 
-  it('defaults to x-real-ip unless another source is set', () => {
-    expect(ipSourceFrom(undefined)).toBe('x-real-ip');
-    expect(ipSourceFrom('anything')).toBe('x-real-ip');
-    expect(ipSourceFrom('cf-connecting-ip')).toBe('cf-connecting-ip');
+  it('defaults to cf-connecting-ip unless the local value is set', () => {
+    expect(ipSourceFrom('anything')).toBe('cf-connecting-ip');
+    expect(ipSourceFrom('x-real-ip')).toBe('cf-connecting-ip');
     expect(ipSourceFrom('xff-rightmost')).toBe('xff-rightmost');
   });
 });

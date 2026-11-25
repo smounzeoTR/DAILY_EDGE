@@ -367,7 +367,7 @@ Lancement manuel (Actions > Site > Run workflow) :
 ### Après le premier déploiement en recette
 
 1. Ouvrir https://recette.dailyedge.fr (connexion Cloudflare Access), faire une inscription et un diagnostic complets : la console du navigateur ne doit montrer aucune violation de CSP.
-2. Refaire le **contrôle de l'IP fiable** (`docs/exploitation.md` § 8) : les fonctions lisent l'IP du client dans `x-real-ip`, écrit par la passerelle de Supabase ; le contrôle doit finir en 429.
+2. Refaire le **contrôle de l'IP fiable** (`docs/exploitation.md` § 8) : les fonctions lisent l'IP du client dans `cf-connecting-ip` ; le contrôle doit finir en 429.
 3. Une semaine après la mise en ligne sans incident : `HSTS_MAX_AGE=31536000` dans l'environnement `production`, puis `publish`. `includeSubDomains` et `preload` attendent la vérification HTTPS de chaque sous-domaine (`docs/dns-migration.md`).
 
 ### Passage en mode `launch` (4 janvier 2027)

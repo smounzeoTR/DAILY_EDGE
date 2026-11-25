@@ -124,9 +124,11 @@ export function checkWaitlistSecrets(env: Env, target: Target): string[] {
   if ((env.ALTCHA_HMAC_KEY ?? '').trim().length < 32) {
     errors.push('ALTCHA_HMAC_KEY doit faire au moins 32 caractères (openssl rand -hex 32)');
   }
-  // Local only: on Supabase the client IP comes from x-real-ip (docs/exploitation.md § 8)
+  // Local only: on Supabase the client IP comes from cf-connecting-ip (docs/exploitation.md § 8)
   if (filled(env, 'CLIENT_IP_SOURCE')) {
-    errors.push('CLIENT_IP_SOURCE ne doit pas être défini hors local (x-real-ip par défaut)');
+    errors.push(
+      'CLIENT_IP_SOURCE ne doit pas être défini hors local (cf-connecting-ip par défaut)',
+    );
   }
   for (const k of ['APP_STORE_URL', 'PLAY_STORE_URL']) {
     const value = (env[k] ?? '').trim();
@@ -363,3 +365,25 @@ export function authDiff(
 
 // Project region must be in the European Union
 export const isEuRegion = (region: string) => /^eu-/.test(region);
+
+// ---- Secrets of the local stack ---------------------------------------------------------
+// supabase/config.toml [edge_runtime.secrets] holds local values (mock providers, easy ALTCHA,
+// local origins, CLIENT_IP_SOURCE=xff-rightmost). Supabase CLI 3 sends them along with
+// `secrets set` when it runs inside the repository: the deployment runs it elsewhere, and any of
+// these keys found on a project is removed (deploy secrets) or reported (deploy check).
+
+/** Keys of [edge_runtime.secrets] that are never deployment secrets. */
+export function localOnlySecrets(configToml: string): string[] {
+  const start = configToml.indexOf('[edge_runtime.secrets]');
+  if (start === -1) return [];
+  const rest = configToml.slice(start + '[edge_runtime.secrets]'.length);
+  const end = rest.search(/^\[/m);
+  const block = end === -1 ? rest : rest.slice(0, end);
+  const keys = [...block.matchAll(/^([A-Z][A-Z0-9_]*)\s*=/gm)].map((m) => m[1] as string);
+  return keys.filter((k) => !(FUNCTION_SECRET_KEYS as readonly string[]).includes(k)).sort();
+}
+
+/** Local-only secrets present on a remote project (names only). */
+export function remoteLocalOnlySecrets(remoteNames: string[], localOnly: string[]): string[] {
+  return remoteNames.filter((name) => localOnly.includes(name)).sort();
+}

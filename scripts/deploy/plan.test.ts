@@ -13,8 +13,10 @@ import {
   EXPECTED_VERIFY_JWT,
   functionSecrets,
   isEuRegion,
+  localOnlySecrets,
   makeVaultSecrets,
   parseVerifyJwt,
+  remoteLocalOnlySecrets,
   settingsSql,
   vaultSecrets,
 } from './plan.ts';
@@ -174,7 +176,9 @@ describe('waitlist deployment rules', () => {
     );
     expect(
       checkFunctionSecrets({ ...good, CLIENT_IP_SOURCE: 'xff-rightmost' }, 'recette'),
-    ).toContain('CLIENT_IP_SOURCE ne doit pas être défini hors local (x-real-ip par défaut)');
+    ).toContain(
+      'CLIENT_IP_SOURCE ne doit pas être défini hors local (cf-connecting-ip par défaut)',
+    );
     expect(functionSecrets(good)).toHaveProperty('ALTCHA_HMAC_KEY');
     expect(functionSecrets({ ...good, CLIENT_IP_SOURCE: 'x' })).not.toHaveProperty(
       'CLIENT_IP_SOURCE',
@@ -267,5 +271,36 @@ describe('JWT verification of the functions', () => {
       'waitlist-join : verify_jwt doit valoir false dans supabase/config.toml',
       'new-fn : mode JWT attendu non défini (scripts/deploy/plan.ts)',
     ]);
+  });
+});
+
+describe('secrets of the local stack', () => {
+  const toml = readFileSync(new URL('../../supabase/config.toml', import.meta.url), 'utf8');
+
+  it('lists the local-only keys of config.toml, never a deployment secret', () => {
+    const local = localOnlySecrets(toml);
+    for (const key of [
+      'CLIENT_IP_SOURCE',
+      'ALTCHA_COST',
+      'ALTCHA_COUNTER_MIN',
+      'ALTCHA_COUNTER_MAX',
+      'SITE_EXTRA_ORIGINS',
+      'MAILPIT_URL',
+      'LLM_MOCK_DELAY_MS',
+    ]) {
+      expect(local, key).toContain(key);
+    }
+    for (const key of ['PLANS_BATCH_SECRET', 'LLM_PROVIDER', 'MAILER_PROVIDER', 'SITE_URL']) {
+      expect(local, key).not.toContain(key);
+    }
+  });
+
+  it('finds the local-only keys among the names of a remote project', () => {
+    expect(
+      remoteLocalOnlySecrets(
+        ['SITE_URL', 'CLIENT_IP_SOURCE', 'ALTCHA_COST'],
+        localOnlySecrets(toml),
+      ),
+    ).toEqual(['ALTCHA_COST', 'CLIENT_IP_SOURCE']);
   });
 });
