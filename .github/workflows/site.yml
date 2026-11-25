@@ -75,8 +75,12 @@ jobs:
       - run: npm ci
       - run: npm ci
         working-directory: site
+      # The local Supabase ports (54320-54330) sit in Linux's ephemeral range: reserve them so that
+      # no outgoing connection (image pulls) takes one of them first
+      - name: Reserve the local Supabase ports
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54330
       - name: Local Supabase stack (migrations, catalogue, mock providers)
-        run: supabase start
+        run: supabase start || (supabase stop --no-backup && supabase start)
       - run: npx playwright install --with-deps chromium
         working-directory: site
       - name: Site checks (types, lint, format)
