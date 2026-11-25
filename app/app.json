@@ -1,18 +1,23 @@
 {
   "expo": {
     "name": "Daily Edge",
-    "slug": "daily-edge",
+    "slug": "dailyedge",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "dailyedge",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": {
+        "light": "./assets/images/icon.png",
+        "dark": "./assets/images/icon-dark.png",
+        "tinted": "./assets/images/icon-tinted.png"
+      },
       "bundleIdentifier": "com.trasenel.daily-edge",
       "config": {
         "usesNonExemptEncryption": false
-      }
+      },
+      "infoPlist": {}
     },
     "android": {
       "adaptiveIcon": {
@@ -52,6 +57,17 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "b472953e-c771-46e1-8982-3a5788c84946"
+      }
+    },
+    "owner": "smounzeotr"
   }
 }

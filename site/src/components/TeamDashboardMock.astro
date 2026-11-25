@@ -1,0 +1,241 @@
+---
+// Illustration of the Teams dashboard (not built yet): aggregated, fictitious figures, stated as
+// such in the caption. Plain HTML + SVG attributes (no inline style: strict CSP), themed by tokens.
+const kpis = [
+  { label: 'Participation', value: '78 %' },
+  { label: 'Régularité', value: '4,2 j/sem.' },
+  { label: 'Check-ins du soir', value: '64 %' },
+];
+
+// Share of active collaborators per week (%)
+const weeks = [52, 61, 66, 70, 74, 78];
+
+const themes = [
+  { label: 'Concentration', value: 34 },
+  { label: 'Habitudes', value: 28 },
+  { label: 'Communication', value: 22 },
+  { label: 'Gestion du temps', value: 16 },
+];
+---
+
+<figure class="mock" aria-labelledby="mock-caption">
+  <div class="window">
+    <div class="bar" aria-hidden="true">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+    <div class="body">
+      <div class="head">
+        <p class="title">Équipe Produit</p>
+        <p class="meta">24 collaborateurs · 30 derniers jours</p>
+      </div>
+
+      <dl class="kpis">
+        {kpis.map((kpi) => (
+          <div class="kpi">
+            <dt>{kpi.label}</dt>
+            <dd>{kpi.value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div class="panels">
+        <div class="panel">
+          <p class="panel-title">Participation par semaine</p>
+          <svg
+            class="columns"
+            viewBox="0 0 120 64"
+            role="img"
+            aria-label="De 52 % à 78 % en six semaines"
+          >
+            {weeks.map((value, index) => (
+              <rect
+                x={index * 20 + 4}
+                y={64 - (value * 60) / 100}
+                width="12"
+                height={(value * 60) / 100}
+                rx="2"
+                class:list={[index === weeks.length - 1 && 'last']}
+              />
+            ))}
+          </svg>
+        </div>
+        <div class="panel">
+          <p class="panel-title">Thèmes travaillés</p>
+          <ul class="themes">
+            {themes.map((theme) => (
+              <li>
+                <span class="theme-label">{theme.label}</span>
+                <span class="theme-value">{theme.value} %</span>
+                <svg
+                  class="track"
+                  viewBox="0 0 100 6"
+                  preserveAspectRatio="none"
+                  aria-hidden="true"
+                >
+                  <rect width="100" height="6" rx="3" class="track-bg" />
+                  <rect width={theme.value * 2} height="6" rx="3" />
+                </svg>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      <p class="privacy">Données agrégées à l’échelle de l’équipe. Aucune donnée individuelle.</p>
+    </div>
+  </div>
+  <figcaption id="mock-caption">
+    Maquette du tableau de bord Équipes (chiffres fictifs, à titre d’illustration).
+  </figcaption>
+</figure>
+
+<style>
+  .mock {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin: 0;
+    width: 100%;
+  }
+
+  .window {
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+    box-shadow: 0 12px 32px rgb(11 27 63 / 0.12);
+  }
+
+  .bar {
+    display: flex;
+    gap: 6px;
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .bar span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-border);
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-4);
+  }
+
+  .title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: var(--text-lg);
+  }
+
+  .meta,
+  .panel-title,
+  .privacy,
+  figcaption,
+  .kpi dt,
+  .theme-label {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .kpis {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+    margin: 0;
+  }
+
+  .kpi {
+    padding: var(--space-3);
+    border-radius: var(--radius-field);
+    background: var(--color-bg);
+  }
+
+  .kpi dd {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: var(--text-lg);
+    white-space: nowrap;
+  }
+
+  .panels {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  @media (min-width: 30rem) {
+    .panels {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border-radius: var(--radius-field);
+    background: var(--color-bg);
+  }
+
+  .columns {
+    width: 100%;
+    height: auto;
+    max-height: 8rem;
+  }
+
+  .columns rect {
+    fill: var(--color-primary);
+    opacity: 0.45;
+  }
+
+  .columns rect.last {
+    opacity: 1;
+  }
+
+  .themes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .themes li {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px var(--space-2);
+  }
+
+  .theme-value {
+    font-size: var(--text-sm);
+    font-weight: 600;
+  }
+
+  .track {
+    grid-column: 1 / -1;
+    width: 100%;
+    height: 6px;
+  }
+
+  .track rect {
+    fill: var(--color-accent);
+  }
+
+  .track .track-bg {
+    fill: var(--color-border);
+  }
+
+  figcaption {
+    text-align: center;
+  }
+</style>

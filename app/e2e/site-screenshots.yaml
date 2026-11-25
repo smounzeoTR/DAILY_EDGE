@@ -1,0 +1,116 @@
+# Screenshots for dailyedge.fr and the App Store: demo account, light mode, Release build on the
+# simulator (no Expo Go button on the images). Not a test: run on demand.
+# Run (from the repository root): npm run seed:demo, Release build installed (see CLAUDE.md), then
+#   maestro test app/e2e/site-screenshots.yaml --test-output-dir site/screenshots-raw
+appId: com.trasenel.daily-edge
+env:
+  EMAIL: demo@daily-edge.local
+---
+- launchApp:
+    clearState: true
+- evalScript: ${output.email = EMAIL}
+- extendedWaitUntil:
+    visible: 'Un principe par jour, tiré des meilleurs livres\.|Connecte-toi'
+    timeout: 60000
+- runFlow:
+    when:
+      visible: 'Un principe par jour, tiré des meilleurs livres\.'
+    commands:
+      - tapOn: 'Suivant'
+      - tapOn: 'Suivant'
+      - tapOn: 'Commencer'
+- tapOn: 'toi@exemple.com'
+- inputText: ${output.email}
+- tapOn: 'Recevoir mon code'
+- assertVisible: 'Entre ton code'
+- runScript: scripts/get-otp.js
+- inputText: ${output.code}
+- extendedWaitUntil:
+    visible: 'Un petit rappel, matin et soir \?'
+    timeout: 30000
+- tapOn: 'Plus tard'
+# Guide overlays (tour, celebration or tip)
+- extendedWaitUntil:
+    visible: 'Étape 1 sur 5|Merci !|Compris'
+    timeout: 8000
+    optional: true
+- tapOn:
+    text: 'Passer|Merci !|Compris'
+    optional: true
+- extendedWaitUntil:
+    visible: 'Jour 10 sur 28.*'
+    timeout: 30000
+- waitForAnimationToEnd
+
+# Hero of the site: Today, top of the screen
+- takeScreenshot: site-hero-today
+
+# 1. The principle and the exercise of the day
+- scrollUntilVisible:
+    element: 'Exercice du jour'
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: site-1-principle
+
+# 3. Tiny habits
+- scrollUntilVisible:
+    element: 'Tes habitudes'
+    direction: DOWN
+    centerElement: true
+- takeScreenshot: site-3-habits
+
+# 2. Evening check-in: the plan adjusts (filled, not sent)
+- scrollUntilVisible:
+    element: 'Faire mon check-in|Modifier mon check-in'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Faire mon check-in|Modifier mon check-in'
+- tapOn: 'Énergie 4 sur 5'
+- tapOn: 'Humeur 4 sur 5'
+- tapOn: '15 min'
+- waitForAnimationToEnd
+- takeScreenshot: site-2-checkin
+# Modal without a close button: swipe it down, nothing is saved
+- swipe:
+    start: 50%, 8%
+    end: 50%, 95%
+- waitForAnimationToEnd
+
+# 4. Coach Edge (premium: local switch of seeds/local_dev.sql, AI consent)
+- tapOn: 'Coach.*'
+- extendedWaitUntil:
+    visible: 'Coach Edge'
+    timeout: 10000
+- runFlow:
+    when:
+      visible: 'Passer à premium'
+    commands:
+      - tapOn: 'Passer à premium'
+- runFlow:
+    when:
+      visible: 'Ouvrir les consentements'
+    commands:
+      - tapOn: 'Ouvrir les consentements'
+      - scrollUntilVisible:
+          element: 'Personnalisation par IA'
+          direction: DOWN
+          centerElement: true
+      - tapOn: 'Personnalisation par IA'
+      - tapOn: 'Coach.*'
+- extendedWaitUntil:
+    visible: 'Nouvelle conversation'
+    timeout: 15000
+- tapOn: 'Nouvelle conversation'
+- extendedWaitUntil:
+    visible: 'Coach Edge est une IA.*'
+    timeout: 10000
+- tapOn:
+    id: 'coach-input'
+- inputText: "Je n'ai que 5 minutes aujourd'hui"
+- hideKeyboard
+- tapOn: 'Envoyer'
+- extendedWaitUntil:
+    visible: 'Passer à une version courte de ta journée \(5 min\)'
+    timeout: 20000
+- waitForAnimationToEnd
+- takeScreenshot: site-4-coach

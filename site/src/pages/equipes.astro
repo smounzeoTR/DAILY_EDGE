@@ -1,10 +1,10 @@
 ---
 import Button from '../components/Button.astro';
 import Card from '../components/Card.astro';
-import Placeholder from '../components/Placeholder.astro';
 import Section from '../components/Section.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import SiteHeader from '../components/SiteHeader.astro';
+import TeamDashboardMock from '../components/TeamDashboardMock.astro';
 import { meetingUrl, pricing } from '../config';
 import BaseLayout from '../layouts/BaseLayout.astro';
 
@@ -45,7 +45,7 @@ const minimumYearly = `${pricing.teamsPerUserYearEur * pricing.teamsMinimumUsers
             Prendre rendez-vous
           </Button>
         </div>
-        <Placeholder label="Visuel du tableau de bord anonymisé — à fournir" shape="wide" />
+        <TeamDashboardMock />
       </div>
     </section>
 
