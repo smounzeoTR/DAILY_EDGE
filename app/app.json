@@ -52,6 +52,7 @@
       "expo-sharing",
       "expo-secure-store",
       "./plugins/withSentryXcodeEnv",
+      "./plugins/withAutoBuildNumber",
       "@sentry/react-native"
     ],
     "experiments": {
