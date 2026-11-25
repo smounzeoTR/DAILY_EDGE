@@ -7,6 +7,17 @@ import { join, relative } from 'node:path';
 const dist = new URL('../dist/', import.meta.url).pathname;
 const env = process.env.DEPLOY_ENV || 'local';
 if (!['production', 'recette', 'local'].includes(env)) throw new Error(`DEPLOY_ENV ${env}`);
+// A deployed build must never fall back to the local stack: required https values
+if (env !== 'local') {
+  for (const name of ['PUBLIC_FUNCTIONS_URL', 'SITE_ORIGIN']) {
+    if (!/^https:\/\/\S+$/.test(process.env[name] ?? '')) {
+      console.error(
+        `${name} manquant ou non https pour DEPLOY_ENV=${env} (variables de l'environnement GitHub)`,
+      );
+      process.exit(1);
+    }
+  }
+}
 const origin = (process.env.SITE_ORIGIN || 'https://dailyedge.fr').replace(/\/+$/, '');
 const functionsOrigin = new URL(
   process.env.PUBLIC_FUNCTIONS_URL || 'http://127.0.0.1:54321/functions/v1',
