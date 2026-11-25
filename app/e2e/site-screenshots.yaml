@@ -2,7 +2,7 @@
 # simulator (a Debug build shows the developer menu button: never use it). Not a test: run on demand.
 # Run (from the repository root): npm run seed:demo, Release build installed (see CLAUDE.md), then
 #   maestro test app/e2e/site-screenshots.yaml --test-output-dir site/screenshots
-appId: com.trasenel.daily-edge
+appId: fr.dailyedge.app
 env:
   EMAIL: demo@daily-edge.local
 ---

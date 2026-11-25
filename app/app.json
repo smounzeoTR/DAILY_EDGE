@@ -13,7 +13,7 @@
         "dark": "./assets/images/icon-dark.png",
         "tinted": "./assets/images/icon-tinted.png"
       },
-      "bundleIdentifier": "com.trasenel.daily-edge",
+      "bundleIdentifier": "fr.dailyedge.app",
       "config": {
         "usesNonExemptEncryption": false
       },

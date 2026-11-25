@@ -15,7 +15,7 @@ Les deux projets sont au plan gratuit de Supabase : pas de sauvegarde gérée, e
 ### Comptes et achats
 
 - [ ] Apple Developer Program, au nom de l'entreprise : 99 $ par an et un numéro D-U-N-S. Le nom du vendeur affiché sur l'App Store sera celui du compte.
-- [ ] App Store Connect : créer l'app (`com.trasenel.daily-edge`, nom « Daily Edge », langue principale français) et ajouter les testeurs internes.
+- [ ] App Store Connect : créer l'app (`fr.dailyedge.app`, nom « Daily Edge », langue principale français) et ajouter les testeurs internes.
 - [ ] Expo : compte et organisation. Dans `app/`, lancer `npx eas-cli@latest login` puis `npx eas-cli@latest init` : l'`projectId` est écrit dans `app.json`.
 - [x] Supabase : les deux projets, `daily_edge_staging` (recette) et `daily_edge` (production), en région UE `eu-west-1` (Irlande). Garder le mot de passe de base de chacun.
 - [ ] Anthropic : deux espaces de travail (« daily-edge-recette », « daily-edge-production »), une clé par espace et un plafond de dépense mensuel par espace (§ 4).
