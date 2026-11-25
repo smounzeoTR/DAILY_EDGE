@@ -6,6 +6,7 @@
 # Usage: scripts/dns/dns-compare.sh <server-A> <server-B>
 #   e.g. scripts/dns/dns-compare.sh dns17.ovh.net ada.ns.cloudflare.com
 # TXT answers are normalised (strings split differently by each server are joined).
+# No +norecurse: a public resolver would then answer from its cache only (empty answers).
 set -euo pipefail
 zone=dailyedge.fr
 a=${1:?server A}
@@ -15,7 +16,7 @@ diffs=0
 
 answer() {
   # $1 server, $2 name, $3 type
-  dig +short +norecurse "$2" "$3" "@$1" 2>/dev/null \
+  dig +short "$2" "$3" "@$1" 2>/dev/null \
     | sed -e 's/" "//g' \
     | tr '[:upper:]' '[:lower:]' \
     | sort
