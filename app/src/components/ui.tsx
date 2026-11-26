@@ -71,6 +71,8 @@ export function Screen({
       keyboardShouldPersistTaps="handled"
       // Scrolling closes the keyboard (multi-line fields have no "done" key)
       keyboardDismissMode="on-drag"
+      // iOS: keeps the focused field above the keyboard (e.g. notes at the bottom of a sheet)
+      automaticallyAdjustKeyboardInsets
       showsVerticalScrollIndicator={false}
     >
       {children}
@@ -135,6 +137,7 @@ export function Button({
         <AppText
           variant="bodyStrong"
           tone={variant === 'primary' ? 'onPrimary' : variant === 'ghost' ? 'secondary' : 'primary'}
+          style={styles.buttonLabel}
         >
           {label}
         </AppText>
@@ -233,14 +236,17 @@ const styles = StyleSheet.create({
   content: { flex: 1, paddingHorizontal: spacing.xl },
   scrollContent: { paddingHorizontal: spacing.xl, paddingBottom: spacing.xl, gap: spacing.lg },
   footer: { paddingHorizontal: spacing.xl, paddingBottom: spacing.lg, gap: spacing.sm },
+  // Minimum height: long labels wrap instead of being clipped
   button: {
-    height: sizes.buttonHeight,
+    minHeight: sizes.buttonHeight,
+    paddingVertical: spacing.sm,
     borderRadius: radius.button,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
   },
-  ghost: { height: 44, backgroundColor: 'transparent' },
+  buttonLabel: { textAlign: 'center' },
+  ghost: { minHeight: 44, backgroundColor: 'transparent' },
   disabled: { opacity: 0.45 },
   card: { borderRadius: radius.card, borderWidth: 1, padding: spacing.lg, gap: spacing.sm },
   chip: {
