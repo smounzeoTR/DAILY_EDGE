@@ -178,7 +178,7 @@ Objectif : l'utilisateur sait toujours quoi faire ensuite, sans jamais se sentir
   - jours 2 à 7 : une astuce par jour pour faire découvrir une fonction (version minimale, « Pas le temps », bibliothèque, favoris, valeur actuelle de l'objectif, bilan). Chaque astuce se ferme et ne revient jamais.
   - L'état (visite faite, astuces vues) est enregistré côté serveur pour suivre l'utilisateur d'un appareil à l'autre.
 - **« ? » sur chaque carte** : explication en deux phrases. Page « Comment ça marche » accessible depuis les Réglages.
-- **Mes notes (carnet)** : notes personnelles rattachées à un principe ou à un exercice (« comment je l'applique »). Visibles sur la fiche et dans un onglet « Mes notes » de la Bibliothèque. Privées (RLS), incluses dans l'export, supprimées avec le compte, **jamais envoyées à l'IA** (voir § 3.10, exception de partage explicite).
+- **Mes notes (carnet)** : notes personnelles rattachées à un principe, à un exercice ou à une habitude (idées, ce qui marche pour soi). Visibles sur la fiche (fiche habitude ouverte depuis Aujourd'hui ou Réglages > Habitudes) et dans un onglet « Mes notes » de la Bibliothèque. Privées (RLS), incluses dans l'export, supprimées avec le compte, **jamais envoyées à l'IA** (voir § 3.10, exception de partage explicite).
 - **Étapes célébrées sobrement** : 7 jours de série, semaine 1 terminée, programme terminé, objectif atteint. Animation courte et une phrase, jamais de comparaison avec d'autres utilisateurs, jamais de message négatif.
 - Tous les textes en FR et EN, ton bienveillant.
 
@@ -282,7 +282,7 @@ Précisions du 28 novembre 2026 (lot 8) :
 - **Astuces** : du jour 2 au jour 7, au plus une par jour ; les jours manqués sont rattrapés dans l'ordre. Une astuce vue ne revient jamais.
 - **Étapes célébrées** : 7 jours de série, semaine 1 (jour de programme 8 à 14), programme terminé (depuis 7 jours au plus), objectif atteint (`goals.achieved_at` dans les 7 derniers jours). Chacune n'est célébrée qu'une fois ; une étape atteinte depuis longtemps est enregistrée sans être montrée.
 - **État du guide** côté serveur : table `user_guide_state` (visite finie ou passée, astuces vues, étapes célébrées), lecture seule pour l'utilisateur, écrite par `finish_guided_tour`, `mark_tip_seen` et `mark_milestone_celebrated` (listes fermées, ajout seulement : rien n'est jamais réécrit).
-- **Mes notes** : table `notes`, une note par principe ou exercice, 2 000 caractères au plus ; carte « Mon carnet » sur les fiches, onglet « Mes notes » dans la Bibliothèque. Jamais lues par l'IA (cas ajouté au test de minimisation) ; « Partager avec le coach » au lot 9.
+- **Mes notes** : table `notes`, une note par principe, exercice ou habitude, 2 000 caractères au plus ; carte « Mon carnet » sur les fiches, onglet « Mes notes » dans la Bibliothèque. Jamais lues par l'IA (cas ajouté au test de minimisation) ; « Partager avec le coach » au lot 9.
 - Le défilement ferme le clavier (champs de texte sur plusieurs lignes).
 
 ## 4. Contenu
@@ -451,7 +451,7 @@ Moteur : `engine_decisions` : id, user_id, plan_id, rules_fired[], candidates (j
 
 Lot 8 :
 
-- `notes` : id, user_id, entity_type (principle / exercise), entity_id (vérifié par trigger), body (1 à 2 000 caractères), created_at, updated_at ; unique (user_id, entity_type, entity_id) ; CRUD sur ses lignes, seul le texte est modifiable.
+- `notes` : id, user_id, entity_type (principle / exercise / habit), entity_id (vérifié par trigger ; une habitude doit appartenir à l'auteur, sa note est supprimée avec elle), body (1 à 2 000 caractères), created_at, updated_at ; unique (user_id, entity_type, entity_id) ; CRUD sur ses lignes, seul le texte est modifiable.
 - `user_guide_state` : user_id, tour_finished_at, tour_skipped, tips_seen (jsonb : astuce → date), milestones (jsonb : étape → date), updated_at ; lecture de sa ligne, écriture par RPC uniquement.
 - `daily_plans.principle_read_at` (`mark_principle_read`) et `goals.achieved_at` (trigger au passage à « atteint »).
 

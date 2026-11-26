@@ -1,5 +1,6 @@
 # Lot 8: new account -> day-1 guided tour stopped halfway ("Passer") -> the 4 journey steps filled
-# through the day -> a note on an exercise found again in "Mes notes"; then the demo account
+# through the day -> a note on an exercise, then on a habit, found again in "Mes notes"; then
+# the demo account
 # (npm run seed:demo): no tour (onboarded more than 7 days ago) and the Progress tab badge while
 # the weekly review waits.
 # Run: npm run seed:demo && maestro test app/e2e/lot8-guide-notes.yaml -e APP_URL=exp://127.0.0.1:8081
@@ -175,6 +176,37 @@ appId: host.exp.Exponent
     visible: 'Exercice : Écrire son objectif principal\. Je le relis chaque lundi matin\.'
     timeout: 10000
 - takeScreenshot: e2e-l8-07-my-notes
+
+# ---- Notebook of a habit, opened from Today, found again in "Mes notes" ----------------
+- tapOn: "Aujourd'hui.*"
+- scrollUntilVisible:
+    element: 'Ouvrir le carnet : .*'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Ouvrir le carnet : .*'
+- assertVisible: "Tes idées, ce que tu remarques, ce qui t'aide à tenir\\."
+- tapOn:
+    id: 'note-input'
+- inputText: 'Idée : un podcast sur la lecture.'
+- runFlow: subflows/dismiss-keyboard-tip.yaml
+- scrollUntilVisible:
+    element: 'Enregistrer la note'
+    direction: DOWN
+    centerElement: true
+- tapOn: 'Enregistrer la note'
+- extendedWaitUntil:
+    visible: 'Note enregistrée\.'
+    timeout: 10000
+- takeScreenshot: e2e-l8-07b-habit-note
+- scrollUntilVisible:
+    element: 'Retour'
+    direction: DOWN
+- tapOn: 'Retour'
+- tapOn: 'Bibliothèque.*'
+- tapOn: 'Mes notes'
+- extendedWaitUntil:
+    visible: 'Habitude : .*Idée : un podcast sur la lecture\.'
+    timeout: 10000
 
 # ---- Demo account: no tour, Progress badge while the review waits ---------------------
 - runFlow:

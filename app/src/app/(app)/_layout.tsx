@@ -23,6 +23,7 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="exercise/[id]" />
       <Stack.Screen name="principle/[id]" />
+      <Stack.Screen name="habit/[id]" />
       <Stack.Screen name="review/[id]" />
       <Stack.Screen name="settings/goal" />
       <Stack.Screen name="settings/habits" />

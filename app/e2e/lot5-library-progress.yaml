@@ -1,4 +1,4 @@
-# Lot 5 end-to-end: library search without accents, favorite, "Add to my day",
+# Lot 5 end-to-end: library search without accents, favorite, "Do this exercise today",
 # added exercise done on Today, Progress updated (streak 1 day, 7-day rate 100 %).
 # Run: maestro test app/e2e/lot5-library-progress.yaml -e APP_URL=exp://127.0.0.1:8081
 appId: host.exp.Exponent
@@ -33,12 +33,17 @@ appId: host.exp.Exponent
 # Exercise sheet, add to today
 - tapOn: 'Ce que je donne en échange'
 - assertVisible: 'Principes liés'
-- tapOn: 'Ajouter à ma journée'
+- assertVisible: "Il s'ajoute à ton plan du jour.*"
+- tapOn: "Faire cet exercice aujourd'hui"
 - extendedWaitUntil:
     visible: 'Ajouté à ta journée\.'
     timeout: 20000
+- assertVisible: 'Voir ma journée'
 - takeScreenshot: e2e-l5-02-added
-- tapOn: 'Ajouter à ma journée'
+# Reopened later: already in the plan
+- tapOn: 'Retour'
+- tapOn: 'Ce que je donne en échange'
+- tapOn: "Faire cet exercice aujourd'hui"
 - extendedWaitUntil:
     visible: 'Cet exercice est déjà dans ta journée\.'
     timeout: 10000

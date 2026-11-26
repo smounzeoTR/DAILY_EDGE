@@ -459,7 +459,7 @@ export function useAllHabits(userId: string) {
         supabase
           .from('user_habits')
           .select(
-            'id, title, cue, active, simplified, template_id, created_at, template:habit_templates(title_fr, title_en, default_cue_fr, default_cue_en, minimal_version_fr, minimal_version_en, domain)',
+            'id, title, cue, minimal_version, active, simplified, template_id, created_at, template:habit_templates(title_fr, title_en, default_cue_fr, default_cue_en, minimal_version_fr, minimal_version_en, domain)',
           )
           .order('created_at'),
       ),
@@ -540,7 +540,7 @@ export function useLastAchievedGoal(userId: string) {
   });
 }
 
-export type NoteEntity = 'principle' | 'exercise';
+export type NoteEntity = 'principle' | 'exercise' | 'habit';
 export const notesKey = (userId: string) => ['notes', userId] as const;
 
 export function useNotes(userId: string) {
@@ -557,7 +557,7 @@ export function useNotes(userId: string) {
   });
 }
 
-// One note per principle or exercise: update if it exists, insert otherwise
+// One note per principle, exercise or habit: update if it exists, insert otherwise
 export async function saveNote(
   existingId: string | null,
   entityType: NoteEntity,

@@ -1,4 +1,5 @@
-// Habit settings: activate or deactivate (6 active at most), edit the cue, add from templates.
+// Habit settings: activate or deactivate (6 active at most), edit the cue, open the notebook,
+// add from templates.
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -121,6 +122,12 @@ export default function HabitSettings() {
                 maxLength={120}
               />
             ) : null}
+            <Button
+              label={t('notes.open')}
+              accessibilityLabel={t('notes.openFor', { title })}
+              variant="secondary"
+              onPress={() => router.push({ pathname: '/habit/[id]', params: { id: habit.id } })}
+            />
           </Card>
         );
       })}

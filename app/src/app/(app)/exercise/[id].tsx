@@ -1,5 +1,6 @@
 // Exercise sheet: instructions, duration, energy, difficulty, linked principles and sources,
-// favorite, "Add to my day" (add_exercise_to_today then generate-plan).
+// favorite, "Do this exercise today" (add_exercise_to_today then generate-plan), then a link to
+// Today.
 import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -92,7 +93,20 @@ export default function ExerciseSheet() {
       footer={
         <>
           {message ? <AppText tone={message.ok ? 'link' : 'danger'}>{message.text}</AppText> : null}
-          <Button label={t('library.addToDay')} onPress={() => void add()} loading={adding} />
+          {message?.ok ? (
+            <Button
+              label={t('library.seeToday')}
+              variant="secondary"
+              onPress={() => router.navigate('/today')}
+            />
+          ) : (
+            <>
+              <AppText variant="caption" tone="secondary">
+                {t('library.addToDayHint')}
+              </AppText>
+              <Button label={t('library.addToDay')} onPress={() => void add()} loading={adding} />
+            </>
+          )}
           <Button label={t('common.back')} variant="ghost" onPress={() => router.back()} />
         </>
       }

@@ -198,6 +198,8 @@
     "habitsTitle": "Your habits",
     "minimalFor": "Minimal version: {{title}}",
     "minimalShort": "Minimal version: {{text}}",
+    "habitNotFound": "This habit no longer exists.",
+    "habitCue": "Your cue: {{cue}}",
     "habitDoneMinimal": "Done in minimal version",
     "habitDoneWeek": "Done this week",
     "habitDoneTwoWeeks": "Done over these 2 weeks",
@@ -336,8 +338,10 @@
     "linkedPrinciples": "Linked principles",
     "linkedExercises": "Linked exercises",
     "sources": "Sources",
-    "addToDay": "Add to my day",
+    "addToDay": "Do this exercise today",
+    "addToDayHint": "It's added to today's plan, in the Today tab.",
     "added": "Added to your day.",
+    "seeToday": "See my day",
     "errors": {
       "alreadyInPlan": "This exercise is already in your day.",
       "dailyLimit": "You already added 3 exercises today: that's plenty!",
@@ -547,8 +551,9 @@
   },
   "notes": {
     "title": "My notebook",
-    "hintExercise": "How I apply it: your cues, what works for you.",
-    "hintPrinciple": "How I apply this principle in my life.",
+    "hintExercise": "What you did, what works for you.",
+    "hintPrinciple": "Your ideas, your examples, what this principle inspires in you.",
+    "hintHabit": "Your ideas, what you notice, what helps you stick with it.",
     "placeholder": "Write your note…",
     "length": "{{n}} / {{max}} characters",
     "save": "Save the note",
@@ -559,11 +564,14 @@
     "keep": "Keep",
     "deleted": "Note deleted.",
     "private": "Private: only you can see it, never sent to the AI.",
-    "empty": "No note yet. Open an exercise or a principle to write how you apply it.",
+    "empty": "No note yet. Open an exercise, a principle or a habit to write down your ideas.",
     "total_one": "{{count}} note",
     "total_other": "{{count}} notes",
     "exercise": "Exercise",
-    "principle": "Principle"
+    "principle": "Principle",
+    "habit": "Habit",
+    "open": "My notebook",
+    "openFor": "Open the notebook: {{title}}"
   },
   "guide": {
     "journey": {
@@ -711,7 +719,7 @@
       },
       "notes": {
         "title": "Your notebook",
-        "body": "On each exercise or principle, write how you apply it. Your notes stay private and are never sent to the AI."
+        "body": "On each exercise, principle or habit, write down your ideas and what works for you. Your notes stay private and are never sent to the AI."
       }
     }
   },

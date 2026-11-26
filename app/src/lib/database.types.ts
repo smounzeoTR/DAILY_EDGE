@@ -51,6 +51,22 @@ export type Database = {
         };
         Relationships: [];
       };
+      altcha_used_challenges: {
+        Row: {
+          challenge_id: string;
+          expires_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          challenge_id: string;
+          expires_at: string;
+        };
+        Update: {
+          challenge_id?: string;
+          expires_at?: string;
+        };
+        Relationships: [];
+      };
       app_settings: {
         Row: {
           key: string;
@@ -836,7 +852,7 @@ export type Database = {
           body: string;
           created_at: string;
           entity_id: string;
-          entity_type: Database['public']['Enums']['favorite_entity'];
+          entity_type: Database['public']['Enums']['note_entity'];
           id: string;
           updated_at: string;
           user_id: string;
@@ -846,7 +862,7 @@ export type Database = {
           body: string;
           created_at?: string;
           entity_id: string;
-          entity_type: Database['public']['Enums']['favorite_entity'];
+          entity_type: Database['public']['Enums']['note_entity'];
           id?: string;
           updated_at?: string;
           user_id?: string;
@@ -855,7 +871,7 @@ export type Database = {
           body?: string;
           created_at?: string;
           entity_id?: string;
-          entity_type?: Database['public']['Enums']['favorite_entity'];
+          entity_type?: Database['public']['Enums']['note_entity'];
           id?: string;
           updated_at?: string;
           user_id?: string;
@@ -1293,6 +1309,47 @@ export type Database = {
         };
         Relationships: [];
       };
+      rate_limit_hits: {
+        Row: {
+          action: string;
+          created_at: string;
+          id: number;
+          ip_hash: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          action: string;
+          created_at?: string;
+          id?: never;
+          ip_hash: string;
+        };
+        Update: {
+          action?: string;
+          created_at?: string;
+          id?: never;
+          ip_hash?: string;
+        };
+        Relationships: [];
+      };
+      rate_limit_salts: {
+        Row: {
+          created_at: string;
+          day: string;
+          salt: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          day: string;
+          salt?: string;
+        };
+        Update: {
+          created_at?: string;
+          day?: string;
+          salt?: string;
+        };
+        Relationships: [];
+      };
       sources: {
         Row: {
           author: string;
@@ -1437,6 +1494,33 @@ export type Database = {
           },
         ];
       };
+      waitlist_email_sends: {
+        Row: {
+          entry_id: string;
+          id: number;
+          sent_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          entry_id: string;
+          id?: never;
+          sent_at?: string;
+        };
+        Update: {
+          entry_id?: string;
+          id?: never;
+          sent_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'waitlist_email_sends_entry_id_fkey';
+            columns: ['entry_id'];
+            isOneToOne: false;
+            referencedRelation: 'waitlist_entries';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       waitlist_entries: {
         Row: {
           confirmed_at: string | null;
@@ -1527,6 +1611,111 @@ export type Database = {
             columns: ['entry_id'];
             isOneToOne: false;
             referencedRelation: 'waitlist_entries';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      web_diagnostic_tokens: {
+        Row: {
+          created_at: string;
+          diagnostic_id: string;
+          expires_at: string;
+          token_hash: string;
+          used_at: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          diagnostic_id: string;
+          expires_at: string;
+          token_hash: string;
+          used_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          diagnostic_id?: string;
+          expires_at?: string;
+          token_hash?: string;
+          used_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'web_diagnostic_tokens_diagnostic_id_fkey';
+            columns: ['diagnostic_id'];
+            isOneToOne: false;
+            referencedRelation: 'web_diagnostics';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      web_diagnostics: {
+        Row: {
+          answers: NonNullable<Json>;
+          claimed_by_user_id: string | null;
+          consent_marketing: boolean;
+          created_at: string;
+          email: string;
+          expires_at: string;
+          id: string;
+          landing_path: string | null;
+          locale: string;
+          marketing_confirmed_at: string | null;
+          profile: string;
+          recommended_program_id: string;
+          referral_code: string | null;
+          result_email_sent_at: string | null;
+          updated_at: string;
+          utm_campaign: string | null;
+          utm_medium: string | null;
+          utm_source: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          answers: NonNullable<Json>;
+          claimed_by_user_id?: string | null;
+          consent_marketing?: boolean;
+          created_at?: string;
+          email: string;
+          expires_at?: string;
+          id?: string;
+          landing_path?: string | null;
+          locale?: string;
+          marketing_confirmed_at?: string | null;
+          profile: string;
+          recommended_program_id: string;
+          referral_code?: string | null;
+          result_email_sent_at?: string | null;
+          updated_at?: string;
+          utm_campaign?: string | null;
+          utm_medium?: string | null;
+          utm_source?: string | null;
+        };
+        Update: {
+          answers?: NonNullable<Json>;
+          claimed_by_user_id?: string | null;
+          consent_marketing?: boolean;
+          created_at?: string;
+          email?: string;
+          expires_at?: string;
+          id?: string;
+          landing_path?: string | null;
+          locale?: string;
+          marketing_confirmed_at?: string | null;
+          profile?: string;
+          recommended_program_id?: string;
+          referral_code?: string | null;
+          result_email_sent_at?: string | null;
+          updated_at?: string;
+          utm_campaign?: string | null;
+          utm_medium?: string | null;
+          utm_source?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'web_diagnostics_recommended_program_id_fkey';
+            columns: ['recommended_program_id'];
+            isOneToOne: false;
+            referencedRelation: 'programs';
             referencedColumns: ['id'];
           },
         ];
@@ -1664,6 +1853,10 @@ export type Database = {
         }[];
       };
       admin_revoke_premium: { Args: { p_email: string }; Returns: undefined };
+      altcha_mark_used: {
+        Args: { p_challenge_id: string; p_expires_at: string };
+        Returns: boolean;
+      };
       answer_review_proposal: {
         Args: { p_accept: boolean; p_index: number; p_review_id: string };
         Returns: Json;
@@ -1709,6 +1902,7 @@ export type Database = {
       };
       confirm_adult_age: { Args: Record<PropertyKey, never>; Returns: string };
       confirm_assistant_action: { Args: { p_action_id: string }; Returns: Json };
+      confirm_diagnostic_marketing: { Args: { p_token_hash: string }; Returns: boolean };
       confirm_waitlist_entry: {
         Args: { p_token_hash: string };
         Returns: {
@@ -1789,11 +1983,14 @@ export type Database = {
       my_done_days: { Args: Record<PropertyKey, never>; Returns: string[] };
       purge_assistant_history: { Args: { p_now?: string }; Returns: number };
       purge_deleted_accounts: { Args: { p_now: string }; Returns: number };
+      purge_site_abuse_data: { Args: Record<PropertyKey, never>; Returns: undefined };
+      purge_web_diagnostics: { Args: Record<PropertyKey, never>; Returns: number };
       recompute_waitlist_ranks: { Args: Record<PropertyKey, never>; Returns: undefined };
       record_batch_run: {
         Args: { p_ok: boolean; p_started_at: string; p_summary: Json };
         Returns: undefined;
       };
+      release_web_diagnostic_email: { Args: { p_diagnostic_id: string }; Returns: undefined };
       replace_active_goal: {
         Args: {
           p_deadline?: string;
@@ -1811,6 +2008,27 @@ export type Database = {
         Args: { p_date: string; p_decision: Json; p_plan: Json; p_user_id: string };
         Returns: Json;
       };
+      save_web_diagnostic: {
+        Args: {
+          p_answers: Json;
+          p_consent_marketing: boolean;
+          p_email: string;
+          p_landing_path: string;
+          p_locale: string;
+          p_profile: string;
+          p_program_id: string;
+          p_referral_code: string;
+          p_token_hash: string;
+          p_utm_campaign: string;
+          p_utm_medium: string;
+          p_utm_source: string;
+        };
+        Returns: {
+          diagnostic_id: string;
+          marketing_pending: boolean;
+          send_email: boolean;
+        }[];
+      };
       save_weekly_review: {
         Args: { p_proposals: Json; p_stats: Json; p_user_id: string; p_week_start: string };
         Returns: Json;
@@ -1825,6 +2043,10 @@ export type Database = {
         Returns: Json;
       };
       shorten_today_plan: { Args: { p_minutes?: number }; Returns: Json };
+      site_rate_limit: {
+        Args: { p_action: string; p_ip: string; p_limits: Json };
+        Returns: boolean;
+      };
       swap_candidates: {
         Args: { p_date: string; p_user_id: string };
         Returns: {
@@ -1862,6 +2084,7 @@ export type Database = {
         Args: { p_confirmed_referrals: number; p_position: number };
         Returns: number;
       };
+      waitlist_reserve_email: { Args: { p_entry_id: string }; Returns: boolean };
     };
     Enums: {
       blocker:
@@ -1884,6 +2107,7 @@ export type Database = {
       llm_feature: 'plan' | 'review' | 'assistant';
       llm_outcome: 'success' | 'fallback' | 'cache_hit' | 'quota_exceeded';
       motivation_style: 'challenge' | 'consistency' | 'meaning' | 'recognition';
+      note_entity: 'principle' | 'exercise' | 'habit';
       persona: 'entrepreneur' | 'employee' | 'career_changer' | 'financial_beginner';
       plan_item_origin: 'engine' | 'user';
       plan_item_status: 'todo' | 'done' | 'skipped' | 'too_hard';
@@ -2029,6 +2253,7 @@ export const Constants = {
       llm_feature: ['plan', 'review', 'assistant'],
       llm_outcome: ['success', 'fallback', 'cache_hit', 'quota_exceeded'],
       motivation_style: ['challenge', 'consistency', 'meaning', 'recognition'],
+      note_entity: ['principle', 'exercise', 'habit'],
       persona: ['entrepreneur', 'employee', 'career_changer', 'financial_beginner'],
       plan_item_origin: ['engine', 'user'],
       plan_item_status: ['todo', 'done', 'skipped', 'too_hard'],

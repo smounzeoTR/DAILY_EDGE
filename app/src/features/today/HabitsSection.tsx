@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react';
-// Habits of the day, filtered by frequency; one tap to check, one tap for the minimal version.
+// Habits of the day, filtered by frequency; one tap to check, one tap for the minimal version,
+// one tap for the habit's notebook.
+import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
@@ -138,19 +140,33 @@ export function HabitsSection({
                 ) : null}
               </View>
             </Pressable>
-            {!doneToday && minimal && !habit.simplified ? (
+            <View style={styles.pills}>
+              {!doneToday && minimal && !habit.simplified ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('today.minimalFor', { title })}
+                  hitSlop={6}
+                  onPress={() => onAction({ habitId: habit.id, action: 'minimal' })}
+                  style={[styles.pill, { borderColor: colors.border }]}
+                >
+                  <AppText variant="caption" tone="link">
+                    {t('today.minimalShort', { text: minimal })}
+                  </AppText>
+                </Pressable>
+              ) : null}
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={t('today.minimalFor', { title })}
+                accessibilityLabel={t('notes.openFor', { title })}
                 hitSlop={6}
-                onPress={() => onAction({ habitId: habit.id, action: 'minimal' })}
-                style={[styles.minimal, { borderColor: colors.border }]}
+                onPress={() => router.push({ pathname: '/habit/[id]', params: { id: habit.id } })}
+                style={[styles.pill, { borderColor: colors.border }]}
+                testID={`habit-notes-${habit.id}`}
               >
                 <AppText variant="caption" tone="link">
-                  {t('today.minimalShort', { text: minimal })}
+                  {t('notes.open')}
                 </AppText>
               </Pressable>
-            ) : null}
+            </View>
           </View>
         );
       })}
@@ -165,8 +181,8 @@ const styles = StyleSheet.create({
   main: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   box: { width: 26, height: 26, borderRadius: 8, borderWidth: 2 },
   flex: { flex: 1, gap: 2 },
-  minimal: {
-    alignSelf: 'flex-start',
+  pills: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  pill: {
     borderWidth: 1,
     borderRadius: radius.badge,
     paddingHorizontal: spacing.sm,

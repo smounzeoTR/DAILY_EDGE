@@ -1,4 +1,4 @@
-// "Mon carnet" on a principle or exercise sheet: one private note per element (2 000 characters
+// "Mon carnet" on a principle, exercise or habit sheet: one private note per element (2 000 characters
 // at most), never sent to the AI.
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
@@ -12,6 +12,12 @@ import { deleteNote, notesKey, saveNote, useNotes, type NoteEntity } from '@/lib
 import { spacing } from '@/theme';
 
 export const NOTE_MAX_LENGTH = 2000;
+
+const HINTS = {
+  exercise: 'notes.hintExercise',
+  principle: 'notes.hintPrinciple',
+  habit: 'notes.hintHabit',
+} as const satisfies Record<NoteEntity, string>;
 
 export function NoteCard({ entityType, entityId }: { entityType: NoteEntity; entityId: string }) {
   const { t } = useTranslation();
@@ -69,7 +75,7 @@ export function NoteCard({ entityType, entityId }: { entityType: NoteEntity; ent
     <Card>
       <AppText variant="bodyStrong">{t('notes.title')}</AppText>
       <AppText variant="caption" tone="secondary">
-        {t(entityType === 'exercise' ? 'notes.hintExercise' : 'notes.hintPrinciple')}
+        {t(HINTS[entityType])}
       </AppText>
       <TextField
         value={value}

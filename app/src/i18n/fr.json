@@ -198,6 +198,8 @@
     "habitsTitle": "Tes habitudes",
     "minimalFor": "Version minimale : {{title}}",
     "minimalShort": "Version minimale : {{text}}",
+    "habitNotFound": "Cette habitude n'existe plus.",
+    "habitCue": "Ton signal : {{cue}}",
     "habitDoneMinimal": "Faite en version minimale",
     "habitDoneWeek": "Faite cette semaine",
     "habitDoneTwoWeeks": "Faite sur ces 2 semaines",
@@ -336,8 +338,10 @@
     "linkedPrinciples": "Principes liés",
     "linkedExercises": "Exercices liés",
     "sources": "Sources",
-    "addToDay": "Ajouter à ma journée",
+    "addToDay": "Faire cet exercice aujourd'hui",
+    "addToDayHint": "Il s'ajoute à ton plan du jour, dans l'onglet Aujourd'hui.",
     "added": "Ajouté à ta journée.",
+    "seeToday": "Voir ma journée",
     "errors": {
       "alreadyInPlan": "Cet exercice est déjà dans ta journée.",
       "dailyLimit": "Tu as déjà ajouté 3 exercices aujourd'hui : c'est largement suffisant !",
@@ -547,8 +551,9 @@
   },
   "notes": {
     "title": "Mon carnet",
-    "hintExercise": "Comment je l'applique : tes repères, ce qui marche pour toi.",
-    "hintPrinciple": "Comment j'applique ce principe dans ma vie.",
+    "hintExercise": "Ce que tu as fait, ce qui marche pour toi.",
+    "hintPrinciple": "Tes idées, tes exemples, ce que ce principe t'inspire.",
+    "hintHabit": "Tes idées, ce que tu remarques, ce qui t'aide à tenir.",
     "placeholder": "Écris ta note…",
     "length": "{{n}} / {{max}} caractères",
     "save": "Enregistrer la note",
@@ -559,11 +564,14 @@
     "keep": "Garder",
     "deleted": "Note supprimée.",
     "private": "Privée : visible par toi seul, jamais envoyée à l'IA.",
-    "empty": "Aucune note pour l'instant. Ouvre un exercice ou un principe pour écrire comment tu l'appliques.",
+    "empty": "Aucune note pour l'instant. Ouvre un exercice, un principe ou une habitude pour écrire tes idées.",
     "total_one": "{{count}} note",
     "total_other": "{{count}} notes",
     "exercise": "Exercice",
-    "principle": "Principe"
+    "principle": "Principe",
+    "habit": "Habitude",
+    "open": "Mon carnet",
+    "openFor": "Ouvrir le carnet : {{title}}"
   },
   "guide": {
     "journey": {
@@ -711,7 +719,7 @@
       },
       "notes": {
         "title": "Ton carnet",
-        "body": "Sur chaque exercice ou principe, écris comment tu l'appliques. Tes notes restent privées et ne sont jamais envoyées à l'IA."
+        "body": "Sur chaque exercice, principe ou habitude, écris tes idées et ce qui marche pour toi. Tes notes restent privées et ne sont jamais envoyées à l'IA."
       }
     }
   },

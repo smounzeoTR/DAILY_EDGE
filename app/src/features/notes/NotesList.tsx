@@ -1,13 +1,19 @@
-// "Mes notes" in the Library: every note with its principle or exercise, newest first.
+// "Mes notes" in the Library: every note with its principle, exercise or habit, newest first.
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { Pressable } from 'react-native';
 
 import { AppText, Card } from '@/components/ui';
 import { resolveLanguage } from '@/i18n/language';
-import { localized } from '@/i18n/localize';
+import { habitText, localized } from '@/i18n/localize';
 import { useUserId } from '@/lib/auth/AuthProvider';
-import { useLibrary, useNotes } from '@/lib/queries';
+import { useAllHabits, useLibrary, useNotes } from '@/lib/queries';
+
+const SHEETS = {
+  exercise: '/exercise/[id]',
+  principle: '/principle/[id]',
+  habit: '/habit/[id]',
+} as const;
 
 export function NotesList() {
   const { t, i18n } = useTranslation();
@@ -15,7 +21,9 @@ export function NotesList() {
   const userId = useUserId();
   const notes = useNotes(userId);
   const library = useLibrary();
-  if (!notes.data || !library.data) return null;
+  const habits = useAllHabits(userId);
+  const allHabits = habits.data;
+  if (!notes.data || !library.data || !allHabits) return null;
   if (notes.data.length === 0) {
     return <AppText tone="secondary">{t('notes.empty')}</AppText>;
   }
@@ -25,21 +33,25 @@ export function NotesList() {
         {t('notes.total', { count: notes.data.length })}
       </AppText>
       {notes.data.map((note) => {
-        const element =
-          note.entity_type === 'exercise'
-            ? library.data.exercises.find((e) => e.id === note.entity_id)
-            : library.data.principles.find((p) => p.id === note.entity_id);
-        const title = element ? localized(element, 'title', language) : note.entity_id;
-        const kind = t(note.entity_type === 'exercise' ? 'notes.exercise' : 'notes.principle');
+        let title = note.entity_id;
+        if (note.entity_type === 'habit') {
+          const habit = allHabits.find((h) => h.id === note.entity_id);
+          if (habit) title = habitText(habit.title, habit.template, 'title', language);
+        } else {
+          const element =
+            note.entity_type === 'exercise'
+              ? library.data.exercises.find((e) => e.id === note.entity_id)
+              : library.data.principles.find((p) => p.id === note.entity_id);
+          if (element) title = localized(element, 'title', language);
+        }
+        const kind = t(`notes.${note.entity_type}`);
         return (
           <Pressable
             key={note.id}
             accessibilityRole="button"
             accessibilityLabel={`${kind} : ${title}. ${note.body}`}
             onPress={() =>
-              note.entity_type === 'exercise'
-                ? router.push({ pathname: '/exercise/[id]', params: { id: note.entity_id } })
-                : router.push({ pathname: '/principle/[id]', params: { id: note.entity_id } })
+              router.push({ pathname: SHEETS[note.entity_type], params: { id: note.entity_id } })
             }
           >
             <Card>
